@@ -3,7 +3,7 @@
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Version''|1.0|
 |''Description''|Displays how TiddlyWiki parses macro parameters.|
-|''Source''|http://paramparser.tiddlyspace.com#ParamParserMacro|
+|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ParamParserMacro.js|
 |''~CoreVersion''|2.6.1|
 |''Documentation''|See below...|
 ''Note:'' Parameter evaluation may be turned off in a TiddlySpace!
