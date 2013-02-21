@@ -6,6 +6,7 @@
 |''Version''|1.0|
 |''CoreVersion''|2.6.1|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/IconTabsPlugin.js|
+|''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 !Code
 ***/
 //{{{
