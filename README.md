@@ -1,7 +1,7 @@
 TiddlyWikiPlugins
 =================
 
-TiddlyWiki Plugins by Tobias Beer<br>
+Plugins for TiddlyWiki by Tobias Beer<br>
 http://tobibeer.tiddlyspace.com
 
 Plugins
