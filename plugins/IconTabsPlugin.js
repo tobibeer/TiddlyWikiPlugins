@@ -68,7 +68,7 @@
             if (icons > 0) {
                 $t.html(
                 '<img src="' + path.format([tab]) +
-                    '" class="' + cfg.defaultIconClass + (txt ? ' icon' + txt.trim().replace(/(\s|\W)/mg, '_') : '' ) +
+                    '" class="' + cfg.defaultIconClass + (txt ? ' icon' + txt.trim().replace(/(\s|\W)/mg, '_') : '') +
                 '"/>');
             }
             if (arrSpacer.contains(txt)) {
