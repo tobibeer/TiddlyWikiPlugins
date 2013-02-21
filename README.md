@@ -5,10 +5,10 @@ TiddlyWikiPlugins
 Plugins for TiddlyWiki by Tobias Beer<br>
 http://tobibeer.tiddlyspace.com
 
-Plugins
+[Plugins](https://github.com/tobibeer/TiddlyWikiPlugins/tree/master/plugins)
 =======
 This folder contains the plugins in a standard and — if available — possibly a minified version.
 
-Resources
+[Resources](https://github.com/tobibeer/TiddlyWikiPlugins/tree/master/resources)
 =========
 Contains further resources for plugins, e.g. images.
