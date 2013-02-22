@@ -84,6 +84,7 @@
         '/*{{{*/\n' +
         '.tabIcon {\n' +
         '   width:28px;\n' +
+        '   height:28px;\n' +
         '   margin:3px 3px 0 3px;\n' +
         '}\n' +
         '.iconTabs {\n' +
@@ -98,7 +99,7 @@
         '.iconTabs .tab {\n' +
         '   outline: 0;\n' +
         '   margin: 0;\n' +
-        '   padding: 25px 0 1px 0;\n' +
+        '   padding: 22px 0 1px 0;\n' +
         '   border: 1px solid transparent;\n' +
         '}\n' +
         '.iconTabs .tabUnselected {\n' +
