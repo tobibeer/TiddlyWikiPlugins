@@ -2,7 +2,7 @@
 |''Name''|NameSpacePlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Documentation''|http://namespace.tiddlyspace.com|
-|''Version''|0.5.0 beta|
+|''Version''|0.5.1 beta|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/NamesSpacePlugin.js|
 |''~CoreVersion''|2.6.5|
 ***/
@@ -411,7 +411,7 @@
                     macro.createListTitle(pop, (l > 0 ? 'NameSpace' : 'Category' ), infoFor, ns_cat);
 
                     //fetch info, for category only once
-                    info = cat && l > 0 ? '' : macro.getInfo(infoFor);
+                    info = l > 0 && tids[0].length ? '' : macro.getInfo(infoFor);
                     //info exists?
                     if (info) {
                         //wikify info first
