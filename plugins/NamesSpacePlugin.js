@@ -2,7 +2,7 @@
 |''Name''|NameSpacePlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Documentation''|http://namespace.tiddlyspace.com|
-|''Version''|0.5.1 beta|
+|''Version''|0.5.5 beta|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/NamesSpacePlugin.js|
 |''~CoreVersion''|2.6.5|
 ***/
@@ -18,13 +18,13 @@
         if (params.contains('namespace')) {
             //call namespace macro
             wikify('<<ns [[' + tiddler.title + ']] ' + paramString + '>>', place);
-        //no namespace
+            //no namespace
         } else {
             //use default view handler
             return config.macros.view.handler_NameSpace.apply(this, arguments);
         }
     }
-    
+
     /* the actual namespace macro
     - splits tiddler titles by namespace character
     - also renders the namespace element popups */
@@ -38,7 +38,7 @@
               ::SomeSlice   => a slice   of the tiddler
               ??SomeField   => a field   of the tiddler */
             //the link symbol for the info
-            lnkInfo:'i',
+            lnkInfo: 'i',
             lnkInfoTooltip: 'info for \'%0\'',
             //the last part of the namespace
             btnLast: '»',
@@ -59,27 +59,28 @@
             txtTitleNameSpace: '%0 ...',
             //element title
             txtTitleElement: '[%0]',
-            //new category item button
-            btnAddCategoryItem:
+            //localization for add button
+            btnAddLabelInline: '+',
+            btnAddLabelCategory: 'Add new category item...',
+            btnAddLabelNameSpace: 'Add new item...',
+            btnAddTooltipCategory: 'Add new category item under \'%0\'...',
+            btnAddTooltipNameSpace: 'Add new namespace item under \'%0\'...',
+            btnAddTitleCategory: 'New item for category %0',
+            btnAddTitleNameSpace: '%0:NewItemTitle',
+            //button template to add item
+            btnAddItem:
                 '<<newTiddler ' +
-                    'label:"» Add new category item..." '+
-                    'prompt:"add new item for category \'%0\'" ' +
-                    'title:"New item for category %0" ' +
-                    'fields:\'ns_cat:[[%0]]\''+
+                    'title:"%0" ' +
+                    'label:"%1" ' +
+                    'prompt:"%2" ' +
+                    'fields:"%3" ' +
                 '>>',
-            //new namespace item button
-            btnAddNameSpaceItem:
-                '<<newTiddler ' +
-                    'label:"» Add new item..." ' +
-                    'prompt:"add new item under namespace \'%0\'" ' +
-                    'title:"%0:NewItemTitle"'+
-                '>>'
         },
 
         /* the namespace macro handler */
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
 
-            var aNS = [], cat = '', d, depth, el, i, item, n, l, len, ld, list = '', prev, prevnew, prev,
+            var aNS = [], cat = '', d, depth, el, i, item, n, l, len, ld, list = '', prev, prevnew, prev, what,
                 //reference to defaults
                 def = this.defaults,
                 //parse paramString
@@ -94,7 +95,7 @@
                 el = getParam(p, 'element', tid),
                 //get delimiter
                 sep = getParam(p, 'separator', def.separator);
-                        
+
             //no tid?
             if (!tid) {
                 //find containing tid
@@ -129,9 +130,9 @@
                         ns: ns,
                         element: el,
                         category: cat,
-                        sep : sep
+                        sep: sep
                     });
-                //otherwise if not last
+                    //otherwise if not last
                 } else if (ns && ns != tid) {
                     //wikify separator
                     wikify('{{ns_btn_popup{"""' + sep + '"""}}}', out);
@@ -148,6 +149,7 @@
 
                 //loop all result list
                 for (l = 0; l < 2; l++) {
+
                     //current list
                     lst = tids[l];
                     //get length
@@ -156,13 +158,28 @@
                     //render list title for category
                     if (l == 0 && len || l > 0) {
                         list +=
+                        //extra linebreak when both
+                        (l > 0 && tids[0].length ? '\n' : '') +
                         '\n{{ns_title{[[' +
-                            def['txtTitle' + (l==0 ? 'Category' : 'NameSpace')].format([ns]) +
-                        '|' + ns + ']]}}}';
+                            def['txtTitle' + (l == 0 ? 'Category' : 'NameSpace')].format([ns]) +
+                        '|' + ns + ']]' +
+                        (
+                            readOnly ? '' : (
+                                '{{ns_list_add{' +
+                                this.createButtonToAdd(
+                                    null,
+                                    ns,
+                                    l < 1 ? 'Category' : 'NameSpace',
+                                    def.btnAddLabelInline
+                                ) +
+                                '}}}'
+                            )
+                        ) +
+                        '}}}';
 
                         //fetch info, for category only once
                         info = tids[0].length && l > 0 ? '' : this.getInfo(ns);
-                        //add info if exists
+                        //add info if exits
                         if (info) list += '\n' + info;
                     }
 
@@ -177,7 +194,7 @@
                         if (l > 0 && i == 0) {
                             //reset previous items with item 
                             prev = [[ns.split(sep).length, ns]];
-                        //otherwise when new category item
+                            //otherwise when new category item
                         } else if (l == 0 && tids[2].contains(item)) {
                             //reset previous items for category
                             prev = [[item.split(sep).length, item]];
@@ -191,25 +208,35 @@
                         //determine list depth
                         for (
                             d = prev[0][0];
-                            d < depth + (l > 0 ? 0 : 1);
+                            d < depth + (l > 0 ? 0 : 1) ;
                             d++
                         ) ld += '*';
 
                         //add item
                         list +=
-                            '\n' + ld + 
+                            '\n' + ld +
                             (
                                 (
                                     tids[2].contains(item) ?
-                                    ' {{ns_title{[[%0|%1]]}}}' :
-                                    ' [[%0|%1]]'
+                                    ' {{ns_title{[[%0|%1]]%2}}}' :
+                                    ' {{ns_item{[[%0|%1]]%2}}}'
                                 ).format([
                                     (
                                         prevnew ?
                                         item :
-                                        item.substr(prev[prev.length - 1][1].length +1 )
+                                        item.substr(prev[prev.length - 1][1].length + 1)
                                     ),
-                                    item
+                                    item,
+                                    readOnly ? '' : (
+                                        '{{ns_list_add{' +
+                                        this.createButtonToAdd(
+                                            null,
+                                            item,
+                                            'NameSpace',
+                                            def.btnAddLabelInline
+                                        ) +
+                                        '}}}'
+                                    )
                                 ])
                             );
                         //only if not new item, add item to previous
@@ -217,10 +244,13 @@
                         //reset new flag for previous items array
                         prevnew = false;
                     }
+
                 }
 
                 //render list
-                wikify('{{ns_sitemap{' + list + '\n}}}', place);
+                wikify('{{ns_list{' + list + '\n}}}', place);
+
+                $('.ns_list').last().find('.ns_add .button').removeClass('button').addClass('tiddlyLink tiddlyLinkNonExisting');
 
                 return;
             }
@@ -265,7 +295,7 @@
                 //get all tiddlers
                 tids = store.getTiddlers('title'),
                 //three lists => [actual items], [category items for self]
-                items = [ [], [], [] ],
+                items = [[], [], []],
                 list = tid === '!list';
 
             //loop all tids
@@ -273,7 +303,7 @@
                 //get title
                 ti = tids[t].title,
                 //get ns category for tiddler
-                c = store.getValue(ti, 'ns_cat' ),
+                c = store.getValue(ti, 'ns_cat'),
                 //get position of title in tid
                 pos = tid.indexOf(ti);
 
@@ -285,7 +315,7 @@
                         items[2].push(ti);
                     }
 
-                //when fetching only direct children to a namespace or category
+                    //when fetching only direct children to a namespace or category
                 } else {
 
                     //ignore (anything contained in) current tid or namespace tiddler
@@ -323,7 +353,7 @@
                         items[1].push(ti);
 
                     //simple boolean check and category or namespace items exists => return true
-                    if (exists && (items[0].length + items[1].length > 0 ) ) return true;
+                    if (exists && (items[0].length + items[1].length > 0)) return true;
                 }
             }
 
@@ -403,12 +433,12 @@
                     //get infor for...
                     infoFor = l > 0 ?
                         //namespace item list: the category or the namespace
-                        (cat ? cat : ns) : 
+                        (cat ? cat : ns) :
                         //category item list: either namespace category, lookup category or namespace itself
                         (ns_cat ? ns_cat : (cat ? cat : ns));
 
                     //render list title for category
-                    macro.createListTitle(pop, (l > 0 ? 'NameSpace' : 'Category' ), infoFor, ns_cat);
+                    macro.createListTitle(pop, (l > 0 ? 'NameSpace' : 'Category'), infoFor, ns_cat);
 
                     //fetch info, for category only once
                     info = l > 0 && tids[0].length ? '' : macro.getInfo(infoFor);
@@ -437,13 +467,18 @@
                 if (l > 0 && len == 0)
                     //add message
                     createTiddlyElement(pop, "li", null, 'popup_ns_empty', def.txtNoneFound);
+
                 //can we edit?
-                if (!readOnly && (l > 0 || len > 0 || cat))
-                //render button to add new items
-                    wikify(
-                        def['btnAdd' + (l == 0 ? 'Category' : 'NameSpace') + 'Item'].format([l == 0 ? (cat ? cat : ns ) : ns]),
-                        createTiddlyElement(pop, "li", null, 'popup_ns_add')
+                if (!readOnly && (l > 0 || len > 0 || cat)) {
+                    //what to create - namespace or category item
+                    it = l == 0 ? (cat ? cat : ns) : ns;
+                    //render button
+                    macro.createButtonToAdd(
+                        createTiddlyElement(pop, "li", null, 'ns_add'),
+                        it,
+                        l == 0 ? 'Category' : 'NameSpace'
                     );
+                }
             }
 
             //only when tiddler is not the same as the last element
@@ -502,6 +537,7 @@
             return lnk;
         },
 
+        /* creates a list title for category, namespace or namespace element */
         createListTitle: function (popup, type, tid, hr) {
             var macro = config.macros.ns;
             //creaty pretty link pointing to tid
@@ -516,7 +552,39 @@
                 tid,
                 macro.defaults['txtTitle' + type].format([tid])
             );
+        },
+
+        /* helper function to retrieve translations for add button*/
+        btnText: function (what, type, replace, prefix) {
+            var
+                def = config.macros.ns.defaults,
+                txt = def['btnAdd' + what + type];
+            return (replace ? txt.format(replace) : replace);
+        },
+
+        /* create a button to add a new namespace or category item */
+        createButtonToAdd: function (place, what, type, label) {
+            var
+                //path references
+                macro = config.macros.ns,
+                def = macro.defaults,
+                //the replacement array
+                r = [what],
+                btn =
+                    def['btnAddItem'].format([
+                        macro.btnText('Title', type, r),
+                        (label ? label : ( (place ? def.txtListBullet + ' ' : '') + macro.btnText('Label', type, r) ) ),
+                        macro.btnText('Tooltip', type, r),
+                        ( type == 'Category' ? 'ns_cat:[[' + what + ']]' : '' )
+                    ]);
+
+            //if place is given => render button
+            if (place) wikify(btn, place);
+
+            //return button text
+            return btn;
         }
+
     }
 
     config.shadowTiddlers['StyleSheetNameSpace'] =
@@ -551,9 +619,6 @@
         '   font-size: 1.2em;\n' +
         '   font-weight: bold;\n' +
         '}\n' +
-        '.popup_ns_add .button{\n' +
-        '   font-style: italic;\n' +
-        '}\n' +
         '.popup_ns_empty{\n' +
         '   padding: 3px;\n' +
         '}\n' +
@@ -562,6 +627,20 @@
         '   padding:3px;\n' +
         '   margin-bottom:3px;\n' +
         '   background:[[ColorPalette::SecondaryPale]];\n' +
+        '}\n' +
+        '.ns_list .ns_list_add{\n' +
+        '   display:none;\n' +
+        '}\n' +
+        '.ns_list .ns_title,\n' +
+        '.ns_list li > span{\n' +
+        '   padding-right:30px;\n' +
+        '}\n' +
+        '.ns_list .ns_title:hover > .ns_list_add,\n' +
+        '.ns_list li > span:hover > .ns_list_add{\n' +
+        '   display:inline;\n' +
+        '}\n' +
+        '.ns_add .button{\n' +
+        '   font-style: italic;\n' +
         '}\n' +
         '/*}}}*/';
     store.addNotification('StyleSheetNameSpace', refreshStyles);
