@@ -2,7 +2,7 @@
 |''Name''|NameSpacePlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Documentation''|http://namespace.tiddlyspace.com|
-|''Version''|0.5.8 beta|
+|''Version''|1.0|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/NamesSpacePlugin.js|
 |''~CoreVersion''|2.6.5|
 ***/
@@ -92,7 +92,7 @@
             //still no tid? => no namespaces
             if (!tid) return;
 
-            var aNS = [], cat = '', d, depth, el, i, item, n, l, len, ld, list = '', prev, prevnew, prev, what,
+            var aNS = [], cat = '', d, depth, el, i, item, n, l, len, ld, list = '', out, prev, prevnew, prev, what,
                 //reference to defaults
                 def = this.defaults,
                 //parse paramString
@@ -106,7 +106,11 @@
                 //get delimiter
                 sep = getParam(p, 'separator', def.separator),
                 //custom readonly
-                readonly = params.contains('readonly') || readOnly;
+                readonly = params.contains('readonly') || readOnly,
+                //helper function
+                styleAsLink = function ($el) {
+                    $el.removeClass('button').addClass('tiddlyLink tiddlyLinkNonExisting')
+                };
 
             //// POPUP MODE ////
             if (params.contains('popup')) {
@@ -125,7 +129,7 @@
                         getParam(p, 'label', ns == tid ? def.btnLast : sep),
                         getParam(p, 'tooltip', def.btnTooltip.format([ns])),
                         this.click,
-                        'ns_btn_popup'
+                        'ns_btn ns_btn_popup'
                     //pass params
                     )).data('params', {
                         tid: tid,
@@ -139,7 +143,7 @@
                 //otherwise if not last
                 } else if (ns && ns != tid) {
                     //wikify separator
-                    wikify('{{ns_btn_popup{"""' + sep + '"""}}}', out);
+                    wikify('{{ns_btn{"""' + sep + '"""}}}', place);
                 }
 
                 // END OF POPUP MODE
@@ -281,7 +285,7 @@
                 //render list
                 wikify('{{ns_list{' + list + '\n}}}', place);
 
-                $('.ns_list').last().find('.ns_add .button').removeClass('button').addClass('tiddlyLink tiddlyLinkNonExisting');
+                styleAsLink($('.ns_list').last().find('.ns_add .button'));
 
                 //END OF LIST MODE
                 return;
@@ -289,14 +293,21 @@
 
 
             //create output container
-            out = createTiddlyElement(place, 'span', null, 'ns');
+            out = $(place).closest('.ns')[0] || createTiddlyElement(place, 'span', null, 'ns');
 
             //get category
             cat = store.getValue(tid, 'ns_cat');
             //category defined?
             if (cat) {
                 //prepend namespace category
-                wikify('[[' + cat + ']]<<ns [[' + tid + ']] separator:[[' + sep + ']] category:[[' + cat + ']] popup>>', out);
+                wikify(
+                    (
+                        '[[' + cat + ']]' + 
+                        this.createButtonToAdd(null, cat, 'Category', def.btnAddLabelInline) +
+                        '<<ns [[' + tid + ']] separator:[[' + sep + ']] category:[[' + cat + ']] popup>>'
+                    ),
+                    out
+                );
             }
 
             // (array): stores the namespace components of the current tiddlers title
@@ -311,12 +322,48 @@
                 //output clickables
                 wikify(
                     (
-                        (n == aNS.length - 1 ? '{{tiddlyLink{"""' + el + '"""}}}' : '[[' + el + '|' + ns + ']]') +
+                        (n == aNS.length - 1 ? '{{tiddlyLink{"""' + el + '"""}}}{{ns_last{[[' + el + '|' + ns + ']]}}}' : '[[' + el + '|' + ns + ']]') +
+                        this.createButtonToAdd(null, ns, 'NameSpace', def.btnAddLabelInline) +
                         '<<ns [[' + tid + ']] ns:[[' + ns + ']] element:[[' + el + ']] separator:[[' + sep + ']] popup>>'
                     ),
                     out
                 );
             }
+            //add spacer
+            $('<div class="ns_clear">').insertAfter($('.title.ns'));
+            //change button class
+            $(out).find('.button').removeClass('button').addClass('ns_btn ns_btn_add');
+
+
+            $(out).attr('tabindex','1').bind('mouseover mouseout keyup', function (ev) {
+                var $el = $(this),
+                    e = ev || window.event;
+
+                //entering
+                if (e.type == 'mouseover') {
+                    if (!e.ctrlKey || $el.hasClass('ns_hover')) return true;
+                    $('.ns_btn_popup', $el).hide();
+                    $('.ns_btn_add', $el).show();
+                    $('.ns_last', $el).show().prev().hide();
+                    $('.tiddlyLink', $el).each(function () {
+                        var $l = $(this);
+                        $l.attr('tiddlyLinkDefault', $l.attr('tiddlyLink'));
+                        $l.attr('tiddlyLink', $l.text());
+                    });
+                    $el.addClass('ns_hover');
+                //leaving
+                } else {
+                    if (!$el.hasClass('ns_hover')) return true;
+                    $('.ns_btn_popup', $el).show();
+                    $('.ns_btn_add', $el).hide();
+                    $('.ns_last', $el).hide().prev().show();
+                    $('.tiddlyLink', $el).each(function () {
+                        var def = $(this).attr('tiddlyLinkDefault');
+                        if (def) $(this).attr('tiddlyLink', def);
+                    });
+                    $el.removeClass('ns_hover');
+                }
+            });
         },
 
         /*
@@ -629,22 +676,32 @@
 
     config.shadowTiddlers['StyleSheetNameSpace'] =
         '/*{{{*/\n' +
+        '.ns_last {\n' +
+        '   display:block;\n' +
+        '   float:left;\n' +
+        '}\n' +
         '.ns .tiddlyLink {\n' +
-        '   padding: 2px;\n' +
+        '   display:block;\n' +
+        '   float:left;\n' +
+        '   padding: 0 2px;\n' +
         '}\n' +
         '.ns a.tiddlyLink:hover {\n' +
         '   color:[[ColorPalette::PrimaryDark]];\n' +
         '   background:[[ColorPalette::TertiaryPale]];\n' +
         '}\n' +
-        '.ns_btn_popup {\n' +
+        'a.ns_btn {\n' +
         '   color:[[ColorPalette::TertiaryLight]];\n' +
-        '   padding: 2px 4px;\n' +
+        '   display:block;\n' +
+        '   float:left;\n' +
+        '   min-width:12px;\n' +
+        '   padding:0 4px;\n' +
+        '   text-align:center;\n' +
         '   margin:0;\n' +
         '}\n' +
-        'a.ns_btn_popup {\n' +
+        'a.ns_btn {\n' +
         '   color:[[ColorPalette::PrimaryMid]];\n' +
         '}\n' +
-        'a.ns_btn_popup:hover{\n' +
+        'a.ns_btn:hover{\n' +
         '   color:[[ColorPalette::PrimaryDark]];\n' +
         '   background:[[ColorPalette::TertiaryPale]];\n' +
         '   border-color:transparent;\n' +
@@ -668,6 +725,8 @@
         '   margin-bottom:3px;\n' +
         '   background:[[ColorPalette::SecondaryPale]];\n' +
         '}\n' +
+        '.ns_last,\n' +
+        '.ns_btn.ns_btn_add,\n' +
         '.ns_list span .ns_list_add{\n' +
         '   display:none;\n' +
         '}\n' +
@@ -682,8 +741,13 @@
         '.ns_add .button{\n' +
         '   font-style: italic;\n' +
         '}\n' +
+        '.title.ns{\n' +
+        '   min-height: 1em;\n' +
+        '}\n' +
+        '.ns_clear{\n' +
+        '   clear: left;\n' +
+        '}\n' +
         '/*}}}*/';
     store.addNotification('StyleSheetNameSpace', refreshStyles);
-
 })(jQuery);
 //}}}
