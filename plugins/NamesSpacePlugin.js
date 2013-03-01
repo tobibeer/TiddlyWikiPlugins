@@ -2,7 +2,7 @@
 |''Name''|NameSpacePlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Documentation''|http://namespace.tiddlyspace.com|
-|''Version''|0.5.7 beta|
+|''Version''|0.5.8 beta|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/NamesSpacePlugin.js|
 |''~CoreVersion''|2.6.5|
 ***/
@@ -104,7 +104,9 @@
                 //get element
                 el = getParam(p, 'element', tid),
                 //get delimiter
-                sep = getParam(p, 'separator', def.separator);
+                sep = getParam(p, 'separator', def.separator),
+                //custom readonly
+                readonly = params.contains('readonly') || readOnly;
 
             //// POPUP MODE ////
             if (params.contains('popup')) {
@@ -130,7 +132,8 @@
                         ns: ns,
                         element: el,
                         category: cat,
-                        sep: sep
+                        sep: sep,
+                        readonly: readonly
                     });
 
                 //otherwise if not last
@@ -176,7 +179,7 @@
                             def['txtTitle' + (l == 0 ? 'Category' : 'NameSpace')].format([ns]) +
                         '|' + ns + ']]' +
                         (
-                            readOnly ? '' : (
+                            readonly ? '' : (
                                 '{{ns_list_add{' +
                                 this.createButtonToAdd(
                                     null,
@@ -239,7 +242,7 @@
                                         item.substr(prev[prev.length - 1][1].length + 1)
                                     ),
                                     item,
-                                    readOnly ? '' : (
+                                    readonly ? '' : (
                                         '{{ns_list_add{' +
                                         this.createButtonToAdd(
                                             null,
@@ -257,6 +260,22 @@
                         prevnew = false;
                     }
 
+                    //when editable and titles hidden and existing items
+                    if (
+                        !readonly &&
+                        params.contains('notitles') &&
+                        (len || l > 0 && !tids[0].length)
+                    ) {
+                        //show add button at the bottom
+                        list +=
+                            '\n {{ns_list_add{' +
+                            this.createButtonToAdd(
+                                null,
+                                ns,
+                                l < 1 ? 'Category' : 'NameSpace'
+                            ) +
+                            '}}}';
+                    }
                 }
 
                 //render list
@@ -426,6 +445,7 @@
                 el = p['element'],
                 cat = p['category'],
                 sep = p['sep'],
+                readonly = p['readonly'],
                 //get category for namespace
                 ns_cat = cat || tid == ns ? '' : store.getValue(ns, 'ns_cat');
 
@@ -489,7 +509,7 @@
                     createTiddlyElement(pop, "li", null, 'popup_ns_empty', def.txtNoneFound);
 
                 //can we edit?
-                if (!readOnly && (l > 0 || len > 0 || cat)) {
+                if (!readonly && (l > 0 || len > 0 || cat)) {
                     //what to create - namespace or category item
                     it = l == 0 ? (cat ? cat : ns) : ns;
                     //render button
@@ -648,7 +668,7 @@
         '   margin-bottom:3px;\n' +
         '   background:[[ColorPalette::SecondaryPale]];\n' +
         '}\n' +
-        '.ns_list .ns_list_add{\n' +
+        '.ns_list span .ns_list_add{\n' +
         '   display:none;\n' +
         '}\n' +
         '.ns_list .ns_title,\n' +
