@@ -2,7 +2,7 @@
 |''Name''|NameSpacePlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Documentation''|http://namespace.tiddlyspace.com|
-|''Version''|0.5.5 beta|
+|''Version''|0.5.6 beta|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/NamesSpacePlugin.js|
 |''~CoreVersion''|2.6.5|
 ***/
@@ -79,14 +79,24 @@
 
         /* the namespace macro handler */
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
+            //get tiddler from param or context
+            var tid = params[0];
+            //remove first
+            params.shift();
+            //no tid?
+            if (!tid) {
+                //find containing tid
+                tid = story.findContainingTiddler(place);
+                tid = tid ? tid.getAttribute('tiddler') : '';
+            }
+            //still no tid? => no namespaces
+            if (!tid) return;
 
             var aNS = [], cat = '', d, depth, el, i, item, n, l, len, ld, list = '', prev, prevnew, prev, what,
                 //reference to defaults
                 def = this.defaults,
                 //parse paramString
                 p = paramString.parseParams('anon', null, true),
-                //get tiddler from param or context
-                tid = params[0],
                 //get part
                 ns = getParam(p, 'ns', ''),
                 //get category
@@ -96,24 +106,14 @@
                 //get delimiter
                 sep = getParam(p, 'separator', def.separator);
 
-            //no tid?
-            if (!tid) {
-                //find containing tid
-                tid = story.findContainingTiddler(place);
-                tid = tid ? tid.getAttribute('tiddler') : '';
-            }
-
-            //no tid no namespaces
-            if (!tid) return;
-
             //// POPUP MODE ////
-            if (params.contains('popup') && params[0] != 'popup') {
+            if (params.contains('popup')) {
                 //if not given, set namespace to tid by default
                 ns = ns ? ns : tid;
                 //when...
                 if (
                     //there are items for this namespace...
-                    this.getItems(tid, ns, sep, cat, true) ||
+                    this.getItems(tid, ns, sep, cat, 3) ||
                     //or no category lookup and namespace not full tiddler title
                     !cat && ns != tid
                 ) {
@@ -132,20 +132,29 @@
                         category: cat,
                         sep: sep
                     });
-                    //otherwise if not last
+
+                //otherwise if not last
                 } else if (ns && ns != tid) {
                     //wikify separator
                     wikify('{{ns_btn_popup{"""' + sep + '"""}}}', out);
                 }
 
+                // END OF POPUP MODE
                 return;
             }
 
+
             //// LIST MODE ////
-            if (params[0] == '!list') {
+            if (tid == '!list') {
 
                 //find namespace items
-                tids = config.macros.ns.getItems('!list', ns, sep);
+                tids = config.macros.ns.getItems(
+                    '!list',
+                    ns,
+                    sep,
+                    cat,
+                    ( params.contains('category') ? 1 : ( params.contains('namespace') ? 2 : 0 ) )
+                );
 
                 //loop all result list
                 for (l = 0; l < 2; l++) {
@@ -155,8 +164,8 @@
                     //get length
                     len = lst.length;
 
-                    //render list title for category
-                    if (l == 0 && len || l > 0) {
+                    //only when not disabled, render list title for category
+                    if (!params.contains('notitles') && (l == 0 && len || l > 0 ) ) {
                         list +=
                         //extra linebreak when both
                         (l > 0 && tids[0].length ? '\n' : '') +
@@ -252,8 +261,10 @@
 
                 $('.ns_list').last().find('.ns_add .button').removeClass('button').addClass('tiddlyLink tiddlyLinkNonExisting');
 
+                //END OF LIST MODE
                 return;
             }
+
 
             //create output container
             out = createTiddlyElement(place, 'span', null, 'ns');
@@ -289,8 +300,9 @@
         /*
         - find tiddlers that are items to a given namespace
         - optionally just check if items exist for category or namespace
+        - find: 0 = all, 1 = only category items, 2 = only namespace items, 3 = find any first
         */
-        getItems: function (tid, ns, separator, category, exists) {
+        getItems: function (tid, ns, separator, category, find) {
             var c, i, pos, remove, t, ti,
                 //get all tiddlers
                 tids = store.getTiddlers('title'),
@@ -353,7 +365,7 @@
                         items[1].push(ti);
 
                     //simple boolean check and category or namespace items exists => return true
-                    if (exists && (items[0].length + items[1].length > 0)) return true;
+                    if (find && (items[0].length + items[1].length > 0)) return true;
                 }
             }
 
@@ -369,10 +381,10 @@
                         c = items[2][i];
                         //when ...
                         if (
-                            //a category item
-                            ti == c ||
-                            //child of the namespace of a category item
-                            ti.indexOf(c + separator) == 0
+                            //all or find first
+                            (!find || find == 1 || find == 3) &&
+                            //a category item or a child of the namespace of a category item
+                            (ti == c || ti.indexOf(c + separator) == 0)
                         ) {
                             //add to category items
                             items[0].push(ti);
@@ -381,15 +393,16 @@
                         }
                     }
                     if (
+                        (!find || find > 1) &&
                         //child of the namespace of a category item
                         ti.indexOf(ns + separator) == 0
                     ) items[1].push(ti);
                 }
             }
 
-            //for any boolean check return false when none were found until here
+            //for 'find first' return false when none were found until here
             //otherwise return namespace items
-            return (exists ? false : items);
+            return (find === 3 ? false : items);
         },
 
         //the click handler of the namespace delimiter
@@ -413,7 +426,7 @@
             $(pop).addClass('popup popup_ns');
 
             //find namespace items
-            tids = config.macros.ns.getItems(tid, ns, sep, cat ? cat : ns);
+            tids = config.macros.ns.getItems(tid, ns, sep, cat ? cat : ns, 0);
 
             //loop all result list
             for (l = 0; l < 2; l++) {
