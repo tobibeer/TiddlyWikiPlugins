@@ -2,7 +2,7 @@
 |''Name''|NameSpacePlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Documentation''|http://namespace.tiddlyspace.com|
-|''Version''|0.5.6 beta|
+|''Version''|0.5.7 beta|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/NamesSpacePlugin.js|
 |''~CoreVersion''|2.6.5|
 ***/
@@ -145,11 +145,14 @@
 
 
             //// LIST MODE ////
-            if (tid == '!list') {
+            if (params.contains('list')) {
+
+                //tid is namespace to retrieve list for
+                ns = tid;
 
                 //find namespace items
                 tids = config.macros.ns.getItems(
-                    '!list',
+                    null,
                     ns,
                     sep,
                     cat,
@@ -308,7 +311,11 @@
                 tids = store.getTiddlers('title'),
                 //three lists => [actual items], [category items for self]
                 items = [[], [], []],
-                list = tid === '!list';
+                //no tiddler => retrieve all under namespace
+                all = !tid;
+
+            //for full list no tid
+            if (all) tid = '';
 
             //loop all tids
             for (t = 0; t < tids.length; t++) {
@@ -320,7 +327,7 @@
                 pos = tid.indexOf(ti);
 
                 //when fetching all children to a namespace or category
-                if (list) {
+                if (all) {
                     //when category is the namespace
                     if (c == ns) {
                         //add to categories
@@ -331,7 +338,7 @@
                 } else {
 
                     //ignore (anything contained in) current tid or namespace tiddler
-                    if (!list && (ti == tid || pos == 0 && tid.substr(pos, 1) == separator || ti == ns)) continue;
+                    if (!all && (ti == tid || pos == 0 && tid.substr(pos, 1) == separator || ti == ns)) continue;
 
                     //either when...
                     if (
@@ -370,7 +377,7 @@
             }
 
             //fetching all children?
-            if (list) {
+            if (all) {
                 //loop all tids a second time
                 for (t = 0; t < tids.length; t++) {
                     //get title
