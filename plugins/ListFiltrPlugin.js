@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
-|Version|0.9.2 Beta|
+|Version|1.0|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -152,7 +152,8 @@ Great!
     '.lf-hide {display:none !important;}\n' +
     '.lf-found {background:#F5F5DC;}\n' +
     '.lf-not {background:white;}\n' +
-    '.lf-list + br {display:none}\n' +
+    '.lf-list {max-height: 250px;overflow: auto;}\n' +
+    '.lf-list + br {display:none;}\n' +
     '.lf-label {margin-right:5px;font-weight:bold;}\n' +
     '.lf-p {display:block;}' +
     '.lf-no-br {display:none;}' +
