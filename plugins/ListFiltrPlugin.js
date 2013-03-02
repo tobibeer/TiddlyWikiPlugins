@@ -1,11 +1,12 @@
 /***
-|''Name''|ListFiltrPlugin|
-|''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Documentation''|http://listfiltr.tiddlyspace.com|
-|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
-|''~CoreVersion''|2.6.5|
-|''License''|Creative Commons 3.0|
-|''Version''|0.9.1 Beta|
+|Name|ListFiltrPlugin|
+|Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
+|Documentation|http://listfiltr.tiddlyspace.com|
+|Source|http://tbsource.tiddlyspace.com/#ListFiltrPlugin|
+|Requires||
+|~CoreVersion|2.6.5|
+|License|Creative Commons 3.0|
+|Version|0.9.2 Beta|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -53,7 +54,7 @@ Great!
                 'title': 'enter your search term here'
             }).appendTo(boxwrap);
 
-            box.data('list', listClass).keyup(function () {
+            box.data('list', listClass).bind('keyup search', function () {
                 var els, found, text, until,
                 box = $(this),
                 term = box.val(),
