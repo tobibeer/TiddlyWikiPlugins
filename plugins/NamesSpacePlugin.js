@@ -2,7 +2,7 @@
 |''Name''|NameSpacePlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Documentation''|http://namespace.tiddlyspace.com|
-|''Version''|1.0|
+|''Version''|1.0.1|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/NamesSpacePlugin.js|
 |''~CoreVersion''|2.6.5|
 ***/
@@ -44,6 +44,9 @@
             btnLast: '»',
             //pseudo list bullet for popup lists
             txtListBullet: '» ',
+            //clear left on prefixes...
+            clear: '',
+            //clear: '^(\\#|\\^|\\@|\\$|\\§|\\&|\\-|\\?)',
             //the tooltip for the popup
             btnTooltip: 'tiddlers under namespace \'%0\'',
             //no subelements found
@@ -92,7 +95,8 @@
             //still no tid? => no namespaces
             if (!tid) return;
 
-            var aNS = [], cat = '', d, depth, el, i, item, n, l, len, ld, list = '', out, prev, prevnew, prev, what,
+            var aNS = [], c, cat = '', cl, d, depth, el, i, item, n,
+                l, last, len, lnk, ld, list = '', out, prev, prevnew, prev, what,
                 //reference to defaults
                 def = this.defaults,
                 //parse paramString
@@ -107,6 +111,8 @@
                 sep = getParam(p, 'separator', def.separator),
                 //custom readonly
                 readonly = params.contains('readonly') || readOnly,
+                //get pattern to clear left
+                clear = new RegExp( getParam(p, 'clear', def.clear) ),
                 //helper function
                 styleAsLink = function ($el) {
                     $el.removeClass('button').addClass('tiddlyLink tiddlyLinkNonExisting')
@@ -319,15 +325,28 @@
                 el = aNS[n];
                 //link up until here
                 ns += n < 1 ? el : sep + el;
-                //output clickables
+                //remember clear
+                c = n > 0 && def.clear && clear.exec(el);
+                //clear? => render clear
+                if(c || cl) wikify('{{ns_clear{}}}', out);
+                //is last element
+                last = n == aNS.length - 1;
+                //render as text
+                if(last) wikify('{{tiddlyLink{"""' + el + '"""}}}', out);
+                //render as internal tiddlyLink
+                lnk = createTiddlyLink(out, ns, null, ( last ? 'ns_last' : '' ) );
+                //set text
+                createTiddlyText(lnk, el);
+                //render
                 wikify(
-                    (
-                        (n == aNS.length - 1 ? '{{tiddlyLink{"""' + el + '"""}}}{{ns_last{[[' + el + '|' + ns + ']]}}}' : '[[' + el + '|' + ns + ']]') +
-                        this.createButtonToAdd(null, ns, 'NameSpace', def.btnAddLabelInline) +
-                        '<<ns [[' + tid + ']] ns:[[' + ns + ']] element:[[' + el + ']] separator:[[' + sep + ']] popup>>'
-                    ),
+                    //output hidden add button
+                    this.createButtonToAdd(null, ns, 'NameSpace', def.btnAddLabelInline) +
+                    //output namespace popup button
+                    '<<ns [[' + tid + ']] ns:[[' + ns + ']] element:[[' + el + ']] separator:[[' + sep + ']] popup>>',
                     out
                 );
+                //remember last clear
+                cl = c;
             }
             //add spacer
             $('<div class="ns_clear">').insertAfter($('.title.ns'));
@@ -725,7 +744,7 @@
         '   margin-bottom:3px;\n' +
         '   background:[[ColorPalette::SecondaryPale]];\n' +
         '}\n' +
-        '.ns_last,\n' +
+        '.ns .tiddlyLink.ns_last,\n' +
         '.ns_btn.ns_btn_add,\n' +
         '.ns_list span .ns_list_add{\n' +
         '   display:none;\n' +
@@ -746,6 +765,7 @@
         '}\n' +
         '.ns_clear{\n' +
         '   clear: left;\n' +
+        '   display: block;\n' +
         '}\n' +
         '/*}}}*/';
     store.addNotification('StyleSheetNameSpace', refreshStyles);
