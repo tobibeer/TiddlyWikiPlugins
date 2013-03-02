@@ -1,6 +1,7 @@
 /***
 |''Documentation''|http://listfiltr.tiddlyspace.com|
 |''Idea''|http://stackoverflow.com/questions/1852816/nested-ordered-lists|
+|''Version''|2013.03.01|
 !Use
 {{{$(selector).outline();}}}
 !Options
