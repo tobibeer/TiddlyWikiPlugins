@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
-|Version|1.0|
+|Version|1.0.1|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -37,7 +37,6 @@ Great!
 
             list.wrapAll('<div class="lf-list ' + listClass + '"/>');
             list = $('.' + listClass);
-            list.css('height', list.height());
 
             list.contents().filter(function () {
                 return this.nodeType == Node.TEXT_NODE;
@@ -152,7 +151,6 @@ Great!
     '.lf-hide {display:none !important;}\n' +
     '.lf-found {background:#F5F5DC;}\n' +
     '.lf-not {background:white;}\n' +
-    '.lf-list {max-height: 250px;overflow: auto;}\n' +
     '.lf-list + br {display:none;}\n' +
     '.lf-label {margin-right:5px;font-weight:bold;}\n' +
     '.lf-p {display:block;}' +
