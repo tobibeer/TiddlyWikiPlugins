@@ -2,7 +2,7 @@
 |Name|ListFiltrPlugin|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |Documentation|http://listfiltr.tiddlyspace.com|
-|Source|http://tbsource.tiddlyspace.com/#ListFiltrPlugin|
+|Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
