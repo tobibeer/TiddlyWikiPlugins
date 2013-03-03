@@ -712,10 +712,14 @@
         '   color:[[ColorPalette::TertiaryLight]];\n' +
         '   display:block;\n' +
         '   float:left;\n' +
-        '   min-width:12px;\n' +
-        '   padding:0 4px;\n' +
+        '   min-width:10px;\n' +  
+        '   padding:0 1px;\n' +
         '   text-align:center;\n' +
         '   margin:0;\n' +
+        '}\n' +
+        '.title a.ns_btn {\n' +
+        '   min-width:12px;\n' +
+        '   padding:0 4px;\n' +
         '}\n' +
         'a.ns_btn {\n' +
         '   color:[[ColorPalette::PrimaryMid]];\n' +
