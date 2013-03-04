@@ -3,7 +3,7 @@
 |''Description''|extends the tabs macro to replace tabnames with icons|
 |''Documentation''|http://icontabs.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0|
+|''Version''|1.0.1|
 |''CoreVersion''|2.6.1|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/IconTabsPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -25,10 +25,8 @@
             cfg = this.IconTabsConfig;
         for (p = 0; p < params.length; p++) {
             pa = params[p];
-            console.log(p + '\n' + params[p]);
             if (pa.indexOf('--') == 0) {
                 if (readOnly) {
-                    console.log(params.splice(p, pa.substr(3).toLowerCase() == 'space' ? 1 : 3));
                     p--;
                     continue;
                 } else {
