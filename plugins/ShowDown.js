@@ -10,6 +10,8 @@
 |''License''|[[Creative Commons Attribution-ShareAlike 2.5 License|http://creativecommons.org/licenses/by-sa/2.5/]]|
 |''~CoreVersion''|2.5.3|
 |''Type''|plugin|
+!Installation
+Install ShowDown.js first and tag it <<tag systemConfig>>.
 !Code
 ***/
 //{{{
