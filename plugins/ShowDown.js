@@ -15,8 +15,8 @@
 //{{{
 config.formatters.push({
     name: "showdown",
-    match: "§§§",
-    lookaheadRegExp: /\s?§§§((?:.|\n)*?)§§§\s?/mg,
+    match: "Â§Â§Â§",
+    lookaheadRegExp: /\s?Â§Â§Â§((?:.|\n)*?)Â§Â§Â§\s?/mg,
     handler: function (w) {
         var match, t;
         this.lookaheadRegExp.lastIndex = w.matchStart;
