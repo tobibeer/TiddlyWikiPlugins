@@ -1,4 +1,4 @@
-/***
+﻿/***
 |''Name''|NameSpacePlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Documentation''|http://namespace.tiddlyspace.com|
@@ -41,12 +41,12 @@
             lnkInfo: 'i',
             lnkInfoTooltip: 'info for \'%0\'',
             //the last part of the namespace
-            btnLast: '�',
+            btnLast: '»',
             //pseudo list bullet for popup lists
-            txtListBullet: '� ',
+            txtListBullet: '» ',
             //clear left on prefixes...
             clear: '',
-            //clear: '^(\\#|\\^|\\@|\\$|\\�|\\&|\\-|\\?)',
+            //clear: '^(\\#|\\^|\\@|\\$|\\ÃÂ§|\\&|\\-|\\?)',
             //the tooltip for the popup
             btnTooltip: 'tiddlers under namespace \'%0\'',
             //no subelements found
@@ -370,7 +370,7 @@
                         $l.attr('tiddlyLink', $l.text());
                     });
                     $el.addClass('ns_hover');
-                //leaving
+                    //leaving
                 } else {
                     if (!$el.hasClass('ns_hover')) return true;
                     $('.ns_btn_popup', $el).show();
