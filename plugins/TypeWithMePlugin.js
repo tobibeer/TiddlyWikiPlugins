@@ -1,9 +1,9 @@
 /***
 |''Name:''|TypeWithMePlugin|
-|''Description:''|Provides a toolbar button that lets you create TypeWithMe documents for any tiddler|
+|''Description:''|Provides a toolbar button that lets you create [[etherpad-style|http://de.wikipedia.org/wiki/EtherPad]] documents for any tiddler|
 |''Documentation:''|http://tobibeer.tiddlyspace.com/#TypeWithMe|
-|''Version:''|0.9.2 (2012-01-13)|
-|''Status:''|beta|
+|''Version:''|0.9.3 (2013-03-05)|
+|''Status:''|stable|
 |''Author:''|[[Tobias Beer]]|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/TypeWithMePluginSource.js|
 |''~CoreVersion:''|Version 2.5.3 or better|
@@ -11,9 +11,10 @@
 //{{{
 (function ($) {
     config.commands.typeWithMe = {
+        serviceURL: 'http://willyou.typewith.me/p/%0',
         target: '_blank',
         inline: true,
-        iframe: '<html><iframe src="%0" class="frmTypeWithMe"/></html>',
+        iframe: '<html><a href="%0" target="_blank" class="externalLink" style="margin-left:1em;">open pad in new window</a><iframe src="%0" class="frmTypeWithMe"/></html>',
         fmtPrefix: '%date',
         fmtDate: 'YYYY-0MM-0DD',
         text: 'discuss',
@@ -40,7 +41,7 @@
                 merge({ typewithme: doc }, tid ? tid.fields : config.defaultCustomFields));
                 if (config.options.chkAutoSave) autoSaveChanges();;
             } else doc = ty;
-            url = 'http://willyou.typewith.me/p/' + doc;
+            url = c.serviceURL.format([doc]);
             if (!e.ctrlKey && c.inline) {
                 i = $('.frmTypeWithMe', el);
                 if (i[0]) i.parent().parent().remove();
