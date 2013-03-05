@@ -4,8 +4,8 @@
 |''Documentation''|http://tobibeer.tiddlyspace.com/#ShowDown|
 |''Author''|Tobias Beer|
 |''Contributions''|Mario Pietsch, Paul Downey|
-|''Version''|0.9.0|
-|''Requires''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ShowDown_lib.js|
+|''Version''|0.9.1|
+|''Requires''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/resources/ShowDown/ShowDown.js|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ShowDown.js|
 |''License''|[[Creative Commons Attribution-ShareAlike 2.5 License|http://creativecommons.org/licenses/by-sa/2.5/]]|
 |''~CoreVersion''|2.5.3|
