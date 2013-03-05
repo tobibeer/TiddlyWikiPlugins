@@ -8,7 +8,6 @@
 ***/
 //{{{
 config.options.txtFadeTimer = 5000; // 5 seconds 
-
 var displayMessageFADEOUT = displayMessage;
 displayMessage = function (text, linkText) {
     displayMessageFADEOUT.apply(this, arguments);
