@@ -2,7 +2,7 @@
 |''Name''|NameSpacePlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Documentation''|http://namespace.tiddlyspace.com|
-|''Version''|1.0.1|
+|''Version''|1.0.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/NamesSpacePlugin.js|
 |''~CoreVersion''|2.6.5|
 ***/
@@ -112,7 +112,7 @@
                 //custom readonly
                 readonly = params.contains('readonly') || readOnly,
                 //get pattern to clear left
-                clear = new RegExp( getParam(p, 'clear', def.clear) ),
+                clear = new RegExp(getParam(p, 'clear', def.clear)),
                 //helper function
                 styleAsLink = function ($el) {
                     $el.removeClass('button').addClass('tiddlyLink tiddlyLinkNonExisting')
@@ -146,7 +146,7 @@
                         readonly: readonly
                     });
 
-                //otherwise if not last
+                    //otherwise if not last
                 } else if (ns && ns != tid) {
                     //wikify separator
                     wikify('{{ns_btn{"""' + sep + '"""}}}', place);
@@ -169,7 +169,7 @@
                     ns,
                     sep,
                     cat,
-                    ( params.contains('category') ? 1 : ( params.contains('namespace') ? 2 : 0 ) )
+                    (params.contains('category') ? 1 : (params.contains('namespace') ? 2 : 0))
                 );
 
                 //loop all result list
@@ -181,7 +181,7 @@
                     len = lst.length;
 
                     //only when not disabled, render list title for category
-                    if (!params.contains('notitles') && (l == 0 && len || l > 0 ) ) {
+                    if (!params.contains('notitles') && (l == 0 && len || l > 0)) {
                         list +=
                         //extra linebreak when both
                         (l > 0 && tids[0].length ? '\n' : '') +
@@ -248,7 +248,7 @@
                                 ).format([
                                     (
                                         prevnew ?
-                                        item :
+                                    item :
                                         item.substr(prev[prev.length - 1][1].length + 1)
                                     ),
                                     item,
@@ -308,7 +308,7 @@
                 //prepend namespace category
                 wikify(
                     (
-                        '[[' + cat + ']]' + 
+                        '[[' + cat + ']]' +
                         this.createButtonToAdd(null, cat, 'Category', def.btnAddLabelInline) +
                         '<<ns [[' + tid + ']] separator:[[' + sep + ']] category:[[' + cat + ']] popup>>'
                     ),
@@ -328,13 +328,13 @@
                 //remember clear
                 c = n > 0 && def.clear && clear.exec(el);
                 //clear? => render clear
-                if(c || cl) wikify('{{ns_clear{}}}', out);
+                if (c || cl) wikify('{{ns_clear{}}}', out);
                 //is last element
                 last = n == aNS.length - 1;
                 //render as text
-                if(last) wikify('{{tiddlyLink{"""' + el + '"""}}}', out);
+                if (last) wikify('{{tiddlyLink{"""' + el + '"""}}}', out);
                 //render as internal tiddlyLink
-                lnk = createTiddlyLink(out, ns, null, ( last ? 'ns_last' : '' ) );
+                lnk = createTiddlyLink(out, ns, null, (last ? 'ns_last' : ''));
                 //set text
                 createTiddlyText(lnk, el);
                 //render
@@ -354,7 +354,7 @@
             $(out).find('.button').removeClass('button').addClass('ns_btn ns_btn_add');
 
 
-            $(out).attr('tabindex','1').bind('mouseover mouseout keyup', function (ev) {
+            $(out).attr('tabindex', '1').bind('mouseover mouseout keyup', function (ev) {
                 var $el = $(this),
                     e = ev || window.event;
 
@@ -679,9 +679,9 @@
                 btn =
                     def['btnAddItem'].format([
                         macro.btnText('Title', type, r),
-                        (label ? label : ( (place ? def.txtListBullet + ' ' : '') + macro.btnText('Label', type, r) ) ),
+                        (label ? label : ((place ? def.txtListBullet : '') + macro.btnText('Label', type, r))),
                         macro.btnText('Tooltip', type, r),
-                        ( type == 'Category' ? 'ns_cat:[[' + what + ']]' : '' )
+                        (type == 'Category' ? 'ns_cat:[[' + what + ']]' : '')
                     ]);
 
             //if place is given => render button
@@ -693,85 +693,97 @@
 
     }
 
+    //add StyleSheet
     config.shadowTiddlers['StyleSheetNameSpace'] =
-        '/*{{{*/\n' +
-        '.ns_last {\n' +
-        '   display:block;\n' +
-        '   float:left;\n' +
-        '}\n' +
-        '.ns .tiddlyLink {\n' +
-        '   display:block;\n' +
-        '   float:left;\n' +
-        '   padding: 0 2px;\n' +
-        '}\n' +
-        '.ns a.tiddlyLink:hover {\n' +
-        '   color:[[ColorPalette::PrimaryDark]];\n' +
-        '   background:[[ColorPalette::TertiaryPale]];\n' +
-        '}\n' +
-        'a.ns_btn {\n' +
-        '   color:[[ColorPalette::TertiaryLight]];\n' +
-        '   display:block;\n' +
-        '   float:left;\n' +
-        '   min-width:10px;\n' +  
-        '   padding:0 1px;\n' +
-        '   text-align:center;\n' +
-        '   margin:0;\n' +
-        '}\n' +
-        '.title a.ns_btn {\n' +
-        '   min-width:12px;\n' +
-        '   padding:0 4px;\n' +
-        '}\n' +
-        'a.ns_btn {\n' +
-        '   color:[[ColorPalette::PrimaryMid]];\n' +
-        '}\n' +
-        'a.ns_btn:hover{\n' +
-        '   color:[[ColorPalette::PrimaryDark]];\n' +
-        '   background:[[ColorPalette::TertiaryPale]];\n' +
-        '   border-color:transparent;\n' +
-        '}\n' +
-        '.popup_ns{\n' +
-        '   max-width: 400px;\n' +
-        '}\n' +
-        '.popup_ns_hr {\n' +
-        '   border-top: 1px solid [[ColorPalette::TertiaryMid]];\n' +
-        '}\n' +
-        '.ns_title .tiddlyLink{\n' +
-        '   font-size: 1.2em;\n' +
-        '   font-weight: bold;\n' +
-        '}\n' +
-        '.popup_ns_empty{\n' +
-        '   padding: 3px;\n' +
-        '}\n' +
-        '.popup_ns_info{\n' +
-        '   display:block;\n' +
-        '   padding:3px;\n' +
-        '   margin-bottom:3px;\n' +
-        '   background:[[ColorPalette::SecondaryPale]];\n' +
-        '}\n' +
-        '.ns .tiddlyLink.ns_last,\n' +
-        '.ns_btn.ns_btn_add,\n' +
-        '.ns_list span .ns_list_add{\n' +
-        '   display:none;\n' +
-        '}\n' +
-        '.ns_list .ns_title,\n' +
-        '.ns_list li > span{\n' +
-        '   padding-right:30px;\n' +
-        '}\n' +
-        '.ns_list .ns_title:hover > .ns_list_add,\n' +
-        '.ns_list li > span:hover > .ns_list_add{\n' +
-        '   display:inline;\n' +
-        '}\n' +
-        '.ns_add .button{\n' +
-        '   font-style: italic;\n' +
-        '}\n' +
-        '.title.ns{\n' +
-        '   min-height: 1em;\n' +
-        '}\n' +
-        '.ns_clear{\n' +
-        '   clear: left;\n' +
-        '   display: block;\n' +
-        '}\n' +
-        '/*}}}*/';
+        //wrap in a readable fashion
+        '/*{{{*/\n%0\n/*}}}*/'.format([
+            //from CSS section
+            store.getTiddlerText('NameSpacePlugin##CSS')
+        ]);
     store.addNotification('StyleSheetNameSpace', refreshStyles);
 })(jQuery);
 //}}}
+/*{{{*/
+/*
+!CSS
+.ns {
+   outline:none;
+}
+.ns_last {
+   display:block;
+   float:left;
+}
+.ns .tiddlyLink {
+   display:block;
+   float:left;
+   padding: 0 2px;
+}
+.ns a.tiddlyLink:hover {
+   color:[[ColorPalette::PrimaryDark]];
+   background:[[ColorPalette::TertiaryPale]];
+}
+a.ns_btn {
+   color:[[ColorPalette::TertiaryLight]];
+   display:block;
+   float:left;
+   min-width:10px;  
+   padding:0 1px;
+   text-align:center;
+   margin:0;
+}
+.title a.ns_btn {
+   min-width:12px;
+   padding:0 4px;
+}
+a.ns_btn {
+   color:[[ColorPalette::PrimaryMid]];
+}
+a.ns_btn:hover{
+   color:[[ColorPalette::PrimaryDark]];
+   background:[[ColorPalette::TertiaryPale]];
+   border-color:transparent;
+}
+.popup_ns{
+   max-width: 400px;
+}
+.popup_ns_hr {
+   border-top: 1px solid [[ColorPalette::TertiaryMid]];
+}
+.ns_title .tiddlyLink{
+   font-size: 1.2em;
+   font-weight: bold;
+}
+.popup_ns_empty{
+   padding: 3px;
+}
+.popup_ns_info{
+   display:block;
+   padding:3px;
+   margin-bottom:3px;
+   background:[[ColorPalette::SecondaryPale]];
+}
+.ns .tiddlyLink.ns_last,
+.ns_btn.ns_btn_add,
+.ns_list span .ns_list_add{
+   display:none;
+}
+.ns_list .ns_title,
+.ns_list li > span{
+   padding-right:30px;
+}
+.ns_list .ns_title:hover > .ns_list_add,
+.ns_list li > span:hover > .ns_list_add{
+   display:inline;
+}
+.ns_add .button{
+   font-style: italic;
+}
+.title.ns{
+   min-height: 1em;
+}
+.ns_clear{
+   clear: left;
+   display: block;
+}
+!END */
+/*}}}*/
