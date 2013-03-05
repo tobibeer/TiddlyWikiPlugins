@@ -41,44 +41,43 @@
         },
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
             if (!paramString) return;
-
             var $ = 0, $val = '', $vals = [], fmt, out = '', tid, v, val, vals,
-              $el = $j(place),
-              refresh = $el.attr('macroName') == 'get',
-              what = params[0],
-              p = paramString.parseParams('anon', null, true),
-              exec = this[getParam(p, 'exec', 'getValues')],
+                $el = $j(place),
+                refresh = $el.attr('macroName') == 'get',
+                what = params[0],
+                p = paramString.parseParams('anon', null, true),
+                exec = this[getParam(p, 'exec', 'getValues')],
                 format = getParam(p, 'format', ''),
                 template = store.getTiddlerText(getParam(p, 'template', '')),
-              filter = getParam(p, 'filter'),
-              plain = params.contains('plain'),
-              tpl = params.contains('table') ? 'Table' :
+                filter = getParam(p, 'filter'),
+                plain = params.contains('plain'),
+                tpl = params.contains('table') ? 'Table' :
                 (filter || params.contains('list') ? 'List' : ''),
-              as = tpl.toLowerCase(),
-              isNamed = null != getParam(p, what, null),
-              ref = config.filters.get.delimiterRegExp.exec(what),
-              tiddler = ref ? ref[1] : what,
-              sep = ref ? ref[2] : '',
-              element = ref ? ref[3] : '',
-              type =
+                as = tpl.toLowerCase(),
+                isNamed = null != getParam(p, what, null),
+                ref = config.filters.get.delimiterRegExp.exec(what),
+                tiddler = ref ? ref[1] : what,
+                sep = ref ? ref[2] : '',
+                element = ref ? ref[3] : '',
+                type =
                 sep == '##' ? 'section' : (
                 sep == '::' ? 'slice' : (
                 sep == '??' ? 'field' : 'tiddler')),
-              prefixv = getParam(p, 'valueprefix', ''),
-              prefix = getParam(p, 'prefix', ''),
-              suffix = getParam(p, 'suffix', ''),
-              cat = getParam(p, 'category', this.dict.defaultCategory),
-              header = getParam(p, 'header',
+                prefixv = getParam(p, 'valueprefix', ''),
+                prefix = getParam(p, 'prefix', ''),
+                suffix = getParam(p, 'suffix', ''),
+                cat = getParam(p, 'category', this.dict.defaultCategory),
+                header = getParam(p, 'header',
                 as != 'table' ? '' :
-                  '|' +
-                  this.template.tableClass + ' ' +
-                  this.template.tableClass + type.toUpperCase() +
-                  '|k\n' +
-                  this.template[type + 'TableHead'].format([cat, element])
-              ),
-              footer = getParam(p, 'footer', ''),
-              separator = getParam(p, 'separator', '\n'),
-              t = story.findContainingTiddler(place);
+                    '|' +
+                    this.template.tableClass + ' ' +
+                    this.template.tableClass + type.toUpperCase() +
+                    '|k\n' +
+                    this.template[type + 'TableHead'].format([cat, element])
+                ),
+                footer = getParam(p, 'footer', ''),
+                separator = getParam(p, 'separator', '\n'),
+                t = story.findContainingTiddler(place);
 
             tiddler = tiddler ? tiddler : (t ? t.getAttribute('tiddler') : '');
             if (!tiddler) return;
