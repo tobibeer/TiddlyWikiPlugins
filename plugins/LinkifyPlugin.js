@@ -24,7 +24,7 @@
             //elements in which matches are NOT to be linkified
             doNotLinkifyInside: 'h1,h2,h3,h4,h5,h6,.header,.noLinkify',
             //whether or not links to the current tiddler should be linkified
-            doNotLinkifySameTiddler : false
+            doNotLinkifySameTiddler : true
         },
 
         //do not write to these => they are programatically assessed!
