@@ -22,7 +22,9 @@
             //whether or not to autolink all tiddler titles
             linkifyAllTiddlers: true,
             //elements in which matches are NOT to be linkified
-            doNotLinkifyInside: 'h1,h2,h3,h4,h5,h6,.header,.noLinkify'
+            doNotLinkifyInside: 'h1,h2,h3,h4,h5,h6,.header,.noLinkify',
+            //whether or not links to the current tiddler should be linkified
+            doNotLinkifySameTiddler : true
         },
 
         //do not write to these => they are programatically assessed!
@@ -32,13 +34,16 @@
         //the formatter handler
         handler: function (w) {
             var pos, unLink,
-                //ignore when is or inside an ignored element
-                ignore = $(w.output).closest(cel.defaults.doNotLinkifyInside).length,
+                //ignore when link is inside an ignored element
+                ignore = $(w.output).closest(cel.defaults.doNotLinkifyInside).length > 0,
                 //get surrounding tiddler dom element
                 tid = story.findContainingTiddler(w.output);
 
             //get tiddler name
             tid = tid ? tid.getAttribute('tiddler') : '';
+
+            //also ignore links in the current tiddler when they should not be linkified
+            ignore = ignore || cel.defaults.doNotLinkifySameTiddler && tid == this.target;
 
             //get the actual tiddler -> not sections or slices
             pos = tid.indexOf('##');
