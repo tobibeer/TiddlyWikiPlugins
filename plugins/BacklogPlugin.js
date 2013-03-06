@@ -134,7 +134,6 @@
             //no recursive backlogs....
             if ($(place).closest(".backlog").length > 0) return;
 
-            console.log(tiddler.title);
             var addtags = '', backlog, f, filtered = [], items,
                 lists = '', s, sec, sec_title, section, sx = '',
                 t, tags = '', tag0, tids, title, titles = [], tx, untagged = [],
