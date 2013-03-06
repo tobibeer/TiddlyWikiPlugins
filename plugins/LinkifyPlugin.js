@@ -3,7 +3,7 @@
 |''Description''|Automatically turns text into links, optionally using aliases<br>The plugin is based on Clint Checketts and Paul Petterson's [[RedirectMacro|http://checkettsweb.com/styles/themes.htm#RedirectMacro]]|
 |Documentation|http://linkify.tiddlyspot.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.3|
+|''Version''|1.0.4|
 |''CoreVersion''|2.5.0|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/LinkifyPlugin.js|
 |''Usage''|define redirects in LinkifyConfig|
@@ -311,12 +311,8 @@
     //run init
     config.extensions.linkify.init();
 
-    //legacy helper
-    window.linkifyTiddlers = function(bool) {
-        //set marker
-        cel.defaults.linkifyAllTiddlers = bool;
-        //reindex
-        cel.init();
+    //DEPRECATED, use linkifyAllTiddlers
+    window.linkifyTiddlers = function() {
     }
 
     /* hijack saveTiddler */
