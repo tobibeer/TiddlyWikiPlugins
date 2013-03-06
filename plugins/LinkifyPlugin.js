@@ -3,7 +3,7 @@
 |''Description''|Automatically turns text into links, optionally using aliases<br>The plugin is based on Clint Checketts and Paul Petterson's [[RedirectMacro|http://checkettsweb.com/styles/themes.htm#RedirectMacro]]|
 |Documentation|http://linkify.tiddlyspot.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.2|
+|''Version''|1.0.3|
 |''CoreVersion''|2.5.0|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/LinkifyPlugin.js|
 |''Usage''|define redirects in LinkifyConfig|
@@ -14,8 +14,8 @@
     //default LinkifyConfig
     config.shadowTiddlers.LinkifyConfig = "!Exclude\n-excludeLists systemConfig noLinkify\n!Linkify\nLinkifyPlugin|^linkif\n^Tiddler";
 
-    //the handler for a linkification formatter
-    config.extensions.linkify = {
+    //create extension and store reference to it in local variable
+    var cel = config.extensions.linkify = {
 
         //settings
         defaults: {
@@ -32,7 +32,6 @@
         //the formatter handler
         handler: function (w) {
             var pos, unLink,
-                cel = config.extensions.linkify,
                 //ignore when is or inside an ignored element
                 ignore = $(w.output).closest(cel.defaults.doNotLinkifyInside).length,
                 //get surrounding tiddler dom element
@@ -80,8 +79,6 @@
                 remove		<string>	any old tiddler name to be removed				   		*/
 
             var asIs, exists, f = 0, fmt, fmtName, fmtRemove, match, pre, prepend, reg, suff,
-                //reference to plugin
-                cel = config.extensions.linkify,
                 //reference to formatters
                 cf = config.formatters,
                 //get modifier
@@ -200,7 +197,6 @@
         /* indexes the LinkifyConfig tiddler */
         indexConfig: function () {
             var d, d0, m, makelast, r, rd, rx, td, t, tid, tids, tmp,
-                cel = config.extensions.linkify,
                 cf = config.formatters,
 
             //helper to remove all known prefixes from a term
@@ -280,8 +276,6 @@
         /* index all excludes */
         indexExcludes: function () {
             var e, ex = '', r, rx,
-                //reference to plugin
-                cel = config.extensions.linkify,
                 //read config
                 rx = store.getTiddlerText('LinkifyConfig') || store.getShadowTiddlerText('LinkifyConfig');
 
@@ -319,7 +313,6 @@
 
     //legacy helper
     window.linkifyTiddlers = function(bool) {
-        var cel = config.extensions.linkify;
         //set marker
         cel.defaults.linkifyAllTiddlers = bool;
         //reindex
@@ -329,9 +322,9 @@
     /* hijack saveTiddler */
     store.saveTiddler_Linkify = store.saveTiddler;
     store.saveTiddler = function (title, newTitle) {
+        //hijacked by LinkifyPlugin
         //invoke core
         var r = store.saveTiddler_Linkify.apply(this, arguments),
-            cel = config.extensions.linkify,
             tid = newTitle;
 
         //add formatter if not excluded or not existing yet
@@ -360,6 +353,7 @@
     /* hijack removeTiddler */
     store.removeTiddler_Linkify = store.removeTiddler;
     store.removeTiddler = function (title) {
+        //hijacked by LinkifyPlugin
         //invoke core
         var r = store.removeTiddler_Linkify.apply(this, arguments);
         //remove old formatter
