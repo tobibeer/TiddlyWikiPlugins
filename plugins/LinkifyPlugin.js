@@ -313,8 +313,8 @@
 
     //shadow tiddler for styles
     config.shadowTiddlers.StyleSheetLinkify = '/*{{{*/\n' +
-        '.linkified .tiddlyLink{color:[[ColorPalette::PrimaryLight]];font-weight:normal;}\n' +
-        '.linkified .tiddlyLink:hover{color:[[ColorPalette::PrimaryMid]];background:transparent;}\n' +
+        '.linkified .tiddlyLink{color:[[ColorPalette::PrimaryMid]];font-weight:normal;}\n' +
+        '.linkified .tiddlyLink:hover{color:[[ColorPalette::PrimaryLight]];background:transparent;}\n' +
         '.headerShadow .linkified .tiddlyLink {color:transparent !important;}\n' +
         '.siteSubtitle .linkified .tiddlyLink{color:[[ColorPalette::PrimaryPale]];background:transparent;}\n' +
         '.siteSubtitle .linkified .tiddlyLink:hover{color:[[ColorPalette::Background]];background:transparent;}\n' +
