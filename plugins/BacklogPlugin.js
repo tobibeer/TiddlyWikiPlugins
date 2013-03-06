@@ -1,31 +1,31 @@
 /***
-|''Name''|BacklogPlugin|
-|''Description''|Provides a tiddler backlog (or kanban) with drag-and-drop capability|
+|''Name''|ListrPlugin|
+|''Description''|Provides a tiddler listr (or kanban) with drag-and-drop capability|
 |''Author''|Tobias Beer|
 |''Version''|0.3|
 |''Status''|beta|
-|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/BacklogPlugin.js|
+|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListrPlugin.js|
 |''License''|http://creativecommons.org/licenses/by-sa/3.0/|
 |''~CoreVersion''|2.5.0|
 /*{{{*/
 /*
 !CSS
-.backlog {
+.listr {
 	float:none;
 	clear:both;
 	display:block;
 }
 
-.log_section {
+.lr_section {
     clear:left;
 	background-color: [[ColorPalette::TertiaryPale]];
 	margin: 0 0 15px 0; 
 }
 
-.log_section_title{
+.lr_section_title{
     min-height:1px;
 }
-.log_section_title .tiddlyLink{
+.lr_section_title .tiddlyLink{
 	text-align: left;
     padding: 7px 3px 5px 10px;
     font-size:2em;
@@ -33,37 +33,37 @@
     color:[[ColorPalette::TertiaryDark]];
 }
 
-.log_item_list {
+.lr_item_list {
 	list-style: none; 
     margin: 0 3px;
 	padding: 0;
 }
 
-.log_item { 
+.lr_item { 
     background-color: [[ColorPalette::Background]];
  	margin: 5px 0 0 0;
     padding: 3px;
 }
 
-.log_item_title .tiddlyLink:hover{
+.lr_item_title .tiddlyLink:hover{
     color:[[ColorPalette::PrimaryLight]];
     background:transparent;
 }
 
-.log_item_text{
+.lr_item_text{
     display:block;
 	font-size: 80%;
     max-height:150px;
     overflow:hidden;
 }
 
-.log_item:hover .log_item_text{
+.lr_item:hover .lr_item_text{
     display:block;
 	max-height: none; 
     overflow:auto;
 }
 
-.log_add_new .button {
+.lr_add_new .button {
     color:[[ColorPalette::TertiaryMid]];
     display:block;
     margin:0;
@@ -71,8 +71,8 @@
     border:0;
 }
 
-.log_section_title .tiddlyLink:hover,
-.log_add_new .button:hover {
+.lr_section_title .tiddlyLink:hover,
+.lr_add_new .button:hover {
     color:[[ColorPalette::PrimaryMid]];
     background:[[ColorPalette::TertiaryLight]];
 }
@@ -82,12 +82,12 @@
     padding: 0 5px;
 }
 
-.kanban .log_section_title .tiddlyLink{
+.kanban .lr_section_title .tiddlyLink{
 	text-align: center;
     padding:10px 3px;
 }
 
-.kanban .log_section{
+.kanban .lr_section{
     margin:0 0 0 5px;
     clear: none;
 	float: left;
@@ -103,12 +103,12 @@
 //{{{
 (function ($) {
 
-    config.macros.backlog = {
+    config.macros.listr = {
 
         /* settings & localization */
         defaults: {
-            tplItemTitle: '{{log_item_title{[[%0]]}}}',
-            tplItemText: '{{log_item_text{\n%0\n}}}',
+            tplItemTitle: '{{lr_item_title{[[%0]]}}}',
+            tplItemText: '{{lr_item_text{\n%0\n}}}',
             lblNewButton: 'Add new...',
             txtNewItem : '* new *'
         },
@@ -117,24 +117,24 @@
         /*run on startup */
         init: function () {
             //install StyleSheet shadow tiddler
-            config.shadowTiddlers["StyleSheetBacklog"] = "/*{{{*/\n%0\n/*}}}*/"
+            config.shadowTiddlers["StyleSheetListr"] = "/*{{{*/\n%0\n/*}}}*/"
                 .format([
-                    store.getTiddlerText("BacklogPlugin##CSS")
+                    store.getTiddlerText("ListrPlugin##CSS")
                 ]);
             //run StyleSheet
-            store.addNotification('StyleSheetBacklog', refreshStyles);
+            store.addNotification('StyleSheetListr', refreshStyles);
             //add update notification
-            store.addNotification(null, config.macros.backlog.tiddlerChanged);
+            store.addNotification(null, config.macros.listr.tiddlerChanged);
         },
 
 
-        /* the backlog macro */
+        /* the listr macro */
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
 
-            //no recursive backlogs....
-            if ($(place).closest(".backlog").length > 0) return;
+            //no recursive listrs....
+            if ($(place).closest(".listr").length > 0) return;
 
-            var addtags = '', backlog, f, filtered = [], items,
+            var addtags = '', listr, f, filtered = [], items,
                 lists = '', s, sec, sec_title, section, sx = '',
                 t, tags = '', tag0, tids, title, titles = [], tx, untagged = [],
                 //check if kanban mode
@@ -194,12 +194,12 @@
                 tag0 = f.indexOf('[tag[');
             }
 
-            //first section => create the backlog
-            backlog = createTiddlyElement(place, 'span', null, 'backlog' + (kanban ? ' kanban' : ''));
+            //first section => create the listr
+            listr = createTiddlyElement(place, 'span', null, 'listr' + (kanban ? ' kanban' : ''));
 
-            //add to backlog attributes...
-            $(backlog).attr({
-                id: this.newId('log'), // a unique id
+            //add to listr attributes...
+            $(listr).attr({
+                id: this.newId('lr'), // a unique id
                 tags: addtags, // default tags
                 filter: filter, // filter
                 section: def // the default section
@@ -212,7 +212,7 @@
                 //add to sections string
                 sx += '[[' + sec + ']]';
                 //create section element
-                section = createTiddlyElement(backlog, 'div', null, 'log_section');
+                section = createTiddlyElement(listr, 'div', null, 'lr_section');
                 //add section as attribute
                 $(section).attr('section', sec);
 
@@ -226,7 +226,7 @@
                     (
                         //when just one section
                         sections.length < 2 &&
-                        //and backlog tiddler same as displayed tiddler
+                        //and listr tiddler same as displayed tiddler
                         tiddler.title == (tid ? tid.getAttribute('tiddler') : '') ?
                         //display nothing
                         '' :
@@ -234,16 +234,16 @@
                         '[[' + titles[s] + '|' + sec + ']]'
                     ),
                     //into created section head
-                    createTiddlyElement(section, 'div', null, 'log_section_title')
+                    createTiddlyElement(section, 'div', null, 'lr_section_title')
                 );
 
                 //create item list
-                items = createTiddlyElement(section, 'div', null, 'log_item_list');
+                items = createTiddlyElement(section, 'div', null, 'lr_item_list');
                 //set section attribute
                 $(items).attr("section", sec);
 
                 //add item list
-                lists += ".log_item_list[section='" + sec + "'],";
+                lists += ".lr_item_list[section='" + sec + "'],";
                 //get tiddlers tagged with section
                 tids = store.getTaggedTiddlers(sec);
                 //loop them...
@@ -266,7 +266,7 @@
                 //render button to add a new item to a section
                 wikify(
                     (
-                        '{{log_add_new{<<newTiddler label:"' +
+                        '{{lr_add_new{<<newTiddler label:"' +
                         this.defaults.lblNewButton + '"' +
                         tags + ' tag:"' + sec +
                         '">>}}}'
@@ -275,22 +275,22 @@
                 );
             }
 
-            //also add sections as backlog attribute
-            $(backlog).attr('sections', sx);
+            //also add sections as listr attribute
+            $(listr).attr('sections', sx);
 
             //enable drag and drop between columns
-            $(lists.substr(0, lists.length - 1), backlog).dragsort({
-                dragSelector: ".log_item",
+            $(lists.substr(0, lists.length - 1), listr).dragsort({
+                dragSelector: ".lr_item",
                 dragBetween: (sections.length>1 ? true : false),
-                dragEnd: config.macros.backlog.itemDrop
+                dragEnd: config.macros.listr.itemDrop
             });
         },
 
 
-        /* render tiddler info into a backlog item */
+        /* render tiddler info into a listr item */
         updateItem: function (tiddler, item, untagged) {
             //reference to defaults
-            var def = config.macros.backlog.defaults;
+            var def = config.macros.listr.defaults;
             //clear item
             $(item).empty();
             //has section tag?
@@ -314,15 +314,15 @@
         },
 
 
-        /* create a backlog item */
+        /* create a listr item */
         addItem: function (tid, items, section, untagged) {
             //create the item
-            var item = createTiddlyElement(items, 'li', null, 'log_item' + (untagged ? ' no_section' : ''), null);
+            var item = createTiddlyElement(items, 'li', null, 'lr_item' + (untagged ? ' no_section' : ''), null);
             //set attributes
             $(item).attr({
                 section: section,
                 item: tid.title,
-                title : (untagged ? config.macros.backlog.defaults.txtNewItem : '')
+                title : (untagged ? config.macros.listr.defaults.txtNewItem : '')
             });
             //update title/text
             this.updateItem(tid, item, untagged);
@@ -336,7 +336,7 @@
                 //the tiddler title
                 title = item.attr('item'),
                 //target section
-                sec = item.closest('.log_section').attr('section'),
+                sec = item.closest('.lr_section').attr('section'),
                 //tiddler in store
                 tid = store.getTiddler(title);
 
@@ -352,8 +352,8 @@
                 //or add if not existing
                 else tid.tags.push(sec);
 
-                //loop default tags as stored at backlog wrapper
-                item.closest('.backlog').attr('tags').readBracketedList().map(function(el){
+                //loop default tags as stored at listr wrapper
+                item.closest('.listr').attr('tags').readBracketedList().map(function(el){
                     //add tag once
                     tid.tags.pushUnique(el);
                 });
@@ -367,8 +367,8 @@
 
                 //refresh the tiddler display
                 story.refreshTiddler(tid.title, null, true);
-                // update all backlogs
-                config.macros.backlog.tiddlerChanged(title);
+                // update all listrs
+                config.macros.listr.tiddlerChanged(title);
             }
         },
 
@@ -380,30 +380,30 @@
 
         /* notification and change handler */
         tiddlerChanged: function (title, moved) {
-            var filter, id, $item, log, match, tids = {}, section, untagged,
-                cmb = config.macros.backlog,
+            var filter, id, $item, listr, match, tids = {}, section, untagged,
+                cmb = config.macros.listr,
                 tid = store.getTiddler(title),
-                item = '.log_item[item="' + title + '"]';
+                item = '.lr_item[item="' + title + '"]';
 
             //tiddler exists
             if (tid) {
                 //loop all item lists
-                $(".log_item_list").each(function (index) {
-                    //get log
-                    log = $(this).closest('.backlog');
-                    //get backlog id
-                    id = log.attr('id');
+                $(".lr_item_list").each(function (index) {
+                    //get listr
+                    listr = $(this).closest('.listr');
+                    //get listr id
+                    id = listr.attr('id');
                     //get filter
-                    filter = log.attr('filter');
+                    filter = listr.attr('filter');
                     //get sections
-                    sections = log.attr('sections').readBracketedList();
-                    //no filter list for log yet?
+                    sections = listr.attr('sections').readBracketedList();
+                    //no filter list for listr yet?
                     if (!tids[id]) {
                         //create new list
                         tids[id] = [];
                         //loop filter results
                         store.filterTiddlers(filter).map(function (el) {
-                            //add to log filter list
+                            //add to listr filter list
                             tids[id].push(el.title);
                         });
                     }
@@ -420,7 +420,7 @@
                         // no filter or tid in filter list
                         ( !filter || match ) &&
                         //and tiddler belongs into section or untagged and this is the default section
-                        ( tid.isTagged(section) || untagged && section == log.attr('section'))
+                        (tid.isTagged(section) || untagged && section == listr.attr('section'))
                     ){
                         //item already exists?
                         if ($item[0]) {
