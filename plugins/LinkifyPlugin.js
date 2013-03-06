@@ -313,7 +313,7 @@
     config.extensions.linkify.init();
 
     //legacy helper
-    function LinkifyAllTiddlers(bool) {
+    window.linkifyTiddlers = function(bool) {
         var cel = config.extensions.linkify;
         //set marker
         cel.defaults.linkifyAllTiddlers = bool;
