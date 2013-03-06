@@ -3,7 +3,7 @@
 |''Description''|Automatically turns text into links, optionally using aliases<br>The plugin is based on Clint Checketts and Paul Petterson's [[RedirectMacro|http://checkettsweb.com/styles/themes.htm#RedirectMacro]]|
 |Documentation|http://linkify.tiddlyspot.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0 beta|
+|''Version''|1.0.2|
 |''CoreVersion''|2.5.0|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/LinkifyPlugin.js|
 |''Usage''|define redirects in LinkifyConfig|
@@ -20,7 +20,9 @@
         //settings
         defaults: {
             //whether or not to autolink all tiddler titles
-            linkifyAllTiddlers: true
+            linkifyAllTiddlers: true,
+            //elements in which matches are NOT to be linkified
+            doNotLinkifyInside: 'h1,h2,h3,h4,h5,h6,.header,.noLinkify'
         },
 
         //do not write to these => they are programatically assessed!
@@ -31,10 +33,13 @@
         handler: function (w) {
             var pos, unLink,
                 cel = config.extensions.linkify,
+                //ignore when is or inside an ignored element
+                ignore = $(w.output).closest(cel.defaults.doNotLinkifyInside).length,
                 //get surrounding tiddler dom element
                 tid = story.findContainingTiddler(w.output);
-                //get tiddler name
-                tid = tid ? tid.getAttribute('tiddler') : '';
+
+            //get tiddler name
+            tid = tid ? tid.getAttribute('tiddler') : '';
 
             //get the actual tiddler -> not sections or slices
             pos = tid.indexOf('##');
@@ -44,8 +49,8 @@
             //whether to ignore this match (prefixed with tilde ~)
             unLink = w.source.substr(w.matchStart, 1) == config.textPrimitives.unWikiLink;
 
-            //tid excluded?
-            if (unLink || tid && cel.excluded.contains(tid)) {
+            //ignore container or escaped or tid excluded?
+            if (ignore || unLink || tid && cel.excluded.contains(tid)) {
                 //wikify as is
                 w.outputText(w.output, w.matchStart + (unLink ? 1 : 0), w.nextMatch);
 
