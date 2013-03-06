@@ -363,9 +363,7 @@
                 item.attr('section', sec);
 
                 // ensure the tiddler is saved
-                tid.incChangeCount();
-                tid.saveToDiv();
-                store.setDirty(title, true);
+                story.setDirty(title, true);
                 if (config.options.chkAutoSave) saveChanges();
 
                 //refresh the tiddler display
