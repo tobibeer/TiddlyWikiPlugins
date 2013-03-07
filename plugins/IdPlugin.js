@@ -19,14 +19,14 @@ Tiddler.prototype.getId = function () {
 /* sets a tiddler id when undefined
 arguments (all optional)...
     length:  the id length / default: 21, max: ask your computer
-    base:    the id base   / default: 62, max: 62                                  */
-Tiddler.prototype.setId = function (length, base) {
+    radix:    the id radix   / default: 62, max: 62                                  */
+Tiddler.prototype.setId = function (length, radix) {
     //get id
     var id = this.fields['id'];
     //not defined yet?
     if (!id) {
         //set the id using a generated uuid
-        this.fields['id'] = Math.uuid(length || 21, base);
+        this.fields['id'] = Math.uuid(length || 21, radix);
         //return the id when set
         return this.id;
     }
@@ -35,11 +35,11 @@ Tiddler.prototype.setId = function (length, base) {
 /* retrieves a tiddler id or creates one if not existing
 arguments:
     tiddler: title (string) or tiddler
-    length, base => see Tiddler.setId()
+    length, radix => see Tiddler.setId()
 returns:
     the id                                                                         */
 
-TiddlyWiki.prototype.tiddlerId = function (tiddler, length, base) {
+TiddlyWiki.prototype.tiddlerId = function (tiddler, length, radix) {
     var
         //when tiddler given use tiddler otherwise get via title
         t = typeof tiddler != 'string' ? tiddler : this.fetchTiddler(tiddler),
@@ -49,7 +49,7 @@ TiddlyWiki.prototype.tiddlerId = function (tiddler, length, base) {
     //no id yet?
     if (!id) {
         //let the tiddler set its id
-        id = t.setId(length, base);
+        id = t.setId(length, radix);
         //save the tiddler
         this.saveTiddler(t);
     }
