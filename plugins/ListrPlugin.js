@@ -1,6 +1,6 @@
 /***
 |''Name''|ListrPlugin|
-|''Description''|Provides a tiddler listr (or kanban) with drag-and-drop capability|
+|''Description''|Provides a tiddler backlog (or kanban) with drag-and-drop capability|
 |''Author''|Tobias Beer|
 |''Version''|0.3|
 |''Status''|beta|
@@ -194,7 +194,7 @@
                 tag0 = f.indexOf('[tag[');
             }
 
-            //first section => create the listr
+            //create listr, either as backlog (default) or as a kanban
             listr = createTiddlyElement(place, 'span', null, 'listr' + (kanban ? ' kanban' : ''));
 
             //add to listr attributes...
@@ -397,13 +397,13 @@
                     filter = listr.attr('filter');
                     //get sections
                     sections = listr.attr('sections').readBracketedList();
-                    //no filter list for listr yet?
+                    //no filter list for this listr yet?
                     if (!tids[id]) {
                         //create new list
                         tids[id] = [];
                         //loop filter results
                         store.filterTiddlers(filter).map(function (el) {
-                            //add to listr filter list
+                            //add to filter list
                             tids[id].push(el.title);
                         });
                     }
