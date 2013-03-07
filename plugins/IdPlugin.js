@@ -3,7 +3,7 @@
 |''Description:''|» provides {{{store.tiddlerId(tiddlerOrTitle)}}} to persist and retrieve unique tiddlers ids<br>» provides {{{store.getTiddlerById(id)}}} to retrieve tiddlers by their id |
 |''Documentation:''|http://id.tiddlyspace.com|
 |''Author:''|Tobias Beer / Mario Pietsch|
-|''Version:''|1.0.2|
+|''Version:''|1.0.3|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/IdPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 |''~CoreVersion:''|2.6.5|
@@ -11,32 +11,22 @@
 ***/
 //{{{
 
-/* allow for a specific prefix */
-config.extensions.id = {
-    format: '%0',
-    length: 21,
-    base: undefined
-}
-
 /* retrieves a tiddler id or creates on if not existing */
-TiddlyWiki.prototype.tiddlerId = function (tiddler, replace, format) {
+TiddlyWiki.prototype.tiddlerId = function (tiddler, format, length, base) {
     
     var
         //when tiddler use tiddler otherwise get via title
         t = typeof tiddler != 'string' ? tiddler: this.getTiddler(tiddler),
         //retrieve Id
-        id = t.fields['id'],
-        //reference to defaults
-        cei = config.extensions.id,
-        //replacement array
-        r = replace || [];
+        id = t.fields['id'];
 
     //no id defined yet for tiddler
     if (!id) {
-        //prepend a generated uuid to the replacement array
-        r.unshift( Math.uuid(cei.length, cei.base) );
-        //create a new id based on the format
-        id = (format || cei.format).format(r);
+        //apply the id format
+        id = (format || '%0').format([
+            //on a generated a uuid
+            Math.uuid(length || 21, base)
+        ]);
         //set the id on the tiddler
         t.fields['id'] = id;
         //save the tiddler as if unchanged
@@ -100,7 +90,7 @@ Dual licensed under the MIT and GPL licenses.
                     rnd = rnd >> 4;
                     uuid[i] = chars[(i == 19) ? (r & 0x3) | 0x8 : r];
                 }
-            } // else
+            }
         }
 
         return uuid.join('');
