@@ -3,36 +3,57 @@
 |''Description:''|» provides {{{store.tiddlerId(tiddlerOrTitle)}}} to persist and retrieve unique tiddlers ids<br>» provides {{{store.getTiddlerById(id)}}} to retrieve tiddlers by their id |
 |''Documentation:''|http://id.tiddlyspace.com|
 |''Author:''|Tobias Beer / Mario Pietsch|
-|''Version:''|1.0.4|
+|''Version:''|1.1.0|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/IdPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 |''~CoreVersion:''|2.6.5|
 |''Implements''|http://www.broofa.com/Tools/Math.uuid.js|
 ***/
 //{{{
+/* returns the tiddler id */
+Tiddler.prototype.getId = function () {
+    //return the id
+    return this.fields['id'];
+}
 
-/* retrieves a tiddler id or creates on if not existing */
-TiddlyWiki.prototype.tiddlerId = function (tiddler, format, length, base) {
-    
+/* sets a tiddler id when undefined
+arguments (all optional)...
+    length:  the id length / default: 21
+    base:    the id base   / default: 64                                           */
+Tiddler.prototype.setId = function (length, base) {
+    //get id
+    var id = this.fields['id'];
+    //not defined yet?
+    if (!id) {
+        //set the id using a generated uuid
+        this.fields['id'] = Math.uuid(length || 21, base);
+        //return the id when set
+        return this.id;
+    }
+}
+
+/* retrieves a tiddler id or creates one if not existing
+arguments:
+    tiddler: title (string) or tiddler
+    length, base => see Tiddler.setId()
+returns:
+    the id                                                                         */
+
+TiddlyWiki.prototype.tiddlerId = function (tiddler, length, base) {
     var
-        //when tiddler use tiddler otherwise get via title
+        //when tiddler given use tiddler otherwise get via title
         t = typeof tiddler != 'string' ? tiddler : this.fetchTiddler(tiddler),
         //retrieve Id
         id = t.fields['id'];
 
-    //no id defined yet for tiddler
+    //no id yet?
     if (!id) {
-        //apply the id format
-        id = (format || '%0').format([
-            //on a generated a uuid
-            Math.uuid(length || 21, base)
-        ]);
-        //set the id on the tiddler
-        t.fields['id'] = id;
-        //save the tiddler as if unchanged
+        //let the tiddler set its id
+        id = t.setId(length, base);
+        console.log(id);
+        //save the tiddler
         this.saveTiddler(t);
     }
-
     //return the id
     return id;
 }
