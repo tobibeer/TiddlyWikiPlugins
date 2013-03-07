@@ -1,9 +1,9 @@
 /***
 |''Name:''|IdPlugin|
-|''Description:''|» provides {{{store.tiddlerId(tiddlerOrTitle)}}} to persist and retrieve unique tiddlers ids<br>» provides {{{store.getTiddlerById(id)}}} to retrieve tiddlers by their id |
-|''Documentation:''|http://id.tiddlyspace.com|
+|''Description:''|provides a mechanism to set and retrieve unique tiddler ids or a tiddler by its id|
+|''Documentation:''|https://github.com/tobibeer/TiddlyWikiPlugins/wiki/IdPlugin|
 |''Author:''|Tobias Beer / Mario Pietsch|
-|''Version:''|1.1.0|
+|''Version:''|1.1.1|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/IdPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 |''~CoreVersion:''|2.6.5|
@@ -18,8 +18,8 @@ Tiddler.prototype.getId = function () {
 
 /* sets a tiddler id when undefined
 arguments (all optional)...
-    length:  the id length / default: 21
-    base:    the id base   / default: 64                                           */
+    length:  the id length / default: 21, max: ask your computer
+    base:    the id base   / default: 62, max: 62                                  */
 Tiddler.prototype.setId = function (length, base) {
     //get id
     var id = this.fields['id'];
@@ -50,7 +50,6 @@ TiddlyWiki.prototype.tiddlerId = function (tiddler, length, base) {
     if (!id) {
         //let the tiddler set its id
         id = t.setId(length, base);
-        console.log(id);
         //save the tiddler
         this.saveTiddler(t);
     }
