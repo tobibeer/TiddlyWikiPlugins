@@ -3,7 +3,7 @@
 |''Description:''|» provides {{{store.tiddlerId(tiddlerOrTitle)}}} to persist and retrieve unique tiddlers ids<br>» provides {{{store.getTiddlerById(id)}}} to retrieve tiddlers by their id |
 |''Documentation:''|http://id.tiddlyspace.com|
 |''Author:''|Tobias Beer / Mario Pietsch|
-|''Version:''|1.0.3|
+|''Version:''|1.0.4|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/IdPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 |''~CoreVersion:''|2.6.5|
@@ -16,7 +16,7 @@ TiddlyWiki.prototype.tiddlerId = function (tiddler, format, length, base) {
     
     var
         //when tiddler use tiddler otherwise get via title
-        t = typeof tiddler != 'string' ? tiddler: this.getTiddler(tiddler),
+        t = typeof tiddler != 'string' ? tiddler : this.fetchTiddler(tiddler),
         //retrieve Id
         id = t.fields['id'];
 
