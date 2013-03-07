@@ -3,7 +3,7 @@
 |''Description:''|» provides {{{store.tiddlerId(tiddlerOrTitle)}}} to persist and retrieve unique tiddlers ids<br>» provides {{{store.getTiddlerById(id)}}} to retrieve tiddlers by their id |
 |''Documentation:''|http://id.tiddlyspace.com|
 |''Author:''|Tobias Beer / Mario Pietsch|
-|''Version:''|1.0|
+|''Version:''|1.0.1|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/IdPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 |''Implements''|http://www.broofa.com/Tools/Math.uuid.js|
@@ -11,29 +11,55 @@
 //{{{
 
 /* allow for a specific prefix */
-config.extensions.idPrefix = '';
+config.extensions.id = {
+    format: '%0',
+    length: 21,
+    base: undefined
+}
 
 /* retrieves a tiddler id or creates on if not existing */
-TiddlyWiki.prototype.tiddlerId = function (tiddler) {
+TiddlyWiki.prototype.tiddlerId = function (tiddler, replace) {
+    //when tiddler
     if (typeof tiddler != 'string')
+        //use title
         tiddler = tiddler.title;
-    var id = store.getValue(tiddler, 'id');
+
+    //retrieve id
+    var id = store.getValue(tiddler, 'id'),
+        //reference to defaults
+        cei = config.extensions.id,
+        //replacement array
+        r = replace || [];
+
+    //no id defined yet for tiddler
     if (!id) {
-        id = config.extensions.idPrefix + Math.uuid(21);
+        console.log(Math.uuid(cei.length, cei.base));
+        //prepend a generated uuid to the replacement array
+        r.unshift( Math.uuid(cei.length, cei.base) );
+        //create a new id based on the format
+        id = cei.format.format(r);
+        //set the id on the tiddler
         store.setValue(tiddler, 'id', id);
     }
+
+    //return the id
     return id;
 }
 
 /* retrieves a tiddler by its id */
 TiddlyWiki.prototype.getTiddlerById = function (id) {
     var t;
+    //loop all tids
     store.forEachTiddler(function (title, tiddler) {
-        if (id === store.getValue(title, 'id') ) {
+        //tiddler has this id?
+        if (id === store.getValue(title, 'id')) {
+            //set reference
             t = tiddler;
+            //exit loop
             return false;
         }
     });
+    //return the tiddler if found
     return t;
 };
 
