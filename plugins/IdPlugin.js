@@ -19,7 +19,7 @@ TiddlyWiki.prototype.tiddlerId = function (tiddler) {
         tiddler = tiddler.title;
     var id = store.getValue(tiddler, 'id');
     if (!id) {
-        id = config.extensions.idPrefix + Math.uuid(18);
+        id = config.extensions.idPrefix + Math.uuid(21);
         store.setValue(tiddler, 'id', id);
     }
     return id;
