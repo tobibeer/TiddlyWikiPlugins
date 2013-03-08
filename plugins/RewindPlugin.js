@@ -3,7 +3,7 @@
 |''Description''|Renders $target message with $target link to the last tiddler you came from|
 |''Author''|Tobias Beer|
 |''Version''|0.5.0|
-|''Documentation:''|https://github.com/tobibeer/TiddlyWikiPlugins/wiki/RewindPlugin|
+|''Documentation:''|http://rewind.tiddlyspace.com/|
 |''License''|[[Creative Commons Attribution-ShareAlike 2.5 License|http://creativecommons.org/licenses/by-sa/2.5/]]|
 |''~CoreVersion''|2.5.3|
 !Code
