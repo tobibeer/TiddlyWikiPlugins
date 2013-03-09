@@ -2,7 +2,7 @@
 |''Name''|RewindPlugin|
 |''Description''|Renders $target message with $target link to the last tiddler you came from|
 |''Author''|Tobias Beer|
-|''Version''|0.5.0|
+|''Version''|0.5.2|
 |''Documentation:''|http://rewind.tiddlyspace.com/|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/RewindPlugin.js|
 |''License''|[[Creative Commons Attribution-ShareAlike 2.5 License|http://creativecommons.org/licenses/by-sa/2.5/]]|
@@ -12,7 +12,9 @@
 /*{{{*/
 (function ($) {
     //create plugin namespace
-    var re = config.extensions.rewind = {
+    config.extensions.rewind = {
+        //only show for pretty links
+        onlyPrettyLinks: false,
         //where to insert the message
         insertAt: ".subtitle",
         //whether to insert after or before
@@ -30,14 +32,16 @@
         //reun core function
         onClickTiddlerLink_Rewind.apply(this, arguments);
         var $msg,
-            //get event
-            e = ev || window.event,
+            //ref to extension
+            re = config.extensions.rewind,
             //clicked link
-            lnk = resolveTarget(e),
+            lnk = resolveTarget(ev || window.event),
             //the link text
             text = $(lnk).text(),
             //the target tiddler title
             target = lnk.getAttribute("tiddlyLink"),
+            //whether or not this is a pretty link
+            pretty = text != target,
             //the target tiddler
             $target = $(story.getTiddler(target)),
             //the previous tiddler dom element
@@ -50,6 +54,8 @@
         tid = tid ? tid.getAttribute("tiddler") : "";
         //do not render when...
         if (
+            //only pretty links but this isn't one
+            !pretty && re.onlyPrettyLinks ||
             //the link is inside a rewind message
             $(lnk).closest(".rewind_message")[0] ||
             //the link was not in a tiddler
@@ -77,7 +83,7 @@
                 //with the current tiddler title
                 tid,
                 //and the pretty source link, only if it was pretty
-                text == target ? "" : re.txtRewindPrettyLink.format([text, tid]),
+                pretty ? re.txtRewindPrettyLink.format([text, tid]) : '',
                 //and just the source link text, if anyone needs it
                 text
             ]),
