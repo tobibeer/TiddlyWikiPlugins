@@ -3,7 +3,7 @@
 |''Description''|shows a tiddler timeline using sliders|
 |''Documentation''|http://slidr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|0.7.0|
+|''Version''|0.7.1|
 |''Status''|beta|
 |''CoreVersion''|2.6.5|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SlidrPlugin.js|
@@ -533,7 +533,6 @@
 .slidr{
     float:left;
     clear:left;
-    min-width:550px;
 }
 .slidr_button,
 .viewer .slidr_button{
@@ -561,9 +560,6 @@
     height:1px;
     clear:both;
 }
-.slidr_list table{
-    min-width:500px;
-}
 .slidr_list .twtable td,
 .slidr_list .twtable tr,
 .slidr_list .twtable,
@@ -579,6 +575,7 @@
 }
 .slidr_count{
     float:right;
+    margin-left:2em;
 }
 !END
 */
