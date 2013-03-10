@@ -7,7 +7,7 @@ http://tobibeer.tiddlyspace.com
 
 [Plugins](https://github.com/tobibeer/TiddlyWikiPlugins/tree/master/plugins)
 =======
-This folder contains the plugins in a standard and — if available — possibly a minified version.
+This folder contains the plugins in a commented and — if available — possibly a minified version.
 
 [Resources](https://github.com/tobibeer/TiddlyWikiPlugins/tree/master/resources)
 =========
