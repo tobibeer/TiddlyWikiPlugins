@@ -3,7 +3,7 @@
 |''Description''|shows a tiddler timeline using sliders|
 |''Documentation''|http://slidr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|0.7.2|
+|''Version''|0.7.3|
 |''Status''|beta|
 |''CoreVersion''|2.6.5|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SlidrPlugin.js|
@@ -28,6 +28,8 @@
             level: 'day',
             //the date & sort field
             field: '-modified',
+            //tiddlers to be excluded
+            exclude: 'excludeLists',
             //the slider tooltip | %0 = date range
             txtSliderTooltip: 'Click to show tiddlers in %0',
             //the format for the count | %0 the date | %1 count
@@ -97,6 +99,8 @@
                 },
                 //determine descending
                 desc = px.f.substr(0, 1) == '-',
+                //tiddlers to be excluded
+                ex = getParam(p, 'exclude', def.exclude).readBracketedList(),
                 //helper function to add to index
                 last = function (arr, el) {
                     //get last
@@ -153,6 +157,8 @@
             for (t = 0; t < tids.length; t++) {
                 //the tid
                 tid = tids[t];
+                //when excluded => skip
+                if (tid.tags.containsAny(ex.push(tid.title))) continue;
                 //the title
                 ti = tid.title;
                 //get date
