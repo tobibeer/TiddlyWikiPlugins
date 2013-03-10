@@ -3,7 +3,7 @@
 |''Description''|shows a tiddler timeline using sliders|
 |''Documentation''|http://slidr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|0.7.1|
+|''Version''|0.7.2|
 |''Status''|beta|
 |''CoreVersion''|2.6.5|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SlidrPlugin.js|
@@ -32,7 +32,9 @@
             txtSliderTooltip: 'Click to show tiddlers in %0',
             //the format for the count | %0 the date | %1 count
             fmtSlider: '{{slidr_title{%0}}}{{slidr_count{%1}}}',
-            //the format for the count | %0 count | %1 lblTiddler
+            //tag format
+            fmtTag: '<<tag [[%0]]>>',
+            //counter format
             fmtCount: '(%0 %1)',
             //slider date formats
             fmtYear: 'YYYY',
@@ -40,8 +42,8 @@
             fmtDay: '0DD. MMM, YYYY',
             lblTiddler1: 'tiddler',
             lblTiddler2: 'tiddlers',
-            //the tiddler format | %0 tiddler title | %1 timestamp
-            fmtTiddler: '\n|white-space:nowrap;padding-right:5px;%1 |width:100%;[[%0]]|',
+            //the tiddler format | %0 tiddler title | %1 timestamp | %2 tags
+            fmtTiddler: '\n|white-space:nowrap;padding-right:5px;%1 |[[%0]]|{{slidr_tags{%2}}}|',
             //tiddler date format
             fmtDate: '0hh:0mm',
             //tiddler date format displayed when above day list
@@ -217,7 +219,9 @@
                         //tiddler title
                         title: ti,
                         //tiddler date
-                        date: dt
+                        date: dt,
+                        //tags
+                        tags: tid.tags
                     });
                 }
             }
@@ -437,6 +441,7 @@
                     $.each(tids, function (i, t) {
                         //create date
                         var dt = new Date(t.date);
+
                         //add to output
                         out += px.fmtTiddler.format([
                             //the title
@@ -453,7 +458,10 @@
                                     //take format
                                     px.fmtDate
                                 )
-                            )
+                            ),
+                            t.tags.map(function (t) {
+                                return ts.defaults.fmtTag.format([t])
+                            })
                         ]);
                     });
                     //render the list
@@ -573,9 +581,20 @@
 .slidr_list table .tiddlyLink {
     display:block;
 }
+.slidr_list .twtable{
+    width:100%;
+}
 .slidr_count{
     float:right;
     margin-left:2em;
+}
+.slidr_tags{
+    text-align:right;
+    padding-left:1em;
+    display:block;
+}
+.slidr_tags .button{
+    white-space:nowrap;
 }
 !END
 */
