@@ -321,7 +321,7 @@
                 );
 
                 //create item list
-                items = createTiddlyElement(section, 'ul', null, 'dd-list lr_items');
+                items = createTiddlyElement(section, 'ol', null, 'dd-list lr_items');
                 //set section attribute
                 $(items).attr("section", sec);
 
@@ -398,24 +398,39 @@
 
         /* create a listr item */
         addItem: function (tid, items, section, untagged) {
-            var 
-                //get number of items in list
-                i = $(items).children().length,
+            //update title/ text
+            this.updateItem(
+                //for this tiddler
+                tid,
                 //create the item handle
-                item = createTiddlyElement(
-                //inside an item wrapper
-                createTiddlyElement(items, 'li', null, 'dd-item lr_item' + (untagged ? ' no_section' : '')),
-                //as a div of class listr_handle
-                'div', null, 'dd-handle', null);
-
-            //set attributes
-            $(item).attr({
-                section: section,
-                item: tid.title,
-                title: (untagged ? lr.defaults.txtNewItem : '')
-            });
-            //update title/text
-            this.updateItem(tid, item, untagged);
+                createTiddlyElement(
+                    //inside an item wrapper
+                    createTiddlyElement(
+                        items,
+                        'li',
+                        null,
+                        //wrapper class
+                        'dd-item lr_item' + (untagged ? ' no_section' : ''),
+                        null,
+                        //serializazion attribute
+                        { 'data-id': tid.title }
+                    ),
+                    //as a div of class listr_handle
+                    'div',
+                    null,
+                    //handle class
+                    'dd-handle',
+                    null,
+                    //update attributes
+                    {
+                        section: section,
+                        item: tid.title,
+                        title: (untagged ? lr.defaults.txtNewItem : '')
+                    }
+                ),
+                //whether or not it has section tags yet
+                untagged
+            );
         },
 
 
