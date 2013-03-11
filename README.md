@@ -1,8 +1,7 @@
-=======
-TiddlyWikiPlugins
+TiddlyWiki Plugins [![flattr me](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=beertobias&url=https://github.com/tobibeer/TiddlyWikiPlugins&title=TiddlyWiki Plugins&language=JavaScript&tags=github&category=software)
 =================
 
-Plugins for TiddlyWiki by Tobias Beer  [![flattr me](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=beertobias&url=https://github.com/tobibeer/TiddlyWikiPlugins&title=TiddlyWiki Plugins&language=JavaScript&tags=github&category=software)<br>
+Plugins for TiddlyWiki by Tobias Beer<br>
 http://tobibeer.tiddlyspace.com
 
 [Plugins](https://github.com/tobibeer/TiddlyWikiPlugins/tree/master/plugins)
