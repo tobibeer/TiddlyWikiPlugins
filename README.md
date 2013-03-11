@@ -3,7 +3,7 @@ TiddlyWikiPlugins
 =================
 
 Plugins for TiddlyWiki by Tobias Beer<br>
-http://tobibeer.tiddlyspace.com
+http://tobibeer.tiddlyspace.com [![flattr me](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=beertobias&url=https://github.com/tobibeer/TiddlyWikiPlugins&title=TiddlyWiki Plugins&language=JavaScript&tags=github&category=software)
 
 [Plugins](https://github.com/tobibeer/TiddlyWikiPlugins/tree/master/plugins)
 =======
