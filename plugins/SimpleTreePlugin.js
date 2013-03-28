@@ -5,7 +5,7 @@
 |''Version''|0.9.0 BETA|
 |''Core''|2.5.2|
 |''Author''|Tobias Beer|
-|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
+|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SimpleTreePlugin.js|
 !Usage
 Append the {{{<<simpletree>>}}} to any list.
 !Code
