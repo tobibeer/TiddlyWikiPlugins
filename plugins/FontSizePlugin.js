@@ -1,6 +1,6 @@
 /***
 |Name|FontSizePlugin|
-|Created by|[[Tobias Beer|http://tobibeer.tiddlyspace.com]] — branched from [[Saq Imtiaz' code|http://tiddlywiki.squize.org/#FontSizePlugin]]|
+|Created by|[[Tobias Beer|http://tobibeer.tiddlyspace.com]] / branched from [[Saq Imtiaz' code|http://tiddlywiki.squize.org/#FontSizePlugin]]|
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/FontSizePlugin.js|
 |Documentation|http://fontsize.tiddlyspace.com|
 |Version|1.1.0|
