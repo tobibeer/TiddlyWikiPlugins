@@ -4,7 +4,7 @@
 |''Description''|fetch and output a (list of) tiddler, section, slice or field using a predefined or custom format|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/GetPlugin.js|
 |''Documentation''|http://get.tiddlyspace.com|
-|''Version''|1.0.0 2013-08-22|
+|''Version''|1.0.1 2013-08-23|
 |''~CoreVersion''|2.6.2|
 |''License''|Creative Commons 3.0|
 !Code
@@ -58,6 +58,14 @@
                 params.shift();
             }
 
+            //when full tiddler
+            if ('!' == params[0]) {
+                //remember
+                var full = true;
+                //remove first param
+                params.shift();
+            }
+
             //all other variables
             var $ = 0, $val = '', $vals = [], fmt, out = '', tid, v, val, vals,
                 //output container
@@ -68,8 +76,8 @@
                 p = paramString.parseParams('anon', null, true)
                 //get exec function from params or use getValues as default
                 exec = this[getParam(p, 'exec', 'getValues')],
-                //what to fetch
-                what = params[0],
+                //what to fetch, only when not entire tiddler
+                what = full ? '' : params[0],
                 //format
                 format = getParam(p, 'format', ''),
                 //output template
@@ -82,8 +90,6 @@
                 tpl = params.contains('table') ? 'Table' : (filter || params.contains('list') ? 'List' : ''),
                 //helper
                 as = tpl.toLowerCase(),
-                //whether or not the first param is also a named parameter
-                isNamed = null != getParam(p, what, null),
                 //check for separators and split into array of [key,sep,value]
                 ref = config.filters.get.delimiterRegExp.exec(what),
                 //get tiddler from reference or as first param
