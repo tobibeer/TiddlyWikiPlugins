@@ -6,7 +6,7 @@
 |''Version:''|1.0.4 (2010-10-08)|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/FiltrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
-|''~TiddlyWiki:''|Version 2.5 or better|
+|''~CoreVersion:''|2.5|
 ***/
 //{{{
 (function ($) {
