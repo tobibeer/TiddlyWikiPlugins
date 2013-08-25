@@ -4,7 +4,7 @@
 |''Description''|fetch and output a (list of) tiddler, section, slice or field using a predefined or custom format|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/GetPlugin.js|
 |''Documentation''|http://get.tiddlyspace.com|
-|''Version''|1.0.1 2013-08-23|
+|''Version''|1.0.2 2013-08-25|
 |''~CoreVersion''|2.6.2|
 |''License''|Creative Commons 3.0|
 !Code
@@ -15,10 +15,14 @@
     //define get macro
     config.macros.get = {
 
+        config: "GetPluginConfig",
+
         //dictionary with terms
         dict: {
             errFunction: "Function undefined!",
             errFunctionInfo: "config.macros.get.get%0 is not a valid function!",
+            errConfig: "Config not found!",
+            errConfigInfo: "Config '%0' either does not exist or does not have a 'Tags' section!",
             defaultCategory: "Tiddler"
         },
 
@@ -50,6 +54,91 @@
             //no params, nothing to get
             if (!paramString) return;
 
+            var lp, mode, t, tg, tag, tags, tpl, txt,
+                //get tiddler tags
+                tgs = tiddler && tiddler.tags ? tiddler.tags : [],
+                //parse paramsString
+                p = paramString.parseParams('anon', null, true),
+                //get specified config
+                cfg = getParam(p, 'config', false);
+
+            //use config?
+            if (cfg) {
+                //get text reference for item
+                refItem = getParam(p, 'refItem', '!');
+                //...and tag
+                refTag = getParam(p, 'refTag', '!');
+                //take specified config tiddler or default config
+                cfg = (cfg == 'true' ? this.config : cfg);
+                //get tags from config
+                tags = store.getTiddlerText(cfg + '##Tags');
+                //no tags config not found?
+                if (!tags) {
+                    //render error
+                    createTiddlyError(place, this.dict.errConfig, this.dict.errConfigInfo.format([cfg]));
+                //tags config found?
+                } else {
+                    //split into array
+                    tags = tags.split('\n');
+                    //get template
+                    tpl = store.getTiddlerText(cfg + '##Template');
+                    //loop config tags
+                    for (t = 0; t < tags.length; t++) {
+
+                        //get tag
+                        tg = tags[t];
+
+                        //ignore blank lines or commentish beginnings
+                        if ( ['', ' ','/','{'].contains(tg.substr(0,1)) ) continue;
+
+                        //get tag as array split by '|'
+                        //'none' = both tag and tagged items
+                        //'|tag' = only tag
+                        //'tag|' = only tagged items
+                        tg = tags[t].split('|');
+
+                        //determine and parse line params
+                        lp = $j.trim(tg[tg.length > 2 ? 2 : tg.length - 1]).parseParams('anon', null, true);
+
+                        //if this is the tag tiddler
+                        if (tiddler.title == tg[ tg.length == 1 ? 0 : 1 ] &&
+                            //and tags are to be considered
+                            (tg.length == 1 || tg[1] != '') &&
+                            //and tag reference not globally turned off
+                            refTag != 'false' && tiddler)
+                                //get reference for tag
+                                mode = 1;
+
+                        //if tiddler is tagged with this tag
+                        else if (tgs.contains(tg[0]) &&
+                            //and tagged items are to be considered
+                            (tg.length == 1 || tg[0] != '') &&
+                            //and item reference not globally turned off
+                            refItem != 'false')
+                                //get reference for item
+                                mode = 2;
+
+                        //rendering mode activated?
+                        if (mode) {
+                            //use the tiddler macro
+                            wikify('<<tiddler "' +
+                                    //to render the template
+                                    cfg + '##Template" with: "' +
+                                    //and pass down the global or line reference for either the tag or the tagged item
+                                    (mode == 1 ? getParam(lp, 'refTag', refTag) : getParam(lp, 'refItem', refItem) ) + '" "' +
+                                    //and the tiddler title
+                                    tiddler.title + '"' +
+                                '>>', place);
+                            //done
+                            return;
+                        }
+
+                    }
+                }
+                //no match? --> then do nothing
+                return;
+            }
+
             //when fuzzy
             if ('~' == params[0]) {
                 //remember
@@ -72,8 +161,6 @@
                 $el = $j(place),
                 //refresh status
                 refresh = $el.attr('macroName') == 'get',
-                //parse paramsString
-                p = paramString.parseParams('anon', null, true)
                 //get exec function from params or use getValues as default
                 exec = this[getParam(p, 'exec', 'getValues')],
                 //what to fetch, only when not entire tiddler
@@ -177,7 +264,7 @@
             //exec function defined that doesn't exist
             } else {
                 //render error
-                createTiddlyError(place, this.dict.noFunction, this.dict.errFunctionInfo.format([get]));
+                createTiddlyError(place, this.dict.errFunction, this.dict.errFunctionInfo.format([get]));
                 return false;
             }
 
@@ -307,8 +394,6 @@
                 //try to get text from namespace child
                 ns = store.getTiddlerText(tid);
 
-                console.log('NS: ' + tid + '\n' + ns + '\n\n');
-
                 //when exists
                 if (ns) {
                     //add value
@@ -336,7 +421,6 @@
                     if (fuzzy || type == 'field') {
                         //try to get field value
                         v = store.getValue(tid, fuzzy ? what : element);
-                        console.log('FIELD: ' + tid + '??' + fuzzy ? what : element + '\n' + v + '\n\n');
                         //when fuzzy and field found
                         if (fuzzy && v)
                             //reset type and as
@@ -349,7 +433,6 @@
                         if (fuzzy) {
                             //try to get slice value
                             v = store.getTiddlerText(tid + '::' + what);
-                            console.log('SLICE: ' + tid + '::' + what + '\n' + v + '\n\n');
                             //sliece value found?
                             if (v)
                                 //set type
@@ -358,7 +441,6 @@
                             if (!v) {
                                 //check for section
                                 v = store.getTiddlerText(tid + '##' + what);
-                                console.log('SECTION: ' + tid + '##' + what + '\n' + v + '\n\n');
                                 //section value found?
                                 if (v) 
                                     //set type
@@ -368,7 +450,6 @@
                             if (!v) {
                                 //get tiddler text
                                 v = store.getTiddlerText(what);
-                                console.log('TIDDLER: ' + what + '\n' + v + '\n\n');
                                 //tiddler value found?
                                 if (v) {
                                     //set type
