@@ -4,7 +4,7 @@
 |''Description''|fetch and output a (list of) tiddler, section, slice or field using a predefined or custom format|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/GetPlugin.js|
 |''Documentation''|http://get.tiddlyspace.com|
-|''Version''|1.0.2 2013-08-25|
+|''Version''|1.0.3 2013-08-28|
 |''~CoreVersion''|2.6.2|
 |''License''|Creative Commons 3.0|
 !Code
@@ -26,6 +26,12 @@
             defaultCategory: "Tiddler"
         },
 
+        identifiers: {
+            filter: '$',
+            fuzzy: '~',
+            tiddler: '!'
+        },
+
         //default output templates
         template: {
             fuzzy: '%0',
@@ -41,10 +47,10 @@
             sectionTable: '|[[%1]]|<<tiddler [[%4]]>>|',
             sliceTable: '|[[%1]]|<<tiddler [[%4]]>>|',
             fieldTable: '|[[%1]]|%0|\n',
-            tiddlerTableHead: '| !%0 | !Text |h',
-            sectionTableHead: '| !%0 | !%1 |h',
-            sliceTableHead: '| !%0 | !%1 |h',
-            fieldTableHead: '| !%0 | !%1 |h',
+            tiddlerTableHead: '| !%0 | !Text |h\n',
+            sectionTableHead: '| !%0 | !%1 |h\n',
+            sliceTableHead: '| !%0 | !%1 |h\n',
+            fieldTableHead: '| !%0 | !%1 |h\n',
             tableClass: 'getTable',
             dateFormat: '0DD.0MM.YYYY',
         },
@@ -54,20 +60,66 @@
             //no params, nothing to get
             if (!paramString) return;
 
-            var lp, mode, t, tg, tag, tags, tpl, txt,
+            var def, lp, mode, out = '', tg, tag, tags, tpl, txt, what,
+                //get the outer tiddler
+                t = story.findContainingTiddler(place),
                 //get tiddler tags
                 tgs = tiddler && tiddler.tags ? tiddler.tags : [],
                 //parse paramsString
                 p = paramString.parseParams('anon', null, true),
                 //get specified config
-                cfg = getParam(p, 'config', false);
+                cfg = getParam(p, 'config', false),
+                //filter to be used
+                filter = getParam(p, 'filter'),
+                //get first param
+                p0= params[0];
 
-            //use config?
-            if (cfg) {
+            //when fuzzy
+            if (this.identifiers.fuzzy == p0) {
+                //remember
+                var fuzzy = true;
+                //remove first param
+                params.shift();
+            }
+
+            //if no tiddler is defined, get as outer tiddler
+            title = tiddler  && !fuzzy ? tiddler.title : (t ? t.getAttribute('tiddler') : '');
+
+            //when full tiddler
+            if (this.identifiers.tiddler == p0) {
+                //remember
+                var full = true;
+                //remove first param
+                params.shift();
+            }
+
+            //when getting value from filter match
+            if(this.identifiers.filter == p0){
+                //get reference for def filters and loop each line
+                $j(store.getTiddlerText(params[1]).split('\n')).each(function(){
+                    //split line by pipe
+                    var line = this.split('|');
+                    //loop tiddlers matching filter defined for line
+                    $j(store.filterTiddlers(line[0])).each(function () {
+                        //matches?
+                        if(title == this.title)
+                            //get def value from line
+                            out = line[1];
+                        //abort when found
+                        return !out;
+                    });
+                    //abort when found
+                    return !out;
+                });
+                //no match? => done
+                if (!out) return;
+
+            //otherwise, when using config...
+            } else if (cfg) {
                 //get text reference for item
-                refItem = getParam(p, 'refItem', '!');
+                refItem = getParam(p, 'refItem', this.identifiers.tiddler);
                 //...and tag
-                refTag = getParam(p, 'refTag', '!');
+                refTag = getParam(p, 'refTag', this.identifiers.tiddler);
                 //take specified config tiddler or default config
                 cfg = (cfg == 'true' ? this.config : cfg);
                 //get tags from config
@@ -127,7 +179,7 @@
                                     //and pass down the global or line reference for either the tag or the tagged item
                                     (mode == 1 ? getParam(lp, 'refTag', refTag) : getParam(lp, 'refItem', refItem) ) + '" "' +
                                     //and the tiddler title
-                                    tiddler.title + '"' +
+                                    tiddler + '"' +
                                 '>>', place);
                             //done
                             return;
@@ -135,52 +187,31 @@
 
                     }
                 }
-                //no match? --> then do nothing
+                //no match for config? => done
                 return;
             }
-
-            //when fuzzy
-            if ('~' == params[0]) {
-                //remember
-                var fuzzy = true;
-                //remove first param
-                params.shift();
-            }
-
-            //when full tiddler
-            if ('!' == params[0]) {
-                //remember
-                var full = true;
-                //remove first param
-                params.shift();
-            }
-
             //all other variables
-            var $ = 0, $val = '', $vals = [], fmt, out = '', tid, v, val, vals,
+            var $ = 0, $val = '', $vals = [], fmt, tid, v, val, vals,
                 //output container
                 $el = $j(place),
                 //refresh status
                 refresh = $el.attr('macroName') == 'get',
                 //get exec function from params or use getValues as default
                 exec = this[getParam(p, 'exec', 'getValues')],
-                //what to fetch, only when not entire tiddler
-                what = full ? '' : params[0],
                 //format
                 format = getParam(p, 'format', ''),
                 //output template
                 template = store.getTiddlerText(getParam(p, 'template', '')),
-                //filter to be used
-                filter = getParam(p, 'filter'),
                 //fetch plain or as key => value
                 plain = params.contains('plain'),
                 //get output template either as fuzzy or as table when specified or list when filter is used otherwise leave empty
                 tpl = params.contains('table') ? 'Table' : (filter || params.contains('list') ? 'List' : ''),
                 //helper
                 as = tpl.toLowerCase(),
-                //check for separators and split into array of [key,sep,value]
-                ref = config.filters.get.delimiterRegExp.exec(what),
-                //get tiddler from reference or as first param
-                tiddler = ref ? ref[1] : what,
+                //what to fetch, either empty when entire tiddler or as first param
+                what = full ? '' : params[0];
+                //only when no output given yet, check for separators and split into array of [key,sep,value]
+                ref = config.filters.get.delimiterRegExp.exec( out ? '' : what),
                 //get separator
                 sep = ref ? ref[2] : '',
                 //get value
@@ -216,112 +247,113 @@
                 //what footer to use
                 footer = getParam(p, 'footer', ''),
                 //what separator to use for rendering result items
-                separator = getParam(p, 'separator', '\n'),
-                //get the outer tiddler
-                t = story.findContainingTiddler(place);
+                separator = getParam(p, 'separator', '\n');
 
-            //if no tiddler is defined, get as outer tiddler
-            tiddler = tiddler && !fuzzy ? tiddler : (t ? t.getAttribute('tiddler') : '');
-            //none? (is shadow) => done
-            if (!tiddler) return;
+            //get values if output not defined
+            if(!out){
+                //get tiddler either fuzzy or from reference or as first param
+                title = fuzzy ? title : (ref ? (ref[1] ? ref[1] : title) : what);
+                //no tiddler (is shadow) => done
+                if (!title) return;
 
-            //when to be gotten as plain, take value as is
-            fmt = plain ? '%0' : (
-                //when format defined use that otherwise use
-                format ? format : (
-                    //when template defined use that otherwise get template
-                    template ? template : this.template[
-                        //for fuzzy 
-                        (fuzzy ? 'fuzzy' :
-                            //for section or
-                            (sep == '##' ? 'section' + tpl :
-                                //for slice or
-                                (sep == '::' ? 'slice' + tpl :
-                                    //for field or otherwise for tiddler
-                                    (sep == '??' ? 'field' + tpl :
-                                                'tiddler' + tpl
+                //when to be gotten as plain, take value as is
+                fmt = plain ? '%0' : (
+                    //when format defined use that otherwise use
+                    format ? format : (
+                        //when template defined use that otherwise get template
+                        template ? template : this.template[
+                            //for fuzzy 
+                            (fuzzy ? 'fuzzy' :
+                                //for section or
+                                (sep == '##' ? 'section' + tpl :
+                                    //for slice or
+                                    (sep == '::' ? 'slice' + tpl :
+                                        //for field or otherwise for tiddler
+                                        (sep == '??' ? 'field' + tpl :
+                                                    'tiddler' + tpl
+                                            )
                                         )
                                     )
                                 )
-                            )
-                        ]
-                    )
-                );
+                            ]
+                        )
+                    );
 
-            //if exec function can exists
-            if (exec) {
-                //execute to get values
-                vals = exec.call(
-                  this,
-                  paramString,
-                  fuzzy ? what : ( (as ? '' : tiddler) + sep + element ),
-                  tiddler,
-                  type,
-                  element,
-                  as,
-                  fuzzy
-                );
-            //exec function defined that doesn't exist
-            } else {
-                //render error
-                createTiddlyError(place, this.dict.errFunction, this.dict.errFunctionInfo.format([get]));
-                return false;
-            }
-
-            //loop all transclusion params as $1 .. $n
-            do {
-                //next
-                $++;
-                //add to values
-                $vals.push($val);
-                //add $i
-                $val = getParam(p, '$' + $, null);
-            //as long as that param exists
-            } while ($val != null);
-
-            //loop all return values
-            for (v = 0; v < vals.length; v++) {
-                //get tiddler
-                tid = vals[v][0];
-                //get value prepending the optional prefix
-                val = prefixv + vals[v][1];
-                ////fix code section
-                val = val.indexOf('***/\n') != 0 ? val : val.substr(5);
-
-                //loop all transclusion params
-                for ($ = 1; $ < $vals.length; $++) {
-                    //replace in value
-                    val = val.replace(new RegExp('\\$' + $, 'mg'), $vals[$]);
+                //if exec function exists
+                if (exec) {
+                    //execute to get values
+                    vals = exec.call(
+                      this,
+                      paramString,
+                      fuzzy ? what : ((as ? '' : title) + sep + element),
+                      title,
+                      type,
+                      element,
+                      as,
+                      fuzzy
+                    );
+                //exec function defined that doesn't exist
+                } else {
+                    //render error
+                    createTiddlyError(place, this.dict.errFunction, this.dict.errFunctionInfo.format([get]));
+                    return false;
                 }
 
-                //add to output
-                out += (
-                  //item prefix
-                  prefix +
-                  //item format
-                  fmt.format([
-                    val,
-                    tid,
-                    type,
-                    element,
-                    (as ? tid : '') + what,
-                    cat
-                  ]) +
-                  //suffix
-                  suffix
-                //replace count
-                ).replace(/\$count/mg, String.zeroPad(v + 1, vals.length.toString().length)) +
-                  //add item separator for non-last
-                  (as && v < vals.length - 1 ? separator : '');
-            }
+                //loop all transclusion params as $1 .. $n
+                do {
+                    //next
+                    $++;
+                    //add to values
+                    $vals.push($val);
+                    //add $i
+                    $val = getParam(p, '$' + $, null);
+                //as long as that param exists
+                } while ($val != null);
 
+                //loop all return values
+                for (v = 0; v < vals.length; v++) {
+                    //get tiddler
+                    tid = vals[v][0];
+                    //get value prepending the optional prefix
+                    val = prefixv + vals[v][1];
+                    ////fix code section
+                    val = val.indexOf('***/\n') != 0 ? val : val.substr(5);
+
+                    //loop all transclusion params
+                    for ($ = 1; $ < $vals.length; $++) {
+                        //replace in value
+                        val = val.replace(new RegExp('\\$' + $, 'mg'), $vals[$]);
+                    }
+
+                    //add to output
+                    out += (
+                      //item prefix
+                      prefix +
+                      //item format
+                      fmt.format([
+                        val,
+                        tid,
+                        type,
+                        element,
+                        (as ? tid : '') + what,
+                        cat
+                      ]) +
+                      //suffix
+                      suffix
+                    //replace count
+                    ).replace(/\$count/mg, String.zeroPad(v + 1, vals.length.toString().length)) +
+                      //add item separator for non-last
+                      (as && v < vals.length - 1 ? separator : '');
+                }
+
+            }
             //add to output
             out =
               //optional header
-              (header ? header + '\n' : '') +
+              (header ? header : '') +
               out +
               //optional footer
-              (footer ? '\n' + footer : '');
+              (footer ? footer : '');
 
             //if this is not a refresh action
             if (!refresh) {
