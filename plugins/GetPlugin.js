@@ -4,7 +4,7 @@
 |''Description''|fetch and output a (list of) tiddler, section, slice or field using a predefined or custom format|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/GetPlugin.js|
 |''Documentation''|http://get.tiddlyspace.com|
-|''Version''|1.0.3 2013-08-28|
+|''Version''|1.0.4 2013-08-28|
 |''~CoreVersion''|2.6.2|
 |''License''|Creative Commons 3.0|
 !Code
@@ -124,6 +124,7 @@
                 cfg = (cfg == 'true' ? this.config : cfg);
                 //get tags from config
                 tags = store.getTiddlerText(cfg + '##Tags');
+
                 //no tags config not found?
                 if (!tags) {
                     //render error
@@ -157,7 +158,7 @@
                             //and tags are to be considered
                             (tg.length == 1 || tg[1] != '') &&
                             //and tag reference not globally turned off
-                            refTag != 'false' && tiddler)
+                            refTag != 'false')
                                 //get reference for tag
                                 mode = 1;
 
@@ -172,6 +173,7 @@
 
                         //rendering mode activated?
                         if (mode) {
+
                             //use the tiddler macro
                             wikify('<<tiddler "' +
                                     //to render the template
@@ -179,7 +181,7 @@
                                     //and pass down the global or line reference for either the tag or the tagged item
                                     (mode == 1 ? getParam(lp, 'refTag', refTag) : getParam(lp, 'refItem', refItem) ) + '" "' +
                                     //and the tiddler title
-                                    tiddler + '"' +
+                                    tiddler.title + '"' +
                                 '>>', place);
                             //done
                             return;
@@ -252,9 +254,7 @@
             //get values if output not defined
             if(!out){
                 //get tiddler either fuzzy or from reference or as first param
-                title = fuzzy ? title : (ref ? (ref[1] ? ref[1] : title) : what);
-                //no tiddler (is shadow) => done
-                if (!title) return;
+                title = fuzzy || !what ? title : (ref ? (ref[1] ? ref[1] : title) : what);
 
                 //when to be gotten as plain, take value as is
                 fmt = plain ? '%0' : (
