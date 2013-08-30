@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
-|Version|1.0.1|
+|Version|1.0.2 2013-08-29|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -26,9 +26,21 @@ Great!
 
     config.macros.listfiltr = {
 
+        //the default css selectors to keep from collapsing
+        defaultPreserve: 'dl',
+
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
             var box, boxtitle, boxwrap, el, list, prev,
-                listClass = 'lf-' + new Date().formatString('YYYYMMDDhhmmss') + Math.random().toString().substr(6);
+                p = paramString.parseParams('anon', null, true),
+                preserve = getParam(p, 'preserve', this.defaultPreserve),
+                listClass = 'lf-' + new Date().formatString('YYYYMMDDhhmmss') + Math.random().toString().substr(6),
+                keepBR = preserve.split(',').map(function(v){
+                    return v + ' br'
+                }).toString();
+
+            preserve = preserve.split(',').map(function(v){
+                return v + ' > .lf-h'
+            }).toString();
 
             list = $(place).children().last();
             while (list.is('br')) list = list.prev();
@@ -61,7 +73,7 @@ Great!
                 list = $('.' + listClass);
 
                 $('li,dd,dt,span,div', list
-                ).removeClass('lf-hide lf-found lf-not'
+                ).removeClass('lf-h lf-hide lf-found lf-not'
                 ).each(function (i) {
                     var dt, dd, li = $(this);
 
@@ -77,7 +89,7 @@ Great!
                         })
                         found = text.toLowerCase().indexOf(term.toLowerCase()) > -1;
 
-                        li.not('.pseudo-ol-li').addClass('lf-' + (found ? 'found' : 'hide'));
+                        li.not('.pseudo-ol-li').addClass('lf-' + (found ? 'found' : 'h'));
                         if (li.is('dt')) {
                             dd = li.next('dd');
                             if (found) dd.addClass('lf-not');
@@ -86,9 +98,9 @@ Great!
                             dt = li.prev('dt');
                             if (found) {
                                 if (!dt.hasClass('lf-found'))
-                                    dt.addClass('lf-not').removeClass('lf-hide');
+                                    dt.addClass('lf-not').removeClass('lf-h');
                             } else if (dt.hasClass('lf-found')) {
-                                li.removeClass('lf-hide');
+                                li.removeClass('lf-h');
                             }
                         };
                     }
@@ -102,20 +114,20 @@ Great!
                 $('br:not(.lf-no-br)', list).show();
 
                 if (term.length > 1) {
-                    $('br', list).hide();
+                    $('br', list).not(keepBR).hide();
 
                     $('.lf-found', list).each(function (i) {
-                        $(this).parentsUntil(until, '.lf-hide').removeClass('lf-hide').not('.pseudo-ol-li').addClass('lf-not');
+                        $(this).parentsUntil(until, '.lf-h').removeClass('lf-h').not('.pseudo-ol-li').addClass('lf-not');
                     });
 
                     $('.lf-found', list).each(function (i) {
-                        $('.lf-hide', this).removeClass('lf-hide').not('.pseudo-ol-li').addClass('lf-not');
+                        $('.lf-h', this).removeClass('lf-h').not('.pseudo-ol-li').addClass('lf-not');
                     });
 
 
                     $.fn.highlight = function (term) {
                         var pattern = new RegExp('(\\b\\w*' + term + '\\w*\\b)', 'gi'),
-							 repl = '<span class="highlight">$1</span>';
+                             repl = '<span class="highlight">$1</span>';
 
                         this.each(function () {
                             $(this).contents().each(function () {
@@ -140,6 +152,9 @@ Great!
                     })
                 }
 
+                //except when in preserved, hide all of class lf-h 
+                $('.lf-h', list).not(preserve).addClass('lf-hide');
+    
                 return true;
             });
         }
@@ -148,7 +163,7 @@ Great!
     config.shadowTiddlers['StyleSheetListFiltr'] =
     '/*{{{*/\n' +
     '.lf-search {padding:5px;background:#eef;}\n' +
-    '.lf-hide {display:none !important;}\n' +
+    '.lf-hide {display: none !important;}\n' +
     '.lf-found {background:#F5F5DC;}\n' +
     '.lf-not {background:white;}\n' +
     '.lf-list + br {display:none;}\n' +
