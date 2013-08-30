@@ -4,7 +4,7 @@
 |''Description''|outputs the (modified) html representation with disqus in an iframe for a tiddler on TiddlySpace|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/DiscussPlugin.js|
 |''Documentation''|http://talk.tiddlyspace.com|
-|''Version''|0.9.0 2013-08-28|
+|''Version''|0.9.1 2013-08-29|
 |''~CoreVersion''|2.5.2|
 |''Requires''|TiddlySpace / TiddlyWeb|
 |''License''|Creative Commons 3.0|
@@ -37,7 +37,11 @@ config.macros.discuss = {
 
     //the macro handler
     handler: function (place, macroName, params, wikifier, paramString, tiddler) {
+        //get params
         var p = paramString.parseParams('anon',null,true);
+
+        //no tiddler no disqus
+        if(!tiddler||!store.getTiddler(tiddler.title))return;
 
         //output the frame
         wikify(
