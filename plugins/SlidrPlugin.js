@@ -3,7 +3,7 @@
 |''Description''|shows a tiddler timeline using sliders|
 |''Documentation''|http://slidr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.0 2013-08-31|
+|''Version''|1.0.1 2013-08-31|
 |''CoreVersion''|2.6.5|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SlidrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -25,10 +25,13 @@
             //LOCALISATION
             //the slider tooltip | %0 = date range
             txtSliderTooltip: 'Click to show tiddlers in %0',
-            //the format for the count | %0 the date | %1 count
-            fmtSlider: '{{slidr_title{%0}}}{{slidr_count{%1}}}',
             //date error
             errDate: '%0 is not a valid start or end date!',
+            //tiddler names
+            lblTiddler1: 'tiddler',
+            lblTiddler2: 'tiddlers',
+            //short names for months
+            months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
 
             //PARAMETER DEFAULTs
             //the minimum number of tiddlers for subsliders
@@ -36,34 +39,38 @@
             //open when loaded
             openOnLoad : false,
             //drill down until this level
-            level: 'day',
+            level: 'month',
             //the date & sort field
             field: '-modified',
             //tiddlers to be excluded
             exclude: 'excludeLists',
 
             //FORMATS
-            //tag format
-            fmtTag: '<<tag [[%0]]>>',
-            //counter format
-            fmtCount: '(%0 %1)',
             //slider date formats
             fmtYear: 'YYYY',
             fmtMonth: 'MMM, YYYY',
-            fmtDay: '0DD. MMM, YYYY',
-            lblTiddler1: 'tiddler',
-            lblTiddler2: 'tiddlers',
-            //the tiddler format | %0 tiddler title | %1 timestamp | %2 tags
-            fmtTiddler: '\n|{{slidr_date{%1}}} |{{slidr_tid{[[%0]]}}}|{{slidr_tags{%2}}}|',
+            fmtDay: '0DD. mmm, YYYY',
             //tiddler date format
             fmtDate: '0hh:0mm',
             //tiddler date format displayed when above day list
-            fmtDateFull: '0DD. MMM, YYYY'
-},
+            fmtDateFull: '0DD. mmm, YYYY',
+
+            //the format for the count | %0 the date | %1 count
+            fmtSlider: '{{slidr_title{%0}}}{{slidr_count{%1}}}',
+            //the tiddler format | %0 tiddler title | %1 timestamp | %2 tags
+            fmtTiddler:
+                '\n{{slidr_entry{ {{slidr_date{%1}}}' + 
+                  '{{slidr_tid{[[%0]]}}}'+
+                  '{{slidr_tags{%2}}} }}}',
+            //tag format
+            fmtTag: '<<tag [[%0]]>>',
+            //counter format
+            fmtCount: '(%0 %1)'
+        },
 
         //the handler
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
-            var dt, e, err, errEnd, l, s, t, tx, tid, tids, yrs = [],
+            var dt, e, err, errEnd, l, s, t, tx, tid, tids=[], yrs = [],
                 cm = config.messages,
                 //a bunch of date validation params
                 y, m, d, Y, M, D, YMD, YmD, YMd, yMD, Ymd, yMd, ymD, ymd,
@@ -84,8 +91,12 @@
                 l = getParam(p, 'level', def.level),
                 //tagged tiddlers to be excluded
                 ex = getParam(p, 'exclude', def.exclude),
+                //get field
+                fld = getParam(p, 'field', def.field),
                 //or kept
                 keep = getParam(p, 'keep', '').readBracketedList(),
+                //get only tagged?
+                filter = getParam(p, 'filter', ''),
                 //save configuration to wrapper (later)
                 px = {
                     //tiddler format
@@ -103,15 +114,13 @@
                     fmtYear: getParam(p, 'format.year', def.fmtYear),
                     fmtMonth: getParam(p, 'format.month', def.fmtMonth),
                     fmtDay: getParam(p, 'format.day', def.fmtDay),
-                    //the field to get
-                    f: getParam(p, 'field', def.field),
                     //the number of minimum items for further drilldown
                     min: getParam(p, 'min', def.minGroup),
                     //exclude
                     ex : ex
                 },
                 //determine descending
-                desc = px.f.substr(0, 1) == '-',
+                desc = fld.substr(0, 1) == '-',
                 //helper function to add to index
                 last = function (arr, el) {
                     //get last
@@ -159,14 +168,22 @@
             px.level = l;
 
             //fix field name when desc
-            px.f = desc || px.f.substr(0, 1) == '+' ? px.f.substr(1) : px.f;
-            //get all tids sorted by fields
-            tids = store.getTiddlers(px.f);
-            //if desc => reverse
-            if (desc) tids.reverse();
+            fld = desc || fld.substr(0, 1) == '+' ? fld.substr(1) : fld;
 
+            //filter defined?
+            if(filter){
+                //get filtered tids
+                tids = store.filterTiddlers(filter);
+            //no filter?
+            } else {
+                //get all tids sorted by fields
+                tids = store.getTiddlers(fld);
+                //if desc => reverse
+                if (desc) tids.reverse();
+            }
             //get excluded as array
             ex = ex.readBracketedList();
+            //filter tiddlers
             //loop all tids
             for (t = 0; t < tids.length; t++) {
                 //the tid
@@ -185,7 +202,7 @@
                 //the title
                 ti = tid.title;
                 //get date
-                dt = tid[px.f] || tid.fields[px.f];
+                dt = tid[fld] || tid.fields[fld];
 
                 //when no date
                 if (!dt.getMonth)
@@ -370,32 +387,31 @@
 
         /* creates the slider */
         createSlider: function (place, slider, what, open) {
-            var s,
+            var 
                 //refernce to defaults
                 def = config.macros.slidr.defaults,
                 //get count
-                count = parseInt(slider.tids) ? slider.tids : slider.tids.length;
-
-            //create slider button
-            s = $(createTiddlyElement(
-                place,
-                'a',
-                null,
-                'button slidr_button',
-                null,
-                {
-                    //add a tooltip using the slider title
-                    title: def.txtSliderTooltip.format([slider.title]),
-                    //y, m, d attribs
-                    year: slider.year,
-                    month: slider.month,
-                    day: slider.day
-                }
-            ))
-                //append tiddlers
-                .data('tiddlers', slider.tids)
-                //add click handler
-                .click(this.click);
+                count = parseInt(slider.tids) ? slider.tids : slider.tids.length,
+                //create slider button
+                $s = $(createTiddlyElement(
+                    place,
+                    'a',
+                    null,
+                    'button slidr_button',
+                    null,
+                    {
+                        //add a tooltip using the slider title
+                        title: def.txtSliderTooltip.format([slider.title]),
+                        //y, m, d attribs
+                        year: slider.year,
+                        month: slider.month,
+                        day: slider.day
+                    }
+                ))
+                    //append tiddlers
+                    .data('tiddlers', slider.tids)
+                    //add click handler
+                    .click(this.click);
 
             //render button text
             wikify(
@@ -411,11 +427,11 @@
                         count > 1 ? def.lblTiddler2 : def.lblTiddler1
                     ])
                 ]),
-                s[0]
+                $s[0]
             );
 
             //open when desired
-            if (open) s.click();
+            if (open) $s.click();
         },
 
         /* handles slider click */
@@ -425,44 +441,49 @@
                 ts = config.macros.slidr,
                 //get event
                 e = ev || window.event,
-                //get clicked slider
-                s = $(resolveTarget(e)).closest('.slidr_button')[0],
+                //get slider button
+                $sb = $(resolveTarget(e)).closest('.slidr_button'),
                 //get params
-                px = $(s).closest('.slidr').data('params'),
+                px = $sb.closest('.slidr').data('params'),
                 //as jQuery object
-                $s = $(s).next(),
+                $sp = $sb.next(),
                 //get year
-                year = parseInt($(s).attr('year')),
+                year = parseInt($sb.attr('year')),
                 //get year
-                month = parseInt($(s).attr('month')),
+                month = parseInt($sb.attr('month')),
                 //get year
-                day = parseInt($(s).attr('day')),
+                day = parseInt($sb.attr('day')),
                 //what next?
                 next = day ? 'tids' : month ? 'day' : year ? 'month' : '',
                 //get tids
-                tids = $(s).data('tiddlers'),
+                tids = $sb.data('tiddlers'),
                 //output tids?
                 bT = typeof tids == 'object';
 
             //slider exists?
-            if ($s.hasClass('slidr_list')) {
+            if ($sp.hasClass('slidr_list')) {
                 //when hidden
-                if ($s.is(':hidden')) {
+                if ($sp.is(':hidden')) {
                     //show
-                    $s.slideDown()
+                    $sp.slideDown();
+                    //add class open
+                    $sb.addClass('slidr_open');
                 //when visible
                 }else{
                     //hide all inner
-                    $s.find('.slidr_list').slideUp();
+                    $sp.find('.slidr_list').slideUp()
+                        .prev().removeClass('slidr_open');
                     //hide this
-                    $s.slideUp();
+                    $sp.slideUp();
+                    //remove class popen
+                    $sb.removeClass('slidr_open');
                 }
 
-                //no slider yet?
+            //no slider yet?
             } else {
                 //add container
-                place = $('<div class="slidr_list' + (bT ? ' slidr_tids' : '') + '"/>')
-                    .insertAfter($(s))[0];
+                place = ($('<div class="slidr_list' + (bT ? ' slidr_tids' : '') + '"/>')
+                    .insertAfter($sb))[0];
 
                 //when tidlist
                 if (bT) {
@@ -506,6 +527,8 @@
                 }
                 //show stuff
                 $(place).slideDown();
+                //add class open
+                $sb.addClass('slidr_open');
             }
         },
 
@@ -572,25 +595,31 @@
 /*
 !CSS
 .slidr{
-    float:left;
     clear:left;
+    width:90%;
 }
 .slidr_button,
 .viewer .slidr_button{
-    min-width:400px;
+    width:100%;
     display:block;
-    clear:left;
     cursor:pointer;
     margin:0;
+    padding:0;
+    clear:left;
+}
+.viewer .slidr_title{
+    padding-left:7px;
+}
+.viewer .slidr_list .slidr_title{
+    padding-left:14px;
+}
+.viewer .slidr_list .slidr_list .slidr_title{
+    padding-left:21px;
 }
 .slidr_list{
-    margin-left:1em;
+    width:100%;
     display:block;
-    clear:left;
     display:none;
-}
-.slidr_list .slidr_tids{
-    padding: 5px 0;
 }
 .slidr_list ul,
 .slidr_list li{
@@ -602,37 +631,44 @@
     height:1px;
     clear:both;
 }
-.slidr_list .twtable td,
-.slidr_list .twtable tr,
-.slidr_list .twtable,
-.viewer .slidr_list .twtable td,
-.viewer .slidr_list .twtable tr,
-.viewer .slidr_list .twtable{
-    border:0 !important;
-    margin:0 !important;
-    padding:0;
+.slidr_tid,
+.slidr_tags,
+.slidr_date,
+.slidr_entry{
+    float:left;
+    display:block;
 }
-.slidr_list .twtable{
+.slidr_entry{
     width:100%;
+    padding:1px;
+}
+.slidr_entry:hover{
+    background:[[ColorPalette::TertiaryPale]];
+}
+.slidr_tid{
+    margin-left:7px;
+}
+.slidr_tags{
+    float:right;
+    text-align:right;
+    min-width:300px;
+    margin-left:7px;
+}
+.viewer .slidr_tags .button {
+    margin-right:0;
 }
 .slidr_count{
     float:right;
-    margin-left:2em;
+    margin:0 7px 0 2em;
 }
-.slidr_date {
-    padding-right:7px;
+.slidr_open{
+    background:[[ColorPalette::SecondaryLight]];
 }
-.slidr_tid,
-.slidr_tags {
-    min-width:150px;
-    display:block;
+.slidr_list .slidr_open{
+    background:[[ColorPalette::SecondaryPale]];
 }
-.slidr_tags{
-    text-align:right;
-    padding-left:1em;
-}
-.slidr_tags .button{
-    white-space:nowrap;
+.slidr_tids {
+    padding:1px 0;
 }
 !END
 */
