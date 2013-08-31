@@ -3,7 +3,7 @@
 |''Description''|shows a tiddler timeline using sliders|
 |''Documentation''|http://slidr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.2 2013-08-31|
+|''Version''|1.0.3 2013-08-31|
 |''CoreVersion''|2.6.5|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SlidrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -171,7 +171,10 @@
             //filter defined?
             if(filter){
                 //get filtered tids
-                tids = store.filterTiddlers(filter);
+                tids = store.sortTiddlers(
+                        store.filterTiddlers(filter),
+                        fld
+                    );
             //no filter?
             } else {
                 //get all tids sorted by fields
@@ -434,6 +437,7 @@
 
         /* handles slider click */
         click: function (ev) {
+            console.log(1);
             var out = '', place,
                 //reference to macro
                 ts = config.macros.slidr,
@@ -614,6 +618,16 @@
 .viewer .slidr_list .slidr_list .slidr_title{
     padding-left:21px;
 }
+.slidr_entry:hover,
+.slidr_list .slidr_list .slidr_open{
+    background:[[ColorPalette::TertiaryPale]];
+}
+.slidr_open{
+    background:[[ColorPalette::SecondaryLight]];
+}
+.slidr_list .slidr_open{
+    background:[[ColorPalette::SecondaryPale]];
+}
 .slidr_list{
     width:100%;
     display:block;
@@ -640,9 +654,6 @@
     width:100%;
     padding:1px;
 }
-.slidr_entry:hover{
-    background:[[ColorPalette::TertiaryPale]];
-}
 .slidr_tid{
     margin-left:7px;
 }
@@ -658,12 +669,6 @@
 .slidr_count{
     float:right;
     margin:0 7px 0 2em;
-}
-.slidr_open{
-    background:[[ColorPalette::SecondaryLight]];
-}
-.slidr_list .slidr_open{
-    background:[[ColorPalette::SecondaryPale]];
 }
 .slidr_tids {
     padding:1px 0;
