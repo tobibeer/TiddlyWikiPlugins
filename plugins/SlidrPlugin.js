@@ -3,8 +3,7 @@
 |''Description''|shows a tiddler timeline using sliders|
 |''Documentation''|http://slidr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|0.7.3|
-|''Status''|beta|
+|''Version''|1.0.0 2013-08-31|
 |''CoreVersion''|2.6.5|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SlidrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -19,7 +18,19 @@
 
     //define the macro
     config.macros.slidr = {
+
+        //CONFIGURATION
         defaults: {
+
+            //LOCALISATION
+            //the slider tooltip | %0 = date range
+            txtSliderTooltip: 'Click to show tiddlers in %0',
+            //the format for the count | %0 the date | %1 count
+            fmtSlider: '{{slidr_title{%0}}}{{slidr_count{%1}}}',
+            //date error
+            errDate: '%0 is not a valid start or end date!',
+
+            //PARAMETER DEFAULTs
             //the minimum number of tiddlers for subsliders
             minGroup: 7,
             //open when loaded
@@ -30,10 +41,8 @@
             field: '-modified',
             //tiddlers to be excluded
             exclude: 'excludeLists',
-            //the slider tooltip | %0 = date range
-            txtSliderTooltip: 'Click to show tiddlers in %0',
-            //the format for the count | %0 the date | %1 count
-            fmtSlider: '{{slidr_title{%0}}}{{slidr_count{%1}}}',
+
+            //FORMATS
             //tag format
             fmtTag: '<<tag [[%0]]>>',
             //counter format
@@ -45,13 +54,11 @@
             lblTiddler1: 'tiddler',
             lblTiddler2: 'tiddlers',
             //the tiddler format | %0 tiddler title | %1 timestamp | %2 tags
-            fmtTiddler: '\n|white-space:nowrap;padding-right:5px;%1 |[[%0]]|{{slidr_tags{%2}}}|',
+            fmtTiddler: '\n|{{slidr_date{%1}}} |{{slidr_tid{[[%0]]}}}|{{slidr_tags{%2}}}|',
             //tiddler date format
             fmtDate: '0hh:0mm',
             //tiddler date format displayed when above day list
-            fmtDateFull: '0DD. MMM, YYYY',
-            //date error
-            errDate: '%0 is not a valid start or end date!'
+            fmtDateFull: '0DD. MMM, YYYY'
 },
 
         //the handler
@@ -75,6 +82,10 @@
                 e = getParam(p, 'end'),
                 //get level
                 l = getParam(p, 'level', def.level),
+                //tagged tiddlers to be excluded
+                ex = getParam(p, 'exclude', def.exclude),
+                //or kept
+                keep = getParam(p, 'keep', '').readBracketedList(),
                 //save configuration to wrapper (later)
                 px = {
                     //tiddler format
@@ -96,11 +107,11 @@
                     f: getParam(p, 'field', def.field),
                     //the number of minimum items for further drilldown
                     min: getParam(p, 'min', def.minGroup),
+                    //exclude
+                    ex : ex
                 },
                 //determine descending
                 desc = px.f.substr(0, 1) == '-',
-                //tiddlers to be excluded
-                ex = getParam(p, 'exclude', def.exclude).readBracketedList(),
                 //helper function to add to index
                 last = function (arr, el) {
                     //get last
@@ -117,7 +128,7 @@
                     return l[1];
                 };
 
-            //check if end date wroing
+            //check if end date wrong
             errEnd = e ? !this.isValidDate(e) : false;
 
             //either date invalid?
@@ -153,12 +164,24 @@
             tids = store.getTiddlers(px.f);
             //if desc => reverse
             if (desc) tids.reverse();
+
+            //get excluded as array
+            ex = ex.readBracketedList();
             //loop all tids
             for (t = 0; t < tids.length; t++) {
                 //the tid
                 tid = tids[t];
                 //when excluded => skip
-                if (tid.tags.containsAny(ex.push(tid.title))) continue;
+                if (
+                    !(
+                        keep.contains(tid.title) ||
+                        tid.tags.containsAny(keep)
+                    ) &&
+                    (
+                        ex.contains(tid.title) ||
+                        tid.tags.containsAny(ex)
+                    )
+                ) continue;
                 //the title
                 ti = tid.title;
                 //get date
@@ -409,11 +432,11 @@
                 //as jQuery object
                 $s = $(s).next(),
                 //get year
-                year = $(s).attr('year'),
+                year = parseInt($(s).attr('year')),
                 //get year
-                month = $(s).attr('month'),
+                month = parseInt($(s).attr('month')),
                 //get year
-                day = $(s).attr('day'),
+                day = parseInt($(s).attr('day')),
                 //what next?
                 next = day ? 'tids' : month ? 'day' : year ? 'month' : '',
                 //get tids
@@ -446,7 +469,14 @@
                     //loop tids
                     $.each(tids, function (i, t) {
                         //create date
-                        var dt = new Date(t.date);
+                        var dt = new Date(t.date),
+                            tags = "";
+
+                        //get included tags
+                        t.tags.map(function (tag) {
+                            if (!px.ex.readBracketedList().contains(tag))
+                                tags += ts.defaults.fmtTag.format([tag]);
+                        });
 
                         //add to output
                         out += px.fmtTiddler.format([
@@ -456,18 +486,15 @@
                             dt.formatString(
                                 //user defined date format => take that
                                 px.fmtDateUser ? px.fmtDateUser : (
-                                    //otherwise when we stop earlier or
-                                    //not a single tid when and a day list
-                                    px.level != 'day' || tids.length == 1 && !day ?
+                                    //when day and day level reached
+                                    day && px.level == 'day' ?
+                                    //take day format
+                                    px.fmtDate:
                                     //take full date
-                                    px.fmtDateFull :
-                                    //take format
-                                    px.fmtDate
+                                    px.fmtDateFull
                                 )
                             ),
-                            t.tags.map(function (t) {
-                                return ts.defaults.fmtTag.format([t])
-                            })
+                            tags
                         ]);
                     });
                     //render the list
@@ -550,6 +577,7 @@
 }
 .slidr_button,
 .viewer .slidr_button{
+    min-width:400px;
     display:block;
     clear:left;
     cursor:pointer;
@@ -584,9 +612,6 @@
     margin:0 !important;
     padding:0;
 }
-.slidr_list table .tiddlyLink {
-    display:block;
-}
 .slidr_list .twtable{
     width:100%;
 }
@@ -594,10 +619,17 @@
     float:right;
     margin-left:2em;
 }
+.slidr_date {
+    padding-right:7px;
+}
+.slidr_tid,
+.slidr_tags {
+    min-width:150px;
+    display:block;
+}
 .slidr_tags{
     text-align:right;
     padding-left:1em;
-    display:block;
 }
 .slidr_tags .button{
     white-space:nowrap;
