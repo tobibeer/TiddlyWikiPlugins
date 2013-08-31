@@ -3,7 +3,7 @@
 |''Description''|shows a tiddler timeline using sliders|
 |''Documentation''|http://slidr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.1 2013-08-31|
+|''Version''|1.0.2 2013-08-31|
 |''CoreVersion''|2.6.5|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SlidrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -30,8 +30,6 @@
             //tiddler names
             lblTiddler1: 'tiddler',
             lblTiddler2: 'tiddlers',
-            //short names for months
-            months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
 
             //PARAMETER DEFAULTs
             //the minimum number of tiddlers for subsliders
