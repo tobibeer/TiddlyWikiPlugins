@@ -165,7 +165,6 @@ Great!
     '.lf-search {padding:5px;background:#eef;}\n' +
     '.lf-hide {display: none !important;}\n' +
     '.lf-found {background:#F5F5DC;}\n' +
-    '.lf-not {background:white;}\n' +
     '.lf-list + br {display:none;}\n' +
     '.lf-label {margin-right:5px;font-weight:bold;}\n' +
     '.lf-p {display:block;}' +
