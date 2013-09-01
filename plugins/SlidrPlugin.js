@@ -3,7 +3,7 @@
 |''Description''|shows a tiddler timeline using sliders|
 |''Documentation''|http://slidr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.5 2013-09-01|
+|''Version''|1.0.6 2013-09-01|
 |''CoreVersion''|2.6.5|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SlidrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -24,7 +24,7 @@
 
             //LOCALISATION
             //the slider tooltip | %0 = date range
-            txtSliderTooltip: 'Click to show tiddlers in %0',
+            txtSliderTooltip: 'Click to show tiddlers in %0. CTRL+Click to expand / collapse all.',
             //date error
             errDate: '%0 is not a valid start or end date!',
             //tiddler names
@@ -42,6 +42,8 @@
             field: '-modified',
             //tiddlers to be excluded
             exclude: 'excludeLists',
+            //whether to prevent double click
+            noDblClick : true,
 
             //FORMATS
             //slider date formats
@@ -63,23 +65,28 @@
             //tag format
             fmtTag: '<<tag [[%0]]>>',
             //tag slider format
-            fmtTagSlider: '<<tag [[%0]]>>',
+            fmtTagTitle: '<<tag [[%0]]>>',
             //counter format
             fmtCount: '(%0 %1)'
         },
 
         //the handler
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
-            var dt, e, err, errEnd, l, s, t, tx, tid, tids=[], tt, yrs = [],
+            var dt, e, err, errEnd, fld, l, s,
+                t, tx, tid, tids=[], tt, yrs = [],
                 cm = config.messages,
                 //a bunch of date validation params
                 y, m, d, Y, M, D, YMD, YmD, YMd, yMD, Ymd, yMd, ymD, ymd,
                 //reference to defaults
                 def = this.defaults,
-                //display tags?
-                tags = params.contains('tags') ? [] : undefined;
                 //parse params 
-                p = paramString.parseParams('anon', null, true),
+                p0 = paramString.parseParams('anon', null, true),
+                //get param template
+                pd = store.getTiddlerText(getParam(p0, 'config', '')),
+                //param template found? => parse that, otherwise take as given
+                p = pd ? pd.parseParams('anon', null, true) : p0,
+                //display tags?
+                tags = p[0]['anon'] && p[0]['anon'].contains('tags') ? [] : undefined;
                 //get year month day
                 year = parseInt(getParam(p, 'year')),
                 month = parseInt(getParam(p, 'month')),
@@ -92,11 +99,15 @@
                 //tagged tiddlers to be excluded
                 ex = getParam(p, 'exclude', def.exclude),
                 //get field
-                fld = getParam(p, 'field', def.field),
+                f = getParam(p, 'field', def.field),
                 //or kept
                 keep = getParam(p, 'keep', '').readBracketedList(),
                 //get only tagged?
                 filter = getParam(p, 'filter', ''),
+                //tiddler format
+                format = getParam(p, 'format', def.fmtTiddler),
+                //get item template
+                template = getParam(p, 'template', ''),
                 //save configuration to wrapper (later)
                 px = {
                     //tiddler format
@@ -105,8 +116,6 @@
                     year: year,
                     month: month,
                     day: day,
-                    //tiddler format
-                    fmtTiddler: getParam(p, 'format', def.fmtTiddler),
                     //date formats
                     fmtDate: def.fmtDate,
                     fmtDateUser: getParam(p, 'dateformat'),
@@ -117,11 +126,10 @@
                     //the number of minimum items for further drilldown
                     min: getParam(p, 'min', def.minGroup),
                     //exclude
-                    ex : ex
+                    ex: ex
                 },
-
                 //determine descending
-                desc = fld.substr(0, 1) == '-',
+                desc = f.substr(0, 1) == '-',
                 //helper function to add to index
                 last = function (arr, el) {
                     //get last
@@ -137,6 +145,16 @@
                     //return last element
                     return l[1];
                 };
+
+             //template specified?
+            if(template){
+                //fetch it
+                template = store.getTiddlerText(template);
+                //found? => use it
+                if(template)format = template;
+            }
+            //set tiddler format
+            px.fmtTiddler = format;
 
             //check if end date wrong
             errEnd = e ? !this.isValidDate(e) : false;
@@ -169,15 +187,12 @@
             px.level = l;
 
             //fix field name when desc
-            fld = desc || fld.substr(0, 1) == '+' ? fld.substr(1) : fld;
+            fld = desc || f.substr(0, 1) == '+' ? f.substr(1) : f;
 
             //filter defined?
             if(filter){
                 //get filtered tids
-                tids = store.sortTiddlers(
-                        store.filterTiddlers(filter),
-                        fld
-                    );
+                tids = store.sortTiddlers(store.filterTiddlers(filter), f);
             //no filter?
             } else {
                 //get all tids sorted by fields
@@ -296,6 +311,11 @@
             //add config to data
             $(place).data('params', px);
 
+            //prevent doubleclick?
+            if(def.noDblClick)
+                //do it
+                $(place).dblclick(function(){return false});
+
             //what to get
             what = (
                 day ? 'day' : (
@@ -370,9 +390,13 @@
                                 yK,
                                 isNaN(month) ? null : month,
                                 isNaN(day) ? null : day,
-                                ts.getTids(px, yV, px.level == 'year' ? false : true)
+                                ts.getTids(
+                                    px,
+                                    yV,
+                                    px.level == 'year' ? false : true
+                                )
                             );
-                        //or check months
+                    //or check months
                     } else {
                         //loop all months
                         $.each(yV, function (i, M) {
@@ -390,7 +414,11 @@
                                         yK,
                                         mK,
                                         isNaN(day) ? null : day,
-                                        ts.getTids(px, mV, px.level == 'month' ? false : true)
+                                        ts.getTids(
+                                            px,
+                                            mV,
+                                            px.level == 'month' ? false : true
+                                        )
                                     );
                                 }
                                 //or check days
@@ -460,7 +488,7 @@
                 //apply slider format
                 def.fmtSlider.format([
                     //using the title, e.g. the year, month or day
-                    (tags ? def.fmtTagSlider : '%0').format([slider.title]),
+                    (tags ? def.fmtTagTitle : '%0').format([slider.title]),
                     //apply slider format
                     def.fmtCount.format([
                         //and the tidder count
@@ -478,7 +506,7 @@
 
         /* handles slider click */
         click: function (ev) {
-            var out = '', place,
+            var out = '', open, was, place,
                 //reference to macro
                 ts = config.macros.slidr,
                 //get event
@@ -487,8 +515,10 @@
                 $sb = $(resolveTarget(e)).closest('.slidr_button'),
                 //get tag from tag button
                 stag = $sb.attr('tag'),
+                //get slidr
+                $s = $sb.closest('.slidr'),
                 //get params
-                px = $sb.closest('.slidr').data('params'),
+                px = $s.data('params'),
                 //as jQuery object
                 $sp = $sb.next(),
                 //get year
@@ -572,13 +602,39 @@
                     wikify(out.substr(0, 1) == '\n' ? out.substr(1) : out, place);
                     //drill down some more...
                 } else {
-                    //next leve of sliders
+                    //next level of sliders
                     ts.renderSliders(place, next, year, month, day);
                 }
                 //show stuff
                 $(place).slideDown();
                 //add class open
                 $sb.addClass('slidr_open');
+            }
+            //control key pressed?
+            if(e.ctrlKey){
+                //is open now?
+                open = $sb.hasClass('slidr_open');
+                //remember global state
+                was = px.open == 'true';
+                //set temporarily to that of the current button
+                px.open = open;
+
+                //loop all (outer when closed) slidr buttons
+                $((!open ? ' > ' : '') + '.slidr_button', $s).each(function(i){
+                    //the button
+                    var $el = $(this),
+                        isOpen = $el.hasClass('slidr_open');
+                    //if in a different state?
+                    if(
+                         open && !isOpen ||
+                        !open &&  isOpen
+                    //make same state
+                    ){
+                        $el.click();
+                    }
+                })
+                //reset global state
+                px.open = was ? 'true' : 'false';
             }
         },
 
@@ -606,7 +662,7 @@
             //loop all elements
             $.each(arr, function (i, el) { nextLevel(i, el); });
             //return count or tids
-            return count && num >= params.min ? num : tids;
+            return !count || num < params.min ? tids : num;
         },
 
         /* gets a formatted date */
@@ -718,10 +774,12 @@
     float:right;
     text-align:right;
     min-width:300px;
+    max-width:50%;
     margin-left:7px;
 }
 .viewer .slidr_tags .button {
     margin-right:0;
+    display:inline-block;
 }
 .slidr_count{
     float:right;
