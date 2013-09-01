@@ -3,7 +3,7 @@
 |''Description''|shows a tiddler timeline using sliders|
 |''Documentation''|http://slidr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.3 2013-08-31|
+|''Version''|1.0.5 2013-09-01|
 |''CoreVersion''|2.6.5|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SlidrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -62,20 +62,22 @@
                   '{{slidr_tags{%2}}} }}}',
             //tag format
             fmtTag: '<<tag [[%0]]>>',
+            //tag slider format
+            fmtTagSlider: '<<tag [[%0]]>>',
             //counter format
             fmtCount: '(%0 %1)'
         },
 
         //the handler
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
-            var dt, e, err, errEnd, l, s, t, tx, tid, tids=[], yrs = [],
+            var dt, e, err, errEnd, l, s, t, tx, tid, tids=[], tt, yrs = [],
                 cm = config.messages,
                 //a bunch of date validation params
                 y, m, d, Y, M, D, YMD, YmD, YMd, yMD, Ymd, yMd, ymD, ymd,
                 //reference to defaults
                 def = this.defaults,
-                //first param is id
-                id = params[0],
+                //display tags?
+                tags = params.contains('tags') ? [] : undefined;
                 //parse params 
                 p = paramString.parseParams('anon', null, true),
                 //get year month day
@@ -86,7 +88,7 @@
                 s = getParam(p, 'start'),
                 e = getParam(p, 'end'),
                 //get level
-                l = getParam(p, 'level', def.level),
+                l = getParam(p, 'level', tags ? '' : def.level),
                 //tagged tiddlers to be excluded
                 ex = getParam(p, 'exclude', def.exclude),
                 //get field
@@ -117,6 +119,7 @@
                     //exclude
                     ex : ex
                 },
+
                 //determine descending
                 desc = fld.substr(0, 1) == '-',
                 //helper function to add to index
@@ -184,22 +187,25 @@
             }
             //get excluded as array
             ex = ex.readBracketedList();
-            //filter tiddlers
+
             //loop all tids
             for (t = 0; t < tids.length; t++) {
                 //the tid
                 tid = tids[t];
+                //get tags
+                tt = tid.tags ? tid.tags : [];
                 //when excluded => skip
                 if (
                     !(
                         keep.contains(tid.title) ||
-                        tid.tags.containsAny(keep)
+                        tt.containsAny(keep)
                     ) &&
                     (
                         ex.contains(tid.title) ||
-                        tid.tags.containsAny(ex)
+                        tt.containsAny(ex)
                     )
                 ) continue;
+
                 //the title
                 ti = tid.title;
                 //get date
@@ -271,6 +277,13 @@
                         tags: tid.tags
                     });
                 }
+                //display tags?
+                if(tags){
+                    //get all tags
+                    $.each(tt, function(i,t){
+                        if(!ex.contains(t)) tags.pushUnique(t);
+                    })
+                }
             }
             //add index to params
             px['yrs'] = yrs;
@@ -290,13 +303,17 @@
                 year ? 'year' : ''
             )));
 
+            if(tags)tags.sort(function (a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            });
+
             //render sliders
-            this.renderSliders(place, what, year, month, day);
+            this.renderSliders(place, what, year, month, day, tags);
         },
 
         /* render slider elements */
-        renderSliders: function (place, what, year, month, day) {
-            var s, sx = [],
+        renderSliders: function (place, what, year, month, day, tags) {
+            var bT, s, sx = [], tids,
                 //reference to macros
                 ts = config.macros.slidr,
                 //keys
@@ -316,68 +333,90 @@
                     })
                 };
 
-            //loop all years
-            $.each(yrs, function (i, Y) {
-                //year key
-                yK = Y[0];
-                //year value
-                yV = Y[1];
-                //when blank or year
-                if (!what || what == 'year') {
-                    //year key matches?
-                    if (!what || !year || yK == year)
+            //output tags?
+            if(tags){
+                //loop tags
+                $.each(tags, function(i,t){
+                    //get tids for tag
+                    tids = ts.getTids(px, yrs, px.level ? true : false, t );
+                    //list of tids or count?
+                    bT = typeof tids == 'object';
+                    //if there are tids
+                    if(bT && tids.length || tids > 0)
                         //add to sliders
                         addSlider(
-                            ts.formatDate(yK, '11', '11', px.fmtYear),
-                            yK,
-                            isNaN(month) ? null : month,
-                            isNaN(day) ? null : day,
-                            ts.getTids(px, yV, px.level == 'year' ? false : true)
-                        );
-                    //or check months
-                } else {
-                    //loop all months
-                    $.each(yV, function (i, M) {
-                        //month key
-                        mK = M[0];
-                        //month value
-                        mV = M[1];
-                        //when month
-                        if (what == 'month') {
-                            //month key matches?
-                            if ((!month || mK == month) && (!year || yK == year)) {
-                                //add to sliders
-                                addSlider(
-                                    ts.formatDate(yK, mK, '11', px.fmtMonth),
-                                    yK,
-                                    mK,
-                                    isNaN(day) ? null : day,
-                                    ts.getTids(px, mV, px.level == 'month' ? false : true)
-                                );
-                            }
-                            //or check days
-                        } else {
-                            //loop all days
-                            $.each(mV, function (i, D) {
-                                //day key
-                                dK = D[0];
-                                //day value
-                                dV = D[1];
-
-                                //day key matches?
-                                if ((!day || mK == day) && (!year || yK == year) && (!month || mK == month)) {
+                            t,
+                            null,
+                            null,
+                            null,
+                            tids
+                        )
+                });
+            //otherwise go through years
+            }else{
+                //loop all years
+                $.each(yrs, function (i, Y) {
+                    //year key
+                    yK = Y[0];
+                    //year value
+                    yV = Y[1];
+                    //when blank or year
+                    if (!what || what == 'year') {
+                        //year key matches?
+                        if (!what || !year || yK == year)
+                            //add to sliders
+                            addSlider(
+                                ts.formatDate(yK, '11', '11', px.fmtYear),
+                                yK,
+                                isNaN(month) ? null : month,
+                                isNaN(day) ? null : day,
+                                ts.getTids(px, yV, px.level == 'year' ? false : true)
+                            );
+                        //or check months
+                    } else {
+                        //loop all months
+                        $.each(yV, function (i, M) {
+                            //month key
+                            mK = M[0];
+                            //month value
+                            mV = M[1];
+                            //when month
+                            if (what == 'month') {
+                                //month key matches?
+                                if ((!month || mK == month) && (!year || yK == year)) {
                                     //add to sliders
                                     addSlider(
-                                        ts.formatDate(yK, mK, dK, px.fmtDay),
-                                        yK, mK, dK,
-                                        ts.getTids(px, dV)
+                                        ts.formatDate(yK, mK, '11', px.fmtMonth),
+                                        yK,
+                                        mK,
+                                        isNaN(day) ? null : day,
+                                        ts.getTids(px, mV, px.level == 'month' ? false : true)
                                     );
                                 }
-                            });
-                        }
-                    });
-                }
-            });
+                                //or check days
+                            } else {
+                                //loop all days
+                                $.each(mV, function (i, D) {
+                                    //day key
+                                    dK = D[0];
+                                    //day value
+                                    dV = D[1];
+
+                                    //day key matches?
+                                    if ((!day || mK == day) && (!year || yK == year) && (!month || mK == month)) {
+                                        //add to sliders
+                                        addSlider(
+                                            ts.formatDate(yK, mK, dK, px.fmtDay),
+                                            yK, mK, dK,
+                                            ts.getTids(px, dV)
+                                        );
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
 
             //loop sliders
             for (s = 0; s < sx.length; s++) {
@@ -389,6 +428,7 @@
         /* creates the slider */
         createSlider: function (place, slider, what, open) {
             var 
+                tags = !slider.year;
                 //refernce to defaults
                 def = config.macros.slidr.defaults,
                 //get count
@@ -406,7 +446,7 @@
                         //y, m, d attribs
                         year: slider.year,
                         month: slider.month,
-                        day: slider.day
+                        day: slider.day,
                     }
                 ))
                     //append tiddlers
@@ -414,12 +454,13 @@
                     //add click handler
                     .click(this.click);
 
+            if(tags)$s.attr('tag',slider.title);
             //render button text
             wikify(
                 //apply slider format
                 def.fmtSlider.format([
                     //using the title, e.g. the year, month or day
-                    slider.title,
+                    (tags ? def.fmtTagSlider : '%0').format([slider.title]),
                     //apply slider format
                     def.fmtCount.format([
                         //and the tidder count
@@ -437,7 +478,6 @@
 
         /* handles slider click */
         click: function (ev) {
-            console.log(1);
             var out = '', place,
                 //reference to macro
                 ts = config.macros.slidr,
@@ -445,6 +485,8 @@
                 e = ev || window.event,
                 //get slider button
                 $sb = $(resolveTarget(e)).closest('.slidr_button'),
+                //get tag from tag button
+                stag = $sb.attr('tag'),
                 //get params
                 px = $sb.closest('.slidr').data('params'),
                 //as jQuery object
@@ -497,7 +539,13 @@
 
                         //get included tags
                         t.tags.map(function (tag) {
-                            if (!px.ex.readBracketedList().contains(tag))
+                            if (
+                                    //if not current tag
+                                    stag != tag &&
+                                    //and not in excludelist
+                                    !px.ex.readBracketedList().contains(tag)
+                                )
+                                //add to display tags
                                 tags += ts.defaults.fmtTag.format([tag]);
                         });
 
@@ -535,7 +583,7 @@
         },
 
         /* retrieves the tids from a date range */
-        getTids: function (params, arr, count) {
+        getTids: function (params, arr, count, tag) {
             var num = 0, tids = [],
                 //recursively find tiddlers
                 nextLevel = function (i, el) {
@@ -543,14 +591,17 @@
                     if (typeof el[0] == 'number') {
                         //go deeper
                         $.each(el[1], function (i, el) { nextLevel(i, el) });
-                        //these are the tids?
+                    //these are the tids?
                     } else {
-                        //increment count
-                        num++;
-                        //put into tids
-                        tids.push(el);
+                        //if tag matches
+                        if(!tag || el.tags.contains(tag)){
+                            //increment count
+                            num++;
+                            //put into tids
+                            tids.push(el);
+                        }
                     }
-                };
+                }
 
             //loop all elements
             $.each(arr, function (i, el) { nextLevel(i, el); });
@@ -608,6 +659,12 @@
     margin:0;
     padding:0;
     clear:left;
+}
+.viewer .slidr_title .button{
+    border-color:transparent;
+}
+.viewer .slidr_button:hover .button{
+    background:[[ColorPalette::Background]];
 }
 .viewer .slidr_title{
     padding-left:7px;
