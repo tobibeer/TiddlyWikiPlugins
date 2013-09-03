@@ -1,0 +1,518 @@
+|''Name:''|[[OrgTheme]]|
+|''Version:''|0.5.0 (2013-09-02)|
+|''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
+|''Description:''|derived from TidlyWiki.org|
+|''PageTemplate:''|OrgTheme##PageTemplate|
+|''ViewTemplate:''|OrgTheme##ViewTemplate|
+|''EditTemplate:''|OrgTheme##EditTemplate|
+|''StyleSheet:''|OrgTheme##StyleSheet|
+!PageTemplate
+<!--{{{-->
+<div class='header'>
+    <div id='sidebarSearch'>
+        <span macro='search'></span>
+    </div>
+    <div class='headerForeground'>
+        <span class='siteTitle' refresh='content' tiddler='SiteTitle'></span>
+        <span class='siteSubtitle' refresh='content' tiddler='SiteSubtitle'></span>
+    </div>
+    <div class='clearFloat'></div>
+</div>
+
+<div id='menuBar'>
+    <div id='mainMenu' refresh='content' tiddler='MainMenu'></div>
+    <div id='sidebarOptions' refresh='content' tiddler='SideBarOptions'></div>
+</div>
+<div id='displayArea'>
+    <div id='messageArea'></div>
+    <div id='tiddlerDisplay'></div>
+    <div id='sidebarTabs' refresh='content' force='true' tiddler='SideBarTabs'></div>
+</div>
+<!--}}}-->
+
+!ViewTemplate
+<!--{{{-->
+<div class='tagInfo infoTags'> <!-- macro="hideWhenTagged no-tags" -->
+    <div class='tidTags' macro='tags'></div>
+</div>
+<div class='toolbar'
+    macro='toolbar [[ToolbarCommands::ViewToolbar]] icons:yes height:36 width:36 more:popup'>
+</div>
+<div class='heading'>
+    <span class="titleBar">
+        <div class='title' macro='view title text'>
+        </div>
+        <span class="subtitle" macro='viewRevisions page:5'>
+            <span class='spaceSiteIcon' macro='tiddlerOrigin label:no spaceLink:yes height:12 width:12 preserveAspectRatio:yes'></span>
+            last modified on
+            <span macro="view modified date"></span>
+            <span macro='view modifier SiteIcon spaceLink:yes label:yes height:16 width:16'>by&nbsp;</span>
+        </span>
+    </span>
+    <div class='tagClear'></div>
+</div>
+<div class='content'>
+    <div class='viewer' macro='view text wikified'></div>
+</div>
+
+<!--<div macro='discuss'></div>-->
+
+<div class='tagInfo infoTagging'>
+    <div class='tagging' macro='tagging'></div>
+</div>
+<!--}}}-->
+
+!EditTemplate
+<!--{{{-->
+<div class='toolbar'
+    macro='toolbar [[ToolbarCommands::EditToolbar]] icons:yes'>
+</div>
+<div class='heading editorHeading'>
+    <div class='editor title' macro='edit title'></div>
+    <div class='tagClear'></div>
+</div>
+<div class='annotationsBox' macro='annotations'>
+    <div class='editSpaceSiteIcon'
+        macro='tiddlerOrigin height:16 width:16 label:no interactive:no'>
+    </div>
+    <div class="privacyEdit" macro='setPrivacy label:no interactive:no'></div>
+    <div class='tagClear'></div>
+</div>
+<div class='editor' macro='edit text'></div>
+<div class='editorFooter'>
+    <div class='tagTitle'>tags</div>
+    <div class='editor' macro='edit tags'></div>
+    <div class='tagAnnotation'>
+        <span macro='message views.editor.tagPrompt'></span>
+        <span macro='tagChooser excludeLists'></span>
+    </div>
+</div>
+<div class='editorFooter'>
+    <div class='tagTitle'>tagcolor</div>
+</div>
+<!--}}}-->
+
+!StyleSheet
+
+/*{{{*/
+[[StyleSheetTiddlySpace]]
+
+#contentWrapper {
+min-width: 920px;
+}
+
+#tiddlerDisplay, #searchResults {
+margin: 16px 400px 0 72px;
+}
+
+h1, h2, h3 {
+    margin-top: 0.7em;
+}
+
+.tiddler .viewer {
+    margin:0;
+    padding-top: 0;
+}
+
+.viewer pre {
+        font-size:1em;
+}
+
+.viewer .annotation pre {
+    background-color:[[ColorPalette::TertiaryPale]];
+}
+
+.viewer .table100 {
+    width: 100%;
+}
+
+.viewer table,
+table.twtable {
+    margin: 0.8em 0;
+}
+
+.viewer .error td,
+.twtable .error td {
+    background-color: #fcc;
+}
+
+.viewer td, .viewer tr,
+.twtable td, .twtable tr {
+    vertical-align:top;
+    background: white;
+}
+
+.right {
+    float:right;
+    margin:0 1em 10px 10px;
+}
+
+.justifyright {
+    text-align: right;
+}
+
+.justifyfull {
+    text-align: justify;
+}
+
+#searchResults .button {
+    background:white;
+    float:right;
+    margin:0.5em 0 0 1em;
+    padding:0.5em 1em;
+}
+
+#menuBar {
+    padding: 0.3em 0;
+}
+
+#mainMenu a {
+    padding: 5px 10px;
+    font-size: 0.9em;
+    margin: 0;
+    line-height: 1em;
+    display: inline-block;
+}
+
+#sidebarOptions {
+margin-right: 2em;
+}
+
+
+#sidebarOptions .tiddlyLink,
+#sidebarOptions .button {
+    border: 1px solid transparent;
+    font-size: 0.7em;
+    font-weight:normal;
+    float: right;
+    padding: 5px 15px;
+    color: #fff;
+    display:inline;
+    cursor: pointer;
+    line-height: 1em;
+    text-align: center;
+    margin: 0 !important;
+    display: block;
+    width:auto;
+}
+
+#sidebarOptions .tiddlyLink:hover {
+    color: #fff;
+}
+
+.annotation {
+    display:block;
+    margin:0.5em 0 0 0;
+    background-color:[[ColorPalette::PrimaryPale]];
+    border:none;
+}
+
+#sidebarTabs {
+right: 22px;
+}
+
+#sidebarTabs .tabsetWrapper .tabset .tabSelected {
+    border-color: [[ColorPalette::PrimaryLight]];
+}
+
+#sidebarTabs .tabsetWrapper .tabContents {
+    border-color: [[ColorPalette::PrimaryLight]];
+}
+
+.tiddler {
+    border-top-color: [[ColorPalette::PrimaryLight]];
+}
+
+.tiddler:hover {
+    border-top-color: [[ColorPalette::PrimaryMid]];
+}
+
+#messageArea .button{
+    
+color:[[ColorPalette::Background]];
+    background:transparent;
+    text-decoration:none;
+}
+
+#messageArea .button:hover{
+    text-decoration:underline;
+}
+
+.viewer blockquote {
+    border-left: 1px solid[[ColorPalette::PrimaryMid]];
+    background-color:[[ColorPalette::TertiaryPale]];
+    line-height: 1.5em;
+    padding-left: 0.5em;
+    margin: 0.5em;
+}
+
+#messageArea {
+    top: 0 !important;
+    left: 30%;
+    width: 30%;
+}
+
+.viewer table, table.twtable {
+    border:1px solid [[ColorPalette::TertiaryLight]] !important;
+}
+.viewer th, .viewer thead td, .twtable th, .twtable thead td, .twtable thead tr.evenrow td{
+    background:[[ColorPalette::SecondaryPale]];
+    border:1px solid [[ColorPalette::TertiaryLight]] !important;
+    font-weight:bold;color:[[ColorPalette::Foreground]];
+}
+.viewer td, .viewer tr, .twtable td, .twtable tr {
+    border:1px solid [[ColorPalette::TertiaryLight]] !important;
+}
+.viewer tr.evenRow td, .twtable tr.oddrow td {
+    background:[[ColorPalette::TertiaryPale]];
+}
+.viewer th .linkified .tiddlyLink {
+    font-weight: bold;
+    color:[[ColorPalette::PrimaryMid]];
+}
+.viewer th .linkified .tiddlyLink:hover {
+    color:[[ColorPalette::PrimaryLight]];
+}
+
+.highlight,
+.marked {
+    background:[[ColorPalette::SecondaryPale]];
+}
+
+.tiddlyLink:hover .highlight,
+.tiddlyLink:hover .marked {
+    background:[[ColorPalette::PrimaryLight]];
+}
+
+.alert{
+    color:red;
+}
+
+.viewer .listWrapper li {
+    margin-top:1px;
+    background:[[ColorPalette::TertiaryPale]];
+    list-style-type:none;
+    padding:0;
+}
+.viewer .listWrapper li .tiddlyLink {
+    display:block;
+    padding:0 4px;
+}
+.viewer .listWrapper li.listTitle {
+    background:transparent;
+}
+
+.viewer a.bookmarklet,
+.viewer span.bookmarklet {
+    color:#6A6;
+    font-weight:bold;
+}
+
+.viewer a.bookmarklet:hover,
+.viewer span.bookmarklet:hover {
+    color:#393;
+    font-weight:bold;
+    background:none;
+}
+
+.viewer ul.timeline li.listTitle {
+    margin-left: 0;
+}
+
+.viewer ul.timeline li.listLink {
+    margin-left: 1em;
+    list-style-type:none;
+    color:[[ColorPalette::TertiaryMid]];
+}
+
+.viewer .noTitle li.listTitle{
+    display:none;
+}
+
+.fancyTimeline .listTitle{
+    margin-top:5px;
+    font-size:1.2em;
+    color:[[ColorPalette::PrimaryLight]];
+}
+
+.source {
+    float:right;
+    margin-right:1em;
+}
+
+dd{
+    margin-left: 1em;
+}
+
+.tiddlerCustomFields input {
+    width:300px;
+}
+
+.tiddlerCustomFields .fieldName {
+    width:100px;
+}
+
+.editSpaceSiteIcon .originButton img, .editSpaceSiteIcon .originButton svg {
+    margin: 0;
+}
+
+.annotationsBox {
+    margin: 5px 0;
+}
+
+.heading.editorHeading {
+    margin: 0 0 12px 0;
+    top: 20px;
+}
+
+.heading {
+    clear:left;
+    margin-bottom: 40px;
+    top: 22px;
+}
+
+.heading .editor input {
+    width: 98%;
+    padding: 1px 1%;
+    font-size: 1em;
+    margin-top:1em;
+}
+
+.tiddler .editor {
+    padding: 0px;
+}
+
+.tiddler .titleBar{
+    margin-left:0px;
+}
+
+.tiddler .heading .title {
+    font-size:24px;
+    line-height:24px;
+}
+
+.tagInfo {
+    margin:0;
+}
+
+.tagInfo ul li a,
+.tiddler .tagInfo .coloredLink {
+color:[[ColorPalette::TertiaryMid]];
+border:1px solid transparent;
+padding: 1px 3px !important;
+}
+
+.tagInfo ul li a:hover,
+.tiddler .tagInfo .coloredLink:hover {
+color:[[ColorPalette::Foreground]];
+background:transparent !important;
+border-color:transparent !important;
+}
+
+.infoTags {
+max-width:70%;
+margin:0;
+float: left;
+padding: 0 5px 3px 5px;
+}
+
+.infoTags ul {
+padding-left:0;
+}
+
+.infoTags ul li {
+display:inline-block;
+margin-top:3px;
+}
+
+.infoTags .listTitle {
+    padding: 5px 5px 3px 5px;
+}
+
+.infoTagging {
+    border:0;
+    padding: 10px 0;
+    -moz-box-shadow:0;
+    -webkit-box-shadow:0;
+    box-shadow:0;
+    background: -moz-linear-gradient(100% 100% 90deg,[[ColorPalette::TertiaryPale]], [[ColorPalette::Background]]);
+    background: -webkit-gradient(linear, left top, right top, from([[ColorPalette::TertiaryPale]]), to([[ColorPalette::Background]]));
+    color: [[ColorPalette::TertiaryMid]];
+}
+
+.tagInfo ul {
+    list-style: none;
+    padding-left: 10px;
+}
+
+.noTitle .listTitle {
+    display:none;
+}
+
+.tiddler .originButton div {
+    display:inline;
+}
+
+.originButton img,
+.originButton svg {
+    vertical-align: -5%;
+    margin-right: 3px;
+}
+
+.originButton .roundelLabel {
+    margin-right:5px;
+}
+
+.siteIcon .label {
+    padding: 0;
+    color:[[ColorPalette::TertiaryMid]];
+}
+
+.tiddler .subtitle:hover {
+    font-weight:normal;
+    color:[[ColorPalette::TertiaryMid]];
+}
+
+.titleBar .siteIcon,
+.titleBar .label {
+    display:inline !important;
+}
+
+.titleBar a {
+    color:[[ColorPalette::TertiaryLight]];
+}
+
+.titleBar a:hover {
+    background:transparent;
+    color:[[ColorPalette::PrimaryLight]];
+}
+
+.titleBar .siteIcon img {
+    display:none;
+}
+
+.tiddler .titleBar span .button,
+.tiddler .titleBar span .button:hover {
+    border:0;
+    padding:0;
+    margin:0;
+}
+
+.tiddler .titleBar span a,
+.tiddler .titleBar span .button, {
+    font-style:normal;
+    color: [[ColorPalette::PrimaryMid]] !important;
+}
+
+.tiddler .titleBar span a:hover,
+.tiddler .titleBar span .button:hover {
+    font-style:normal;
+    color: [[ColorPalette::PrimaryLight]] !important;
+}
+
+.toolbar svg {
+    height: 24px;
+    width: 24px;
+}
+/*}}}*/
+
