@@ -1,0 +1,1226 @@
+|''Name:''|[[White-Fixed-Theme]]|
+|''Version:''|0.6.0 (2013-09-02)|
+|''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
+|''Description:''|mimicking [[tw5|http://five.tiddlywiki.org]]|
+|''PageTemplate:''|White-Fixed-Theme##PageTemplate|
+|''ViewTemplate:''|White-Fixed-Theme##ViewTemplate|
+|''EditTemplate:''|White-Fixed-Theme##EditTemplate|
+|''StyleSheet:''|White-Fixed-Theme##StyleSheet|
+
+''TODO:'' MAKE TWO COLUMNS => MAIN + SIDEBAR
+
+!PageTemplate
+<!--{{{-->
+
+<div id='messageArea'></div>
+<div class='header'>
+    <div id='sidebarSearch' class='sidebarSearch'>
+        <span macro='search'></span>
+    </div>
+    <div class='headerForeground'>
+        <span class='siteTitle' refresh='content' tiddler='SiteTitle'></span>
+        <span class='siteSubtitle' refresh='content' tiddler='SiteSubtitle'></span>
+    </div>
+    <div class='clearFloat'></div>
+    <div id='topMenu'>
+        <div id='mainMenu' refresh='content' tiddler='MainMenu'></div>
+        <div id='sidebarOptions' refresh='content' tiddler='SideBarOptions'></div>
+    </div>
+</div>
+
+<div id='displayArea'>
+    <div id='tiddlerDisplay'></div>
+    <div id='sidebarTabs' refresh='content' force='true' tiddler='SideBarTabs'></div>
+</div>
+
+<!--}}}-->
+
+
+!ViewTemplate
+<!--{{{-->
+<div class='tagInfo infoTags'>
+    <div class='tidTags' macro='tags'></div>
+</div>
+<div class='toolbar'
+    macro='toolbar [[ToolbarCommands::ViewToolbar]] icons:yes height:16 width:16 more:popup'>
+</div>
+<div class='heading'>
+    <span class="titleBar">
+        <div class='title' macro='view title text'></div>
+        <div class="subtitle" macro='viewRevisions page:5'>
+            <span class='spaceSiteIcon' macro='tiddlerOrigin label:no spaceLink:yes height:16 width:16 preserveAspectRatio:yes'></span>
+            last modified on
+            <span macro="view modified date"></span>
+            <span macro='view modifier SiteIcon spaceLink:yes label:yes height:16 width:16'>by&nbsp;</span>
+            <span macro="view title replyLink">—&nbsp;</span>
+        </div>
+    </span>
+    <span class='followPlaceHolder' macro='followTiddlers'></span>
+    <span class='modifierIcon'
+        macro='view modifier SiteIcon label:no spaceLink:yes height:32 width:32 preserveAspectRatio:yes'>
+    </span>
+    <div class='tagClear'></div>
+</div>
+<div class='content'>
+    <div class='viewer' macro='view text wikified'></div>
+</div>
+<div class='tagInfo infoTagging'>
+    <div class='tagging' macro='tagging'></div>
+</div>
+<!--}}}-->
+
+
+!EditTemplate
+<!--{{{-->
+<div class='toolbar'
+    macro='toolbar [[ToolbarCommands::EditToolbar]] icons:yes'>
+</div>
+<div class='heading editorHeading'>
+    <div class='editor title' macro='edit title'></div>
+    <div class='tagClear'></div>
+</div>
+<div class='annotationsBox' macro='annotations'>
+    <div class='editSpaceSiteIcon'
+        macro='tiddlerOrigin  height:12 width:12 preserveAspectRatio:yes label:no interactive:no'>
+    </div>
+    <div class="privacyEdit" macro='setPrivacy label:no interactive:no'></div>
+    <div class='tagClear'></div>
+</div>
+<div class='editor' macro='edit text'></div>
+<div class='editorFooter'>
+    <div class='tagTitle'>tags</div>
+    <div class='editor' macro='edit tags'></div>
+    <div class='tagAnnotation'>
+        <span macro='message views.editor.tagPrompt'></span>
+        <span macro='tagChooser excludeLists'></span>
+    </div>
+</div>
+<!--}}}-->
+
+
+!StyleSheet
+/*{{{*/
+[[StyleSheetSpace]]
+
+/* DEFAULTS */
+
+.clearFloat {
+    clear: both;
+}
+
+body {
+    font-size: 1em;
+    font-family: helvetica, arial, sans-serif;
+    background-color: [[ColorPalette::PageBackground]];
+    color: [[ColorPalette::Foreground]];
+}
+
+body ul {
+    margin: 0;
+}
+
+.highlight, .marked {
+    background: [[ColorPalette::SecondaryPale]];
+}
+
+.viewer blockquote {
+    border-left: 2px solid [[ColorPalette::TertiaryPale]];
+}
+
+.viewer table, table.twtable {
+    border-collapse: collapse;
+    margin: 5px 0;
+    border: 1px solid [[ColorPalette::TertiaryMid]]  !important;
+}
+
+.viewer tr, .viewer td,
+.twtable tr, .twtable td {
+    border: 1px solid [[ColorPalette::TertiaryMid]] !important;
+}
+
+.viewer th a:hover,
+.viewer thead td a:hover,
+.twtable th a:hover,
+.twtable thead td :hover{
+    color:[[ColorPalette::Background]] !important;
+}
+
+a {
+    color:[[ColorPalette::SecondaryDark]];
+}
+
+a:hover {
+    text-decoration:underline;
+    color:[[ColorPalette::SecondaryMid]];
+    background:transparent;
+}
+
+a.tiddlyLink {
+    font-weight:normal;
+}
+
+a.tiddlyLink.shadow{
+    color:[[ColorPalette::TertiaryMid]];
+}
+
+a.tiddlyLink.tiddlyLinkNonExisting {
+    font-style:italic;
+}
+
+a.tiddlyLink:hover {
+    background:none;
+    color:[[ColorPalette::SecondaryMid]];
+}
+
+.button,
+.tagInfo ul li .button {
+    color:[[ColorPalette::TertiaryMid]];
+    background:[[ColorPalette::TertiaryPale]];
+}
+
+.button:hover,
+.tagInfo ul li .button:hover {
+    text-decoration:none;
+    color:[[ColorPalette::Background]];
+    background:[[ColorPalette::TertiaryMid]];
+    border-color:[[ColorPalette::TertiaryLight]];
+}
+
+a.image:hover {
+    background: transparent;
+}
+
+
+/* PAGE LAYOUT */
+
+#displayArea {
+   margin: 0;
+   top: 95px;
+   left: 0px;
+   width: 100%;
+   position: relative;
+}
+
+#contentWrapper {
+    position: relative;
+    padding-top: 1px;
+    top: -1px;
+}
+
+#tiddlerDisplay,
+#searchResults {
+    margin: 8px 390px 0 42px;
+    _position: relative; /* ie 6*/
+}
+
+
+* html #tiddlerDisplay {
+    margin-top: 0px;
+
+}
+
+
+/* HEADER */
+
+.header {
+    top:0;
+    position: fixed;
+    background-color: [[ColorPalette::PageBackground]];
+    height: 95px;
+    z-index: 100;
+    width: 100%;
+    _width: 100%; /* ie 6 demands */
+}
+
+.headerForeground {
+    color: [[ColorPalette::Foreground]];
+    background-color: transparent;
+    margin: 16px 32px 0px 52px;
+    float: left;
+    padding: 0;
+    position: relative;
+    top: 0;
+}
+
+.siteTitle{
+    float:left;
+    display: block;
+    font-size: 32px;
+    line-height: 32px;
+    font-weight: normal;
+}
+
+.siteSubtitle {
+    float:left;
+    display: block;
+    font-size: 14px;
+    margin: 1em 0 0 1em;
+    color: [[ColorPalette::TertiaryMid]];
+}
+
+
+/* SEARCH */
+
+#sidebarSearch {
+    padding: 0;
+    position: absolute;
+    right: 120px;
+    top: 30px;
+    width: 200px;
+}
+
+.sidebarSearch .txtOptionInput {
+    width: 100%;
+    margin-top: 5px;
+    _color: #bbb; /* ie6 danger */
+}
+
+.sidebarSearch .txtOptionInput:focus {
+    color: #000;
+}
+
+.sidebarSearch .searchButton {
+    display: none;
+}
+
+
+/* TOPMENU */
+#topMenu {
+    left: 0;
+    clear: left;
+    top: 50px;
+    position: absolute;
+    padding: 0.5em 0;
+    min-height: 1em;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* MAIN MENU */
+
+#mainMenu {
+    color:[[ColorPalette::TertiaryLight]];
+    position: static;
+    text-align: left;
+    margin: 4px 0 0 4px;
+    float: left;
+    width: auto;
+    padding: 0 0 0 52px;
+    font-size: 1em;
+    line-height: normal;
+}
+
+#mainMenu a {
+    padding: 4px 6px;
+}
+
+#sidebarOptions {
+    margin: 0 0 0 1em;
+    padding: 0;
+    float: right;
+    position: relative;
+    width: 335px;
+}
+
+#mainMenu a,
+#mainMenu .tiddlyLink,
+#mainMenu .button,
+#sidebarOptions a,
+#sidebarOptions .button {
+    margin: 0;
+    background:none;
+    color: [[ColorPalette::TertiaryMid]];
+    font-size: 0.9em;
+    padding: 4px 6px;
+}
+
+#sidebarOptions a,
+#sidebarOptions .button {
+    display:inline-block;
+}
+
+#mainMenu a:hover,
+#mainMenu .tiddlyLink:hover,
+#mainMenu .button:hover,
+#sidebarOptions a:hover,
+#sidebarOptions .button:hover {
+    background:none !important;
+    color:[[ColorPalette::TertiaryDark]];
+}
+
+#mainMenu .button,
+#sidebarOptions .button {
+    border: 1px solid transparent;
+}
+
+
+/* SIDEBAR */
+
+#sidebarTabs {
+    padding-top: 1em;
+    width: 360px;
+    position: fixed;
+    right: 0;
+    top: 95px;
+}
+
+#sidebarTabs .tabsetWrapper .tabset {
+    width: 87px;
+    text-align:right;
+    border: 0;
+    height: auto;
+    float: left;
+    word-wrap: break-word;
+    top: 0;
+    padding: 0 5px 0 0;
+}
+
+#sidebarTabs .tabContents li a:hover {
+    color: [[ColorPalette::SecondaryMid]];
+}
+
+#sidebarTabs .tabsetWrapper .tabset .tab {
+    font-size: 0.9em;
+    padding: 2px 5px 2px 2px;
+    color: [[ColorPalette::TertiaryMid]];
+    background: transparent;
+    border: 0;
+    border-right: 1px solid [[ColorPalette::TertiaryLight]];
+    line-height: 16px;
+    position: relative;
+    display: block;
+    margin: 2px 0 0 0;
+    background-color: #f9f9f9;
+    background-image: linear-gradient(left, rgb(249,249,249) 0%, rgb(236,236,236) 100%);
+    background-image: -o-linear-gradient(left, rgb(249,249,249) 0%, rgb(236,236,236) 100%);
+    background-image: -moz-linear-gradient(left, rgb(249,249,249) 0%, rgb(236,236,236) 100%);
+    background-image: -webkit-linear-gradient(left, rgb(249,249,249) 0%, rgb(236,236,236) 100%);
+    background-image: -ms-linear-gradient(left, rgb(249,249,249) 0%, rgb(236,236,236) 100%);
+}
+
+#sidebarTabs .tabsetWrapper .tabset a:hover,
+#sidebarTabs .tabsetWrapper .tabset .tabSelected {
+    border:0;
+    border-right: 1px solid [[ColorPalette::TertiaryLight]];
+    z-index: 10;
+    color: [[ColorPalette::TertiaryMid]];
+    background:transparent;
+    text-decoration:none;
+}
+
+#sidebarTabs .tabsetWrapper .tabset a:hover{
+    color: [[ColorPalette::SecondaryMid]];
+}
+
+
+#sidebarTabs .tabContents li {
+    border: none;
+    margin-left: 0;
+    word-wrap: break-word;
+}
+
+#sidebarTabs .tiddlyLinkExisting{
+    font-weight:normal;
+}
+
+.tabContents li.listTitle{
+    font-size: 1em;
+    border: 0;
+    padding: 0.3em  0.11em;
+    color: [[ColorPalette::TertiaryLight]];
+}
+
+#sidebarTabs .tabContents .list-missing a {
+    font-style:italic;
+}
+
+.tabContents .timeline {
+    background: transparent;
+    margin-bottom: 8px;
+}
+
+#sidebarTabs .timeline li.listTitle {
+    color: [[ColorPalette::TertiaryLight]];
+    margin-left: 8px 0;
+    padding: 0.3em 0.11em;
+}
+
+#sidebarTabs .tabContents div > ul > li.listTitle {
+    padding-top:0;
+}
+
+#sidebarTabs .tabContents li a {
+    display: block;
+    text-align: left;
+    margin: 0 0 1px 0;
+    padding: 2px 0;
+    background: transparent;
+}
+
+#sidebarTabs .tabsetWrapper .tabContents {
+    position: relative;
+    background-color: transparent;
+    border: 0;
+    width: 230px;
+    padding: 0 0 0 5px;;
+    font-size: 0.9em;
+    max-height: 400px;
+    overflow: auto;
+}
+
+.tabContents .listTitle:first-child {
+    margin-top: 0px;
+}
+
+/* TIDDLER */
+
+.tiddler {
+    position: relative;
+    padding:0;
+    width: 100%;
+    margin-bottom: 2em;
+    border-top: 1px solid [[ColorPalette::TertiaryPale]];
+    background: [[ColorPalette::Background]];
+    -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
+    -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
+}
+
+.heading {
+    top: 22px;
+    left: 0;
+    width: 95%;
+    padding: 1em 2.5% 5px 2.5%;
+    border-bottom:3px solid [[ColorPalette::Dim]];
+}
+
+.tiddler .heading .title {
+    position: relative;
+    display: block;
+    font-weight:normal;
+    word-wrap: break-word;
+    font-size:24px;
+    line-height:24px;
+}
+
+.tiddler .subtitle {
+    font-size: 0.9em;
+    color: [[ColorPalette::TertiaryLight]];
+    margin: 5px 0 0 0;
+}
+
+.tiddler .subtitle:hover {
+    font-weight: normal;
+    background: none;
+}
+
+.tiddler .subtitle a {
+    color: [[ColorPalette::SecondaryMid]];
+}
+
+.tiddler .subtitle a:hover {
+    color: [[ColorPalette::SecondaryDark]];
+    background: [[ColorPalette::Background]];
+}
+
+.tiddler .headingClear {
+    clear: both;
+}
+
+.tiddler .viewer {
+    padding: 5px 2.5% 16px 2.5%;
+    width: 95%;
+    margin: 0;
+    line-height: 1.4em;
+}
+
+.viewer pre {
+    margin-left: 0;
+}
+
+
+/* TOOLBAR */
+
+/* ie hacks */
+.toolbar .svgIconText {
+    *display: inline;
+}
+
+* html .toolbar {
+    right: 8px;
+}
+
+.tiddler .originButton div {
+    display: inline-block;
+}
+
+.tiddler .spaceSiteIcon .siteIcon {
+    _display: inline; /* IE doesn't like inline-block */
+}
+
+.tiddler .originButton {
+    display: block;
+}
+
+.originButton.highlight{
+    background:transparent;
+}
+
+.content {
+    width: 100%; /* IE */
+    font-size: 0.9em;
+}
+
+/* TOOLBAR */ 
+
+
+div.toolbar {
+    visibility:hidden;
+    right: -6px;
+    position: absolute;
+    padding: 0;
+    top: 10px;
+    z-index: 1;
+}
+
+.selected div.toolbar {
+    visibility: visible;
+}
+
+div.tiddler .toolbar a {
+    cursor: pointer;
+    float: left\9;
+    display: inline\9;
+}
+
+div.tiddler .toolbar a.command_deleteTiddler{
+    margin-right: 34px !important;
+}
+
+.toolbar svg {
+    width: 16px;
+    height: 16px;
+}
+
+.toolbar svg .glyph {
+    fill: #ccc;
+}
+
+.toolbar a:hover .glyph {
+    fill: black;
+}
+
+.toolbar a:active .glyph {
+    fill: [[ColorPalette::Background]];
+}
+
+.toolbar .moreCommand.highlight {
+    background: none;
+}
+
+.tiddler .toolbar .button {
+    border: none;
+    display: inline;
+    padding: 0px;
+    margin-right: 16px;
+    background:transparent;
+}
+
+.tiddler .tagged .listTitle {
+    display: none;
+}
+
+
+/*! EDITMODE */
+
+.heading.editorHeading {
+    margin: 2em 0 0 0;
+    width: 100%;
+    padding: 0;
+}
+
+.tiddler .editor {
+    padding: 0px;
+    margin: 0 2.5%;
+}
+
+.heading .editor input {
+    width: 99%;
+    padding: 2px 0.5%;
+    font-size: 0.8em;
+    margin-top:1em;
+}
+
+.tiddler .heading .editor.title {
+    font-size: 1.7em;
+    line-height: normal;
+}
+
+.editor input, .editor textarea {
+    width: 99%;
+    padding: 2px 0.5%;
+    border: 2px solid [[ColorPalette::TertiaryPale]];
+}
+
+.tagTitle {
+    position: absolute;
+    text-align: right;
+    padding-right: 10px;
+    top: 0px;
+    margin-left: -95px;
+    width: 100px;
+}
+
+.tagAnnotation {
+    margin: 8px 0 0 20px;
+    padding-bottom: 8px;
+}
+
+.annotationsBox {
+    padding: 0;
+    margin: 0 2.2% 0 2.5%;
+}
+
+.annotationsBox  .annotation {
+    margin: 0;
+    padding: 3px 5px;
+}
+
+.editorFooter {
+    position: relative;
+    padding: 0;
+    margin-top: 16px;
+    margin-left: 64px;
+}
+
+.tiddler .editorFooter .editor {
+    padding-left: 0px;
+}
+
+
+/* TAGGING */
+.selected .tagging,
+.selected .tagging:hover {
+    border: none;
+    background: none;
+}
+.tagging {
+    float: none;
+    background: none;
+    border: none;
+}
+
+.tagInfo {
+    color: [[ColorPalette::TertiaryMid]];
+    background: [[ColorPalette::Dim]];
+    margin: 0;
+    padding: 0;
+    font-size:0.9em;
+}
+
+.tagInfo .tidTags,
+.tagInfo .tagging{
+    font-size:1em;
+    padding: 0 0 2px 0;
+}
+
+.tagInfo ul {
+    list-style: none;
+    padding-left: 10px;
+}
+
+.tagInfo ul li {
+    display:inline-block;
+    margin-top:3px;
+}
+
+.tagInfo ul li.listTitle,
+.tagInfo .tagging ul li.listTitle {
+    display:inline-block;
+    width:60px;
+    text-align: right;
+    padding: 5px 5px 3px 0;
+    text-align:right;
+    color: [[ColorPalette::TertiaryLight]];
+    margin:0;
+}
+
+.tagInfo .tagging ul li.listTitle + li {
+   margin-top: -20px;
+}
+
+.tagInfo .tagging ul li {
+    float: none;
+    display: block;
+    clear:left;
+    margin-left: 65px;
+}
+
+.tagInfo .tagging ul li a {
+    display:block;
+}
+
+.infoTags {
+    padding: 3px 5px;
+}
+
+.infoTags .tidTags{
+    max-width:100%;
+}
+
+.infoTags ul {
+    padding-left:0;
+}
+
+/* POPUPS (/ SIDEBAR) */
+
+#popup {
+    border-color:transparent;
+    background-color: [[ColorPalette::Background]];
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    -webkit-box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+    z-index:99;
+}
+
+#popup li {
+    margin:0;
+    padding:0;
+}
+
+#popup li a {
+    padding:7px 5px;
+    font-weight: bold;
+    color: [[ColorPalette::SecondaryDark]];    
+}
+
+#popup li a:hover {
+    color: [[ColorPalette::SecondaryMid]];
+    background: transparent;
+}
+
+#popup li.disabled,
+#popup li.listTitle {
+    border-bottom: 1px solid [[ColorPalette::TertiaryPale]];
+    color: [[ColorPalette::TertiaryMid]];
+    font-weight:normal;
+    padding:7px 5px;
+    margin: 0;
+}
+
+#popup .button{
+    background:transparent;
+}
+
+#popup.confirmationPopup,
+.followList {
+    font-size: 0.8em;
+    padding: 1em;
+    border: 0;
+}
+
+#popup.confirmationPopup .button {
+    border: 0;
+    margin: 4px 4px 0 4px;
+    display: inline-block;
+}
+
+#popup.confirmationPopup .button:hover {
+    background:transparent;
+    color:[[ColorPalette::SecondaryDark]];
+}
+
+.listBreak{
+   border-bottom: 1px solid  [[ColorPalette::TertiaryPale]];;
+}
+
+.listBreak div{
+   display:none;
+}
+
+
+/* REVISIONS */
+
+.revButton {
+    float: right;
+}
+
+.revisionCloak {
+    position: absolute;
+    position: fixed !important;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    opacity: 0.5;
+    filter: alpha(opacity=50);
+    background-color: #000;
+}
+
+.viewRevision .toolbar {
+    right: 48px;
+    top: 8px;
+}
+
+.viewRevision .modifierIcon img,
+.viewRevision .modifierIcon svg {
+    margin-right: 16px;
+}
+
+.viewRevision .toolbar svg {
+    width: 32px;
+    height: 32px;
+}
+
+
+/* ACTIVITY */
+
+#sidebarTabs .tabContents .activityStream .feedItem a {
+    display: inline-block;
+    padding: 0;
+    background: none;
+}
+
+
+/* FOLLOWING */
+
+.tiddler .followPlaceHolder {
+    display: block;
+    position: absolute;
+    top: 58px;
+    right: 60px;
+    _right: 126px; // add width of modifierIcon
+}
+
+.followButton a {
+    color: [[ColorPalette::TertiaryMid]];
+    display: block;
+    margin-top: 0px;
+    color: [[ColorPalette::TertiaryPale]];
+}
+
+.followButton a:hover {
+    color: [[ColorPalette::Background]];
+    background: [[ColorPalette::PrimaryMid]];
+    text-decoration: underline;
+}
+
+* html .followButton a {
+    margin: 0px 8px 0 0;
+}
+
+.tiddler .followButton {
+    width: 24px;
+    position: relative;
+    height: 22px;
+    text-align: left;
+    color:  [[ColorPalette::TertiaryMid]];
+    background: [[ColorPalette::TertiaryPale]];
+    padding: 10px 0px 0px 10px;
+    width: 38px;
+    margin: -16px -8px 24px 0;
+}
+
+/* the triangle */
+.followButton:before {
+    content: "\00a0";
+    display: block; /* reduce the damage in FF3.0 */
+    position: relative;
+    bottom: -20px;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-width: 0 0 20px 20px;
+    border-style: solid;
+    border-color: transparent [[ColorPalette::TertiaryPale]];
+}
+
+.followList .listTitle {
+    text-decoration: underline;
+}
+
+.followTiddlersList .label {
+    display: block;
+    left: 10px;
+    top: 0px;
+    line-height: 16px;
+    position: relative;
+}
+
+#popup.followList {
+    margin-left: 50px;
+    margin-top: -30px;
+}
+
+#popup .followTiddlersList a {
+    display: inline;
+    padding: 0;
+}
+
+#popup .followTiddlersList li{
+    clear: both;
+    display: block;
+    height: 48px;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+#popup .followTiddlersList .siteIcon{
+    height: auto;
+}
+
+
+/* ICONS */
+
+.titleBar .siteIcon img {
+    display: none;
+}
+
+.titleBar .siteIcon,
+.titleBar .label {
+    display: inline !important;
+}
+
+.siteIcon .label {
+    color: [[ColorPalette::TertiaryDark]];
+}
+
+.tiddler .spaceSiteIcon {
+    float: left;
+    margin: 0 5px 0 0;
+    position: relative;
+    display: block;
+}
+
+/* for following */
+#popup .siteIcon {
+    float: left;
+    height: 25px;
+}
+
+.originButton,
+.followPlaceHolder,
+.tiddler .subtitle {
+    cursor: pointer;
+}
+
+.originButton img,
+.originButton svg {
+    margin-left: 0px;
+}
+
+.modifierIcon .externalImage .image a:hover,
+.spaceSiteIcon .externalImage .image a:hover {
+    background: none;
+}
+
+.modifierIcon {
+    position: absolute;
+    width: 42px;
+    top: 42px;
+    right: 0;
+    text-align: right;
+}
+
+.modifierIcon img,
+.modifierIcon svg {
+    margin-right: 16px;
+}
+
+.editSpaceSiteIcon .originButton {
+    cursor: auto;
+}
+
+.editSpaceSiteIcon .originButton img,
+.editSpaceSiteIcon .originButton svg {
+    margin:  0 5px 5px 3px;
+    width: 16px;
+    height: 16px;
+}
+
+.editSpaceSiteIcon, .privacyEdit {
+    float: left;
+}
+
+.editSpaceSiteIcon svg,
+.editSpaceSiteIcon img,
+.editSpaceSiteIcon .roundelLabel {
+    float: left;
+}
+
+.tiddler .privacySettings {
+    text-align: center;
+}
+.tiddler .privacySettings .originButton {
+    display: inline;
+}
+
+
+/* BACKSTAGE */
+
+#app-picker:hover{
+    background-color:transparent;
+}
+
+#backstageToolbar {
+    padding-left: 50px;
+}
+
+#backstageToolbar .backstageTask {
+    background: transparent;
+    color: [[ColorPalette::TertiaryPale]] !important;
+}
+
+#backstageArea a.backstageSelTab,
+#backstageToolbar .backstageTask:hover {
+    text-decoration:none;
+    background: transparent;
+    color: [[ColorPalette::Background]] !important;
+}
+
+/* MESSAGE AREA */
+
+#messageArea {
+    background:[[ColorPalette::SecondaryPale]];
+    left: 30%;
+    position: fixed;
+    padding:7px 1%;
+    margin:5px 0 0 1%;
+    width:35%;
+    font-size:0.9em;
+    border:1px solid [[ColorPalette::SecondaryMid]];
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:3px;
+}
+
+#messageArea .messageToolbar {
+    display:block;
+    float:right;
+    padding:0.1em;
+    text-align:right;
+    width:60px;
+}
+
+#messageArea a,
+#messageArea .button {
+    background:transparent;
+    text-decoration:none;
+    color:[[ColorPalette::TertiaryDark]];
+    border:0;
+}
+
+#messageArea a:hover{
+    color:black;
+    border-bottom:1px solid [[ColorPalette::TertiaryDark]];
+}
+
+#backstageToolbar {
+    text-align:center;
+}
+
+/* RESPONSIVE */
+
+@media all and (max-device-width: 480px) {
+    div.toolbar {
+        visibility:visible;
+    }
+}
+
+@media only screen and (device-width: 768px) {
+    div.toolbar {
+        visibility:visible;
+    }
+}
+
+@media all and (max-width: 960px){
+    #tiddlerDisplay,
+    #searchResults {
+        margin: 16px 366px 0 16px;
+    }
+
+    #mainMenu,
+    .headerForeground {
+        margin-left: 16px;
+    }
+
+    #sidebarSearch,
+    #sidebarOptions,
+    #sidebarTabs {
+        right: 16px;
+        width: 326px;
+    }
+
+    #sidebarTabs .tabsetWrapper .tabset {
+        font-size: 0.9em;
+        width: 77px;
+    }
+
+    #sidebarTabs .tabsetWrapper .tabContents {
+        width:auto;
+        padding:0 0 0 5px;
+    }
+
+    #sidebarTabs .tabContents li a {
+        font-size: 0.9em;
+    }
+
+
+     /* TIDDLER */
+
+    .tiddler .modifierIcon img,
+    .tiddler .modifierIcon svg,
+    .tiddler .spaceSiteIcon .originButton img,
+    .originButton svg {
+        width: 12px;
+        height: 12px;
+        margin-left: 0px;
+        margin-right: 0px;
+    }
+
+    .tiddler .viewer {
+        margin: 0;
+        padding-top: 0;
+    }
+
+    br {
+        line-height: 0.5em;
+    }
+}
+
+
+/* PRINT */
+
+@media print {
+    #mainMenu,
+    #sidebar,
+    #messageArea,
+    .toolbar,
+    .followPlaceHolder,
+    #backstageButton,
+    #backstageArea,
+    #sidebarTabs,
+    #sidebarSearch .txtOptionInput,
+    #sidebarOptions {
+        display: none !important;
+    }
+    #displayArea {
+        margin: 1em 1em 0em;
+    }
+
+    #tiddlerDisplay {
+        margin: 16px 16px;
+    }
+
+    /* Fixes a feature in Firefox 1.5.0.2 where print preview displays the noscript content */
+    noscript {
+        display:none;
+    }
+}
+/*}}}*/
