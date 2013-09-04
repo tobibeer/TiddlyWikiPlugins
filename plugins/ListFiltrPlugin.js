@@ -5,8 +5,8 @@
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
 |Requires||
 |~CoreVersion|2.6.5|
-|License|Creative Commons 3.0|
-|Version|1.0.6 (2013-09-04)|
+|License|Crea7ive Commons 3.0|
+|Version|1.0.7 (2013-09-04)|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -43,23 +43,24 @@ Great!
             list.wrapAll('<div class="lf-list ' + listClass + '"/>');
             list = $('.' + listClass);
 
+            if ($.fn.outline)
+                $("ol:not(ol li > ol)", list).outline();
+
+            $(preserve, list).addClass('lf-preserve');
+
             list.find(":not(iframe)").addBack().contents().filter(function () {
                 return (
                         this.nodeType == 3 &&
+                        0 == $(this).closest('a, span, .lf-preserve').length &&
                         0 == $(this).prevAll('.pseudo-ol-li').length
                     )
             }).wrap('<span class="lf-p"/>');
-
-            if ($.fn.outline)
-                $("ol:not(ol li > ol)", list).outline();
 
             boxwrap = $('<div class=lf-search/>').insertBefore(list);
             boxtitle = $('<span class=lf-label/>').html('Filter list:').appendTo(boxwrap);
             box = $('<input type="search"/>').attr({
                 'title': 'enter your search term here'
             }).appendTo(boxwrap);
-
-            $(preserve, list).addClass('lf-preserve');
 
             box.data('list', listClass).bind('keyup search', function () {
                 var els, found, text, until,
