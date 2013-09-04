@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Crea7ive Commons 3.0|
-|Version|1.0.7 (2013-09-04)|
+|Version|1.0.8 (2013-09-04)|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -49,11 +49,17 @@ Great!
             $(preserve, list).addClass('lf-preserve');
 
             list.find(":not(iframe)").addBack().contents().filter(function () {
+                var $el = $(this);
                 return (
-                        this.nodeType == 3 &&
-                        0 == $(this).closest('a, span, .lf-preserve').length &&
-                        0 == $(this).prevAll('.pseudo-ol-li').length
-                    )
+                    //is text node
+                    this.nodeType == 3 &&
+                    //and preceded or followed by a linebreak
+                    ($el.prev().is('br') || $el.next().is('br')) &&
+                    //not inside preserve
+                    0 == $el.closest('.lf-preserve').length &&
+                    //not after a pseudo order list item
+                    0 == $el.prevAll('.pseudo-ol-li').length
+                )
             }).wrap('<span class="lf-p"/>');
 
             boxwrap = $('<div class=lf-search/>').insertBefore(list);
@@ -163,7 +169,7 @@ Great!
     '.lf-found {background:#F5F5DC;}\n' +
     '.lf-list + br {display:none;}\n' +
     '.lf-label {margin-right:5px;font-weight:bold;}\n' +
-    '.lf-p {display:block;}\n' +
+    '.lf-filtered .lf-p {display:block;}\n' +
     '.lf-filtered br {display: none;}\n' +
     '.lf-preserve.lf-found br {display: block;}\n' +
     '/*}}}*/';
