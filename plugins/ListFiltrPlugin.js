@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
-|Version|1.0.4 (2013-09-04)|
+|Version|1.0.5 (2013-09-04)|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -26,21 +26,14 @@ Great!
 
     config.macros.listfiltr = {
 
-        //the default css selectors to keep from collapsing
+        //any items to preserve by default
         defaultPreserve: '',
 
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
             var box, boxtitle, boxwrap, el, list, prev,
                 p = paramString.parseParams('anon', null, true),
                 preserve = getParam(p, 'preserve', this.defaultPreserve),
-                listClass = 'lf-' + new Date().formatString('YYYYMMDDhhmmss') + Math.random().toString().substr(6),
-                keepBR = preserve.split(',').map(function(v){
-                    return v + ' br'
-                }).toString();
-
-            preserve = preserve.split(',').map(function(v){
-                return v + ' > .lf-h'
-            }).toString();
+                listClass = 'lf-' + new Date().formatString('YYYYMMDDhhmmss') + Math.random().toString().substr(6);
 
             list = $(place).children().last();
             while (list.is('br')) list = list.prev();
@@ -50,13 +43,11 @@ Great!
             list.wrapAll('<div class="lf-list ' + listClass + '"/>');
             list = $('.' + listClass);
 
-            list.contents().filter(function () {
-                return this.nodeType == Node.TEXT_NODE;
+            list.find(":not(iframe)").addBack().contents().filter(function () {
+                return
+                    this.nodeType == 3 &&
+                    ! $(this).prevAll('.pseudo-ol-li').length
             }).wrap('<span class="lf-p"/>');
-
-            $('.lf-p', list).next('br')
-                .add('> br', list)
-                .addClass('lf-no-br');
 
             if ($.fn.outline)
                 $("ol:not(ol li > ol)", list).outline();
@@ -67,6 +58,8 @@ Great!
                 'title': 'enter your search term here'
             }).appendTo(boxwrap);
 
+            $(preserve, list).addClass('lf-preserve');
+
             box.data('list', listClass).bind('keyup search', function () {
                 var els, found, text, until,
                 box = $(this),
@@ -75,7 +68,7 @@ Great!
                 list = $('.' + listClass);
 
                 list.removeClass('lf-filtered');
-                $('li,dd,dt,span,div', list
+                $('li,dd,dt,span,div, br', list
                 ).removeClass('lf-h lf-hide lf-found lf-not'
                 ).each(function (i) {
                     var dt, dd, li = $(this);
@@ -94,13 +87,13 @@ Great!
                         })
                         found = text.toLowerCase().indexOf(term.toLowerCase()) > -1;
 
-                        li.not('.pseudo-ol-li').addClass('lf-' + (found ? 'found' : 'h'));
+                        li.not('br, .pseudo-ol-li').addClass('lf-' + (found ? 'found' : 'h'));
                         if (li.is('dt')) {
-                            dd = li.next('dd');
+                            dd = li.nextUntil('dd','dt');
                             if (found) dd.addClass('lf-not');
                         };
                         if (li.is('dd')) {
-                            dt = li.prev('dt');
+                            dt = li.prevUntil('dt','dt');
                             if (found) {
                                 if (!dt.hasClass('lf-found'))
                                     dt.addClass('lf-not').removeClass('lf-h');
@@ -116,11 +109,7 @@ Great!
                 }).remove();
                 $('.highlight', list).removeClass('highlight');
 
-                $('br:not(.lf-no-br)', list).show();
-
                 if (term.length > 1) {
-                    $('br', list).not(keepBR).hide();
-
                     $('.lf-found', list).each(function (i) {
                         $(this).parentsUntil(until, '.lf-h').removeClass('lf-h').not('.pseudo-ol-li').addClass('lf-not');
                     });
@@ -158,7 +147,7 @@ Great!
                 }
 
                 //except when in preserved, hide all of class lf-h 
-                $('.lf-h', list).not(preserve).addClass('lf-hide');
+                $('.lf-h', list).not('.lf-preserve .lf-h').addClass('lf-hide');
     
                 return true;
             });
@@ -172,9 +161,9 @@ Great!
     '.lf-found {background:#F5F5DC;}\n' +
     '.lf-list + br {display:none;}\n' +
     '.lf-label {margin-right:5px;font-weight:bold;}\n' +
-    '.lf-p {display:block;}' +
-    '.lf-filtered > br,\n' +
-    '.lf-filtered lf-no-br {display: none; !important}\n' +
+    '.lf-p {display:block;}\n' +
+    '.lf-filtered br {display: none;}\n' +
+    '.lf-preserve.lf-found br {display: block;}\n' +
     '/*}}}*/';
     store.addNotification('StyleSheetListFiltr', refreshStyles);
 
