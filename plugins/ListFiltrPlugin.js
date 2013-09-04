@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
-|Version|1.0.2 2013-08-29|
+|Version|1.0.3 2013-09-04|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -27,7 +27,7 @@ Great!
     config.macros.listfiltr = {
 
         //the default css selectors to keep from collapsing
-        defaultPreserve: 'dl',
+        defaultPreserve: '',
 
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
             var box, boxtitle, boxwrap, el, list, prev,
