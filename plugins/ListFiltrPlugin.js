@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Crea7ive Commons 3.0|
-|Version|1.0.8 (2013-09-04)|
+|Version|1.0.9 (2013-09-04)|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -75,14 +75,17 @@ Great!
                 listClass = box.data('list'),
                 list = $('.' + listClass);
 
-                list.removeClass('lf-filtered');
-                $('li,dd,dt,span,div, br', list
+                term.length > 1 ?
+                    list.addClass('lf-filtered') :
+                    list.removeClass('lf-filtered');
+                
+                $('li,dd,dt,span,div', list
                 ).removeClass('lf-h lf-hide lf-found lf-not'
                 ).each(function (i) {
-                    var dt, dd, li = $(this);
+                    var dt, dd, 
+                        li = $(this);
 
                     if (term.length > 1) {
-                        list.addClass('lf-filtered');
 
                         text = li.clone().children().remove().end().text();
                         els = li.children().not('dl,ol,ul').clone().remove('dl,ol,ul,dl *,ol *,ul *');
@@ -96,19 +99,22 @@ Great!
                         found = text.toLowerCase().indexOf(term.toLowerCase()) > -1;
 
                         li.not('br, .pseudo-ol-li').addClass('lf-' + (found ? 'found' : 'h'));
+
+
                         if (li.is('dt')) {
                             dd = li.nextUntil('dd','dt');
                             if (found) dd.addClass('lf-not');
                         };
-                        if (li.is('dd')) {
-                            dt = li.prevUntil('dt','dt');
+                        li = li.closest('dd');
+                        if (li.length) {
+                            dt = li.prevAll('dt:first');
                             if (found) {
                                 if (!dt.hasClass('lf-found'))
                                     dt.addClass('lf-not').removeClass('lf-h');
                             } else if (dt.hasClass('lf-found')) {
                                 li.removeClass('lf-h');
                             }
-                        };
+                        }
                     }
                 });
 
@@ -116,7 +122,6 @@ Great!
                     $(this).after($(this).text());
                 }).remove();
                 $('.highlight', list).removeClass('highlight');
-
                 if (term.length > 1) {
                     $('.lf-found', list).each(function (i) {
                         $(this).parentsUntil(until, '.lf-h').removeClass('lf-h').not('.pseudo-ol-li').addClass('lf-not');
@@ -153,6 +158,9 @@ Great!
                         if (term.length > 1 && link.indexOf(term) > -1) l.addClass('highlight');
                     })
                 }
+
+                //do not hide (links) inside definition terms 
+                $('dt.lf-not .lf-h', list).removeClass('lf-h');
 
                 //except when in preserved, hide all of class lf-h 
                 $('.lf-h', list).not('.lf-preserve .lf-h').addClass('lf-hide');
