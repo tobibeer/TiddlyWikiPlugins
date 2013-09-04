@@ -1,0 +1,22 @@
+|''Name''|html.CreateSafeURLEncoding|
+|''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
+|''Description''|encodes a URL string into its failsafe version|
+|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/scripts/html.CreateSafeURLEncoding|
+|''Version''|0.1 (2013-09-04)|
+|''~CoreVersion''|2.5.2|
+|''License''|Creative Commons 3.0|
+<html>
+<input style="display:block;min-width:600px" class="input" type=text value="[[Insert unsafe URL here]]"/>
+<input style="display:block;min-width:600px" class="output" type=text value="encoded url will be inserted here"/>
+<input style="display:block;min-width:606px;" type=button value="Generate safe link" onclick="
+(function($,el){
+  $(el).prevAll('.output')
+      .val(
+        encodeURIComponent(
+          $(el).prevAll('.input').val()
+        )
+       ).focus().select();
+})(jQuery,this);
+return false;
+"/>
+</html>
