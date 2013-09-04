@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
-|Version|1.0.5 (2013-09-04)|
+|Version|1.0.6 (2013-09-04)|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -44,9 +44,10 @@ Great!
             list = $('.' + listClass);
 
             list.find(":not(iframe)").addBack().contents().filter(function () {
-                return
-                    this.nodeType == 3 &&
-                    ! $(this).prevAll('.pseudo-ol-li').length
+                return (
+                        this.nodeType == 3 &&
+                        0 == $(this).prevAll('.pseudo-ol-li').length
+                    )
             }).wrap('<span class="lf-p"/>');
 
             if ($.fn.outline)
