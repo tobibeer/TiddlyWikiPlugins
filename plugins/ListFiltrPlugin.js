@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
-|Version|1.0.3 (2013-09-04)|
+|Version|1.0.4 (2013-09-04)|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -54,7 +54,9 @@ Great!
                 return this.nodeType == Node.TEXT_NODE;
             }).wrap('<span class="lf-p"/>');
 
-            $('.lf-p', list).next('br').addClass('lf-no-br');
+            $('.lf-p', list).next('br')
+                .add('> br', list)
+                .addClass('lf-no-br');
 
             if ($.fn.outline)
                 $("ol:not(ol li > ol)", list).outline();
@@ -72,12 +74,15 @@ Great!
                 listClass = box.data('list'),
                 list = $('.' + listClass);
 
+                list.removeClass('lf-filtered');
                 $('li,dd,dt,span,div', list
                 ).removeClass('lf-h lf-hide lf-found lf-not'
                 ).each(function (i) {
                     var dt, dd, li = $(this);
 
                     if (term.length > 1) {
+                        list.addClass('lf-filtered');
+
                         text = li.clone().children().remove().end().text();
                         els = li.children().not('dl,ol,ul').clone().remove('dl,ol,ul,dl *,ol *,ul *');
                         text = text + ' ' + els.text();
@@ -168,7 +173,8 @@ Great!
     '.lf-list + br {display:none;}\n' +
     '.lf-label {margin-right:5px;font-weight:bold;}\n' +
     '.lf-p {display:block;}' +
-    '.lf-no-br {display:none;}' +
+    '.lf-filtered > br,\n' +
+    '.lf-filtered lf-no-br {display: none; !important}\n' +
     '/*}}}*/';
     store.addNotification('StyleSheetListFiltr', refreshStyles);
 
