@@ -1,48 +1,33 @@
-|''Name:''|[[WhiteTheme]]|
-|''Version:''|0.6.0 (2013-09-02)|
+|''Name:''|[[White-Theme]]|
+|''Version:''|0.7.0 (2013-09-05)|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Description:''|mimicking [[tw5|http://five.tiddlywiki.org]]|
-|''PageTemplate:''|WhiteTheme##PageTemplate|
-|''ViewTemplate:''|WhiteTheme##ViewTemplate|
-|''EditTemplate:''|WhiteTheme##EditTemplate|
-|''StyleSheet:''|WhiteTheme##StyleSheet|
+|''PageTemplate:''|White-Theme##PageTemplate|
+|''ViewTemplate:''|White-Theme##ViewTemplate|
+|''EditTemplate:''|White-Theme##EditTemplate|
+|''StyleSheet:''|White-Theme##StyleSheet|
 !PageTemplate
 <!--{{{-->
 
 <div id='messageArea'></div>
-<!--
-<div class='header'>
-    <div id='sidebarSearch' class='sidebarSearch'>
-        <span macro='search'></span>
-    </div>
-    <div class='headerForeground'>
-        <span class='siteTitle' refresh='content' tiddler='SiteTitle'></span>
-        <span class='siteSubtitle' refresh='content' tiddler='SiteSubtitle'></span>
-    </div>
-    <div class='clearFloat'></div>
-</div>
--->
 
 <div id='topMenu'>
     <div id='mainMenu' refresh='content' tiddler='MainMenu'></div>
-<!--
-    <div id='sidebarOptions' refresh='content' tiddler='SideBarOptions'></div>
--->
 </div>
 
 <div id='displayArea'>
-    <div id='tiddlerDisplay'></div>
-
     <div id='sidebarTabs'>
         <div class='sidebarHeader'>
             <div class='siteTitle' refresh='content' tiddler='SiteTitle'></div>
             <div class='siteSubtitle' refresh='content' tiddler='SiteSubtitle'></div>
             <div id='sidebarOptions' refresh='content' tiddler='SideBarOptions'></div>
-            <div class='sidebarSearch' macro='search'></div>
+            <div id='sidebarSearch' macro='search'></div>
         </div>
         <div class='sidebarTabs' refresh='content' force='true' tiddler='SideBarTabs'>
         </div>
     </div>
+
+    <div id='tiddlerDisplay'></div>
 </div>
 
 <!--}}}-->
@@ -59,20 +44,22 @@
 <div class='heading'>
     <span class="titleBar">
         <div class='title' macro='view title text'></div>
-        <div class="subtitle" macro='viewRevisions page:5'>
+        <div class="subtitle">
             <span class='spaceSiteIcon' macro='tiddlerOrigin label:no spaceLink:yes height:16 width:16 preserveAspectRatio:yes'></span>
             last modified on
-            <span macro="view modified date"></span>
-            <span macro='view modifier SiteIcon spaceLink:yes label:yes height:16 width:16'>by&nbsp;</span>
+            <span macro='viewRevisions page:5'>
+                <span macro="view modified date"></span>
+            </span>
+            by
+            <span macro='view modifier SiteIcon spaceLink:yes label:yes height:16 width:16'></span>
+            //
+            <span macro="view title replyLink"></span>
         </div>
-<!-- 
-        <div macro="view title replyLink"></div>
     </span>
     <span class='followPlaceHolder' macro='followTiddlers'></span>
     <span class='modifierIcon'
         macro='view modifier SiteIcon label:no spaceLink:yes height:32 width:32 preserveAspectRatio:yes'>
     </span>
--->
     <div class='tagClear'></div>
 </div>
 <div class='content'>
@@ -81,6 +68,7 @@
 <div class='tagInfo infoTagging'>
     <div class='tagging' macro='tagging'></div>
 </div>
+<span macro='tiddler OnLoad'/>
 <!--}}}-->
 
 
@@ -149,6 +137,7 @@ body ul {
 
 .viewer tr, .viewer td,
 .twtable tr, .twtable td {
+    vertical-align:top;
     border: 1px solid [[ColorPalette::TertiaryMid]] !important;
 }
 
@@ -157,6 +146,10 @@ body ul {
 .twtable th a:hover,
 .twtable thead td :hover{
     color:[[ColorPalette::Background]] !important;
+}
+
+,viewer .listTitle{
+    margin-left:0;
 }
 
 a {
@@ -179,6 +172,7 @@ a.tiddlyLink.shadow{
 
 a.tiddlyLink.tiddlyLinkNonExisting {
     font-style:italic;
+    font-weight:normal;
 }
 
 a.tiddlyLink:hover {
@@ -202,6 +196,19 @@ a.tiddlyLink:hover {
 
 a.image:hover {
     background: transparent;
+}
+
+.tab{
+    border: 1px solid [[ColorPalette::TertiaryLight]];
+    border-bottom-color: [[ColorPalette::TertiaryPale]];
+    background: [[ColorPalette::TertiaryMid]];
+}
+
+a.tabSelected,
+.tabset .tab:hover {
+    color:[[ColorPalette::TertiaryMid]];
+    background: [[ColorPalette::TertiaryPale]];
+    text-decoration: none;
 }
 
 
@@ -232,65 +239,36 @@ a.image:hover {
 }
 
 
-/* HEADER */
-
-.header {
-    position: relative;
-    background-color: transparent;
-    _width: 100%; /* ie 6 demands */
-}
-
-.headerForeground {
-    color: [[ColorPalette::Foreground]];
-    background-color: transparent;
-    margin: 16px 32px 0px 52px;
-    float: left;
-    padding: 0;
-    position: relative;
-    top: 0;
-}
-
-.siteTitle{
-    float:left;
-    display: block;
-    font-size: 32px;
-    line-height: 32px;
-    font-weight: normal;
-}
-
-.siteSubtitle {
-    float:left;
-    display: block;
-    font-size: 14px;
-    margin: 1em 0 0 1em;
-    color: [[ColorPalette::TertiaryMid]];
-}
-
-
 /* SEARCH */
 
 #sidebarSearch {
-    padding: 0;
-    position: absolute;
-    right: 80px;
-    top: 8px;
-    width: 176px;
+    width: 200px;
 }
 
-.sidebarSearch .txtOptionInput {
+#sidebarSearch .txtOptionInput {
     width: 100%;
     margin-top: 5px;
     _color: #bbb; /* ie6 danger */
 }
 
-.sidebarSearch .txtOptionInput:focus {
+#sidebarSearch .txtOptionInput:focus {
     color: #000;
 }
 
-.sidebarSearch .searchButton {
+#sidebarSearch .searchButton {
     display: none;
 }
 
+/* SIMPLESEARCH */
+#searchResults {
+     margin-top:0;
+}
+
+#searchResults .button{
+    padding:2px 6px;
+    margin-right:3px;
+    float:right;
+}
 
 /* TOPMENU */
 
@@ -318,6 +296,10 @@ a.image:hover {
     margin-left:4px;
     font-size: 1em;
     line-height: normal;
+}
+
+#mainMenu br{
+   display:none;
 }
 
 #topMenu #sideBarOptions {
@@ -377,6 +359,9 @@ a.image:hover {
 
 #sidebarTabs .siteTitle,
 #sidebarTabs .siteTitle a {
+    display: block;
+    font-size: 32px;
+    line-height: 32px;
     font-weight:normal;
     color: [[ColorPalette::SecondaryDark]];
     background: transparent;
@@ -387,7 +372,11 @@ a.image:hover {
 }
 
 #sidebarTabs .siteSubtitle {
+    display: block;
     float: none;
+    font-size: 14px;
+    margin: 1em 0 0 1em;
+    color: [[ColorPalette::TertiaryMid]];
     clear: both;
     margin: 0;
 }
@@ -395,10 +384,6 @@ a.image:hover {
 #sidebarTabs #sidebarOptions {
     margin-top: 1em;
     padding:0;
-}
-
-#sidebarTabs .sidebarSearch{
-    width: 200px;
 }
 
 #sidebarTabs #sidebarOptions .button:hover,
@@ -552,7 +537,9 @@ a.image:hover {
 }
 
 .tiddler .subtitle {
-    font-style: italic;
+    display:block;
+    float:left;
+    font-style: normal;
     font-size: 0.9em;
     color: [[ColorPalette::TertiaryMid]];
     margin: 5px 0 0 0;
@@ -815,7 +802,7 @@ div.tiddler .toolbar a.command_deleteTiddler{
 }
 
 .infoTags .tidTags{
-    max-width:100%;
+    max-width:75%;
 }
 
 .infoTags ul {
@@ -835,13 +822,15 @@ div.tiddler .toolbar a.command_deleteTiddler{
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
 }
 
+#popup ul,
 #popup li {
     margin:0;
     padding:0;
+    list-style-type:none;
 }
 
 #popup li a {
-    padding:7px 5px;
+    padding:2px 5px;
     font-weight: bold;
     color: [[ColorPalette::SecondaryDark]];    
 }
@@ -948,17 +937,33 @@ div.tiddler .toolbar a.command_deleteTiddler{
 }
 
 .followButton a {
+    position: absolute;
+    top: 0px;
+    right: 0;
+    display: block;
+    margin: 0;
+    padding: 6px 20px;
+    background: transparent;
+    text-align: center;
     color: [[ColorPalette::TertiaryMid]];
     display: block;
     margin-top: 0px;
-    color: [[ColorPalette::TertiaryPale]];
 }
 
 .followButton a:hover {
-    color: [[ColorPalette::Background]];
-    background: [[ColorPalette::PrimaryMid]];
-    text-decoration: underline;
+    color: [[ColorPalette::TertiaryMid]];
+    text-decoration: none;
 }
+
+.followButton.hasReplies a {
+    font-weight:bold;
+    color: [[ColorPalette::SecondaryMid]];
+}
+
+.followButton.hasReplies a:hover {
+    color: [[ColorPalette::SecondaryDark]];
+}
+
 
 * html .followButton a {
     margin: 0px 8px 0 0;
@@ -969,7 +974,7 @@ div.tiddler .toolbar a.command_deleteTiddler{
     position: relative;
     height: 22px;
     text-align: left;
-    color:  [[ColorPalette::TertiaryMid]];
+    color:  [[ColorPalette::SecondaryDark]];
     background: [[ColorPalette::TertiaryPale]];
     padding: 10px 0px 0px 10px;
     width: 38px;
@@ -1003,8 +1008,8 @@ div.tiddler .toolbar a.command_deleteTiddler{
 }
 
 #popup.followList {
-    margin-left: 50px;
-    margin-top: -30px;
+    margin: 10px 0 0 -335px;
+    max-width: 400px;
 }
 
 #popup .followTiddlersList a {
@@ -1012,16 +1017,22 @@ div.tiddler .toolbar a.command_deleteTiddler{
     padding: 0;
 }
 
+#popup .followTiddlersList ul{
+   margin:0;
+   padding:0;
+}
+
 #popup .followTiddlersList li{
-    clear: both;
-    display: block;
-    height: 48px;
-    margin-bottom: 8px;
     position: relative;
+    display: block;
+    clear: both;
+    margin-bottom: 8px;
 }
 
 #popup .followTiddlersList .siteIcon{
     height: auto;
+    width: auto;
+    margin-right:5px;
 }
 
 
@@ -1136,15 +1147,15 @@ div.tiddler .toolbar a.command_deleteTiddler{
 /* MESSAGE AREA */
 
 #messageArea {
-    background:[[ColorPalette::SecondaryPale]];
-    top: 0 !important;
     position: fixed;
-    left:25%;
+    top: 1px !important;
+    right: 1px;
+    width:360px;
+    margin:0;
     padding:7px 1%;
-    margin:5px 0 0 1%;
-    width:35%;
     font-size:0.9em;
     border:1px solid [[ColorPalette::SecondaryMid]];
+    background:[[ColorPalette::SecondaryPale]];
     -moz-border-radius:5px;
     -webkit-border-radius:5px;
     border-radius:3px;
@@ -1195,8 +1206,7 @@ div.tiddler .toolbar a.command_deleteTiddler{
         margin: 16px 366px 0 16px;
     }
 
-    #mainMenu,
-    .headerForeground {
+    #mainMenu {
         margin-left: 16px;
     }
 
@@ -1273,4 +1283,6 @@ div.tiddler .toolbar a.command_deleteTiddler{
         display:none;
     }
 }
+
+[[StyleSheet]]
 /*}}}*/

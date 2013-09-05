@@ -1,5 +1,5 @@
 |''Name:''|[[White-Classic-Theme]]|
-|''Version:''|0.6.0 (2013-09-02)|
+|''Version:''|0.7.0 (2013-09-05)|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Description:''|mimicking [[tw5|http://five.tiddlywiki.org]]|
 |''PageTemplate:''|White-Classic-Theme##PageTemplate|
@@ -50,9 +50,13 @@
         <div class="subtitle" macro='viewRevisions page:5'>
             <span class='spaceSiteIcon' macro='tiddlerOrigin label:no spaceLink:yes height:16 width:16 preserveAspectRatio:yes'></span>
             last modified on
-            <span macro="view modified date"></span>
-            <span macro='view modifier SiteIcon spaceLink:yes label:yes height:16 width:16'>by&nbsp;</span>
-            <span macro="view title replyLink">//&nbsp;</span>
+            <span macro='viewRevisions page:5'>
+                <span macro="view modified date"></span>
+            </span>
+            by
+            <span macro='view modifier SiteIcon spaceLink:yes label:yes height:16 width:16'></span>
+            //
+            <span macro="view title replyLink"></span>
         </div>
     </span>
     <span class='followPlaceHolder' macro='followTiddlers'></span>
@@ -67,6 +71,7 @@
 <div class='tagInfo infoTagging'>
     <div class='tagging' macro='tagging'></div>
 </div>
+<span macro='tiddler OnLoad'/>
 <!--}}}-->
 
 
@@ -136,6 +141,7 @@ body ul {
 
 .viewer tr, .viewer td,
 .twtable tr, .twtable td {
+    vertical-align:top;
     border: 1px solid [[ColorPalette::TertiaryMid]] !important;
 }
 
@@ -144,6 +150,10 @@ body ul {
 .twtable th a:hover,
 .twtable thead td :hover{
     color:[[ColorPalette::Background]] !important;
+}
+
+,viewer .listTitle{
+    margin-left:0;
 }
 
 a {
@@ -166,6 +176,7 @@ a.tiddlyLink.shadow{
 
 a.tiddlyLink.tiddlyLinkNonExisting {
     font-style:italic;
+    font-weight:normal:
 }
 
 a.tiddlyLink:hover {
@@ -191,6 +202,18 @@ a.image:hover {
     background: transparent;
 }
 
+.tab{
+    border: 1px solid [[ColorPalette::TertiaryLight]];
+    border-bottom-color: [[ColorPalette::TertiaryPale]];
+    background: [[ColorPalette::TertiaryMid]];
+}
+
+a.tabSelected,
+.tabset .tab:hover {
+    color:[[ColorPalette::TertiaryMid]];
+    background: [[ColorPalette::TertiaryPale]];
+    text-decoration: none;
+}
 
 /* PAGE LAYOUT */
 
@@ -292,6 +315,17 @@ a.image:hover {
     display:block;
 }
 
+/* SIMPLESEARCH */
+#searchResults {
+&nbsp; &nbsp; &nbsp;margin-top:0;
+}
+
+#searchResults .button{
+&nbsp; &nbsp; padding:2px 6px;
+&nbsp; &nbsp; margin-right:3px;
+&nbsp; &nbsp; float:right;
+}
+
 
 /* TOPMENU */
 
@@ -315,6 +349,10 @@ a.image:hover {
     padding: 0 0 0 44px;
     font-size: 1em;
     line-height: normal;
+}
+
+#mainMenu br{
+   display:none;
 }
 
 #sidebarOptions {
@@ -505,6 +543,8 @@ a.image:hover {
 }
 
 .tiddler .subtitle {
+    display:block;
+    float:left;
     font-size: 0.9em;
     color: [[ColorPalette::TertiaryLight]];
     margin: 5px 0 0 0;
@@ -766,7 +806,7 @@ div.tiddler .toolbar a.command_deleteTiddler{
 }
 
 .infoTags .tidTags{
-    max-width:100%;
+    max-width:75%;
 }
 
 .infoTags ul {
@@ -786,13 +826,15 @@ div.tiddler .toolbar a.command_deleteTiddler{
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
 }
 
+#popup ul,
 #popup li {
     margin:0;
     padding:0;
+    list-style-type:none;
 }
 
 #popup li a {
-    padding:7px 5px;
+    padding:2px 5px;
     font-weight: bold;
     color: [[ColorPalette::SecondaryDark]];    
 }
@@ -899,17 +941,33 @@ div.tiddler .toolbar a.command_deleteTiddler{
 }
 
 .followButton a {
+    position: absolute;
+    top: 0px;
+    right: 0;
+    display: block;
+    margin: 0;
+    padding: 6px 20px;
+    background: transparent;
+    text-align: center;
     color: [[ColorPalette::TertiaryMid]];
     display: block;
     margin-top: 0px;
-    color: [[ColorPalette::TertiaryPale]];
 }
 
 .followButton a:hover {
-    color: [[ColorPalette::Background]];
-    background: [[ColorPalette::PrimaryMid]];
-    text-decoration: underline;
+    color: [[ColorPalette::TertiaryMid]];
+    text-decoration: none;
 }
+
+.followButton.hasReplies a {
+    font-weight:bold;
+    color: [[ColorPalette::SecondaryMid]];
+}
+
+.followButton.hasReplies a:hover {
+    color: [[ColorPalette::SecondaryDark]];
+}
+
 
 * html .followButton a {
     margin: 0px 8px 0 0;
@@ -920,7 +978,7 @@ div.tiddler .toolbar a.command_deleteTiddler{
     position: relative;
     height: 22px;
     text-align: left;
-    color:  [[ColorPalette::TertiaryMid]];
+    color:  [[ColorPalette::SecondaryDark]];
     background: [[ColorPalette::TertiaryPale]];
     padding: 10px 0px 0px 10px;
     width: 38px;
@@ -954,8 +1012,8 @@ div.tiddler .toolbar a.command_deleteTiddler{
 }
 
 #popup.followList {
-    margin-left: 50px;
-    margin-top: -30px;
+    margin: 10px 0 0 -335px;
+    max-width: 400px;
 }
 
 #popup .followTiddlersList a {
@@ -963,16 +1021,22 @@ div.tiddler .toolbar a.command_deleteTiddler{
     padding: 0;
 }
 
+#popup .followTiddlersList ul{
+   margin:0;
+   padding:0;
+}
+
 #popup .followTiddlersList li{
-    clear: both;
-    display: block;
-    height: 48px;
-    margin-bottom: 8px;
     position: relative;
+    display: block;
+    clear: both;
+    margin-bottom: 8px;
 }
 
 #popup .followTiddlersList .siteIcon{
     height: auto;
+    width: auto;
+    margin-right:5px;
 }
 
 
@@ -1087,18 +1151,18 @@ div.tiddler .toolbar a.command_deleteTiddler{
 /* MESSAGE AREA */
 
 #messageArea {
-    background:[[ColorPalette::SecondaryPale]];
-    top:0 !important;
     position: fixed;
-    position: fixed;
+    top:1px !important;
+    right:1px;
+    width:360px;
     padding:7px 1%;
     margin:5px 10em 0 1em;
-    width:30%;
-    font-size:0.9em;
+    background:[[ColorPalette::SecondaryPale]];
     border:1px solid [[ColorPalette::SecondaryMid]];
     -moz-border-radius:5px;
     -webkit-border-radius:5px;
     border-radius:3px;
+    font-size:0.9em;
 }
 
 #messageArea .messageToolbar {
@@ -1218,4 +1282,6 @@ div.tiddler .toolbar a.command_deleteTiddler{
         display:none;
     }
 }
+
+[[StyleSheet]]
 /*}}}*/
