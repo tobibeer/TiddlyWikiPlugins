@@ -1,25 +1,35 @@
 ﻿/***
 |''Name:''|SinglePageHistoryPlugin|
 |''Description:''|Limits to only one tiddler open. Manages an history stack and provides macro to navigate in this history (<<history>><<history back>><<history forward>>).|
-|''Version:''|0.7.0|
-|''Date:''|2008-08-28|
-|''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SimpleTreePlugin.js|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''[[License]]:''|[[BSD open source license|http://tiddlywiki.bidix.info/#%5B%5BBSD%20open%20source%20license%5D%5D ]]|
+|''Version:''|0.7.1 (2013-09-05)|
 |''~CoreVersion:''|2.5.2|
-* based on http://tiddlywiki.bidix.info/#HistoryPlugin by BidiX
-* added features of http://tiddlytools.com/#SinglePageModePlugin by Eric Shulman
-** browser history forward back
-** location in address bar
+|''Documentation:''|http://singlepagehistory.tiddlyspace.com|
+|''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SinglePageHistoryPlugin.min.js|
+|''License''|Creative Commons 3.0|
+
 !Code
 ***/
 //{{{
 
 (function($){
 
-//option as to whether or not to display the first default tiddler when the last one is closed
-config.options.chkOpenDefaultOnEmpty = true;
+//default options
+var defaults = {
+    //whether or not to display the first default tiddler when the last one is closed
+    chkOpenDefaultOnEmpty: true,
+    //whether to enable SinglePageMode
+    chkSinglePageMode: true
+};
 
+//loop defaults
+for (var id in defaults)
+    //doesn't exist?
+    if (config.options[id] === undefined)
+        //initialize
+        config.options[id] = defaults[id];
+
+//the macro
 config.macros.history = {
 
     //localisation
@@ -221,6 +231,8 @@ sp.displayTiddlerSINGLEPAGEHISTORY = sp.displayTiddler;
 sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
     var
         i, a = [],
+        //whether or not single page mode is enabled
+        single = config.options['chkSinglePageMode'],
         //reference to history macro
         cmh = config.macros.history;
         //get current position
@@ -238,7 +250,7 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
         //no history button clicked
         if (!this.button) {
             //when dirty, do nothing
-            if (cmh.checkDirty()) {
+            if (cmh.checkDirty() && single) {
                 return false;
             }
             //when middle of stack
@@ -272,7 +284,7 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
         }
 
         //tiddler open? => close
-        if (current) story.closeTiddler(current);
+        if (current && single) story.closeTiddler(current);
 
         //save current tiddler
         this.currentTiddler = next;
@@ -305,20 +317,29 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
     });
 }
 
-//shortcut
-var cc = config.commands;
-//hijack close tiddler command
-cc.closeTiddler.handlerSINGLEPAGEHISTORY = cc.closeTiddler.handler;
-cc.closeTiddler.handler = function(event,src,title) {
-    //invoke default
-    config.commands.closeTiddler.handlerSINGLEPAGEHISTORY.apply(this,arguments);
-    //show first default tiddler when tiddler is closed
-    story.displayTiddler(
-        'top',
-        store.getTiddlerText('DefaultTiddlers').readBracketedList()[0]
-    );
-    return false;
-};
+
+Story.prototype.closeTiddlerSINGLEPAGEHISTORY = Story.prototype.closeTiddler;
+Story.prototype.closeTiddler = function(title,animate,unused) {
+    //invoke core
+    Story.prototype.closeTiddlerSINGLEPAGEHISTORY.apply(this,arguments);
+    //when single page mode enabled and there's no tiddler left
+    if(config.options.chkOpenDefaultOnEmpty){
+        var t=0;
+        //find open tiddlers
+        this.forEachTiddler(function(title,element){
+            t++;
+            return t>1;
+        });
+        //none open?
+        if(t<2){
+            //show first default tiddler when tiddler is closed
+            this.displayTiddler(
+                'top',
+                store.getTiddlerText('DefaultTiddlers').readBracketedList()[0]
+            )
+        }
+    }
+}
 
 })(jQuery);
 //}}}
