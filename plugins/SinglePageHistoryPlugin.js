@@ -2,7 +2,7 @@
 |''Name:''|SinglePageHistoryPlugin|
 |''Description:''|Limits to only one tiddler open. Manages an history stack and provides macro to navigate in this history (<<history>><<history back>><<history forward>>).|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|0.7.2 (2013-09-05)|
+|''Version:''|0.7.3 (2013-09-05)|
 |''~CoreVersion:''|2.5.2|
 |''Documentation:''|http://singlepagehistory.tiddlyspace.com|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SinglePageHistoryPlugin.min.js|
@@ -359,9 +359,12 @@ onClickTag = function(ev){
             var $all = $('a',$pop).first(),
                 $tag = $('a',$pop).last(),
                 $li = $tag.parent();
-            $tag.insertAfter($all);
-            $all.remove();
-            $li.add($li.prev('.listBreak')).remove();
+            //only when not empty
+            if($all.length){
+                $tag.insertAfter($all);
+                $all.remove();
+                $li.add($li.prev('.listBreak')).remove();
+            }
         }
     }
 }
