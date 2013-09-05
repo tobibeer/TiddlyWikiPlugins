@@ -1,22 +1,29 @@
-|''Name''|html.CreateSafeURLEncoding|
-|''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Description''|encodes a URL string into its failsafe version|
-|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/scripts/html.CreateSafeURLEncoding|
-|''Version''|0.1 (2013-09-04)|
-|''~CoreVersion''|2.5.2|
+/%
+|details|k
+|''Name''|CreateSafeURLEncoding|
+|''Description''|Encodes a URL string into its failsafe version|
+|''Author''|Tobias Beer|
+|''Date''|2013-09-04 |
+|''Version''|0.2 (2013-09-05)|
+|''Requires''|TW > 2.5.2|
 |''License''|Creative Commons 3.0|
-<html>
+|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/scripts/html.CreateSafeURLEncoding.js|
+|''Discussion''|https://github.com/Jermolene/TiddlyWiki5/issues/147|
+%/<html>
 <input style="display:block;min-width:600px" class="input" type=text value="[[Insert unsafe URL here]]"/>
-<input style="display:block;min-width:600px" class="output" type=text value="encoded url will be inserted here"/>
 <input style="display:block;min-width:606px;" type=button value="Generate safe link" onclick="
 (function($,el){
-  $(el).prevAll('.output')
-      .val(
-        encodeURIComponent(
-          $(el).prevAll('.input').val()
-        )
-       ).focus().select();
+	var url = $(el).prevAll('.input').val(),
+		pos = url.lastIndexOf('#') + 1,
+		slug = url.substr(pos);
+	$(el).nextAll('.output').val(
+		url.substr(0, pos) +
+		encodeURIComponent(slug)
+	)
+	.focus()
+	.select();
 })(jQuery,this);
 return false;
 "/>
+<input style="display:block;min-width:600px;margin-top:1em;" class="output" type=text value="encoded url will be inserted here"/>
 </html>
