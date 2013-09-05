@@ -2,7 +2,7 @@
 |''Name:''|SinglePageHistoryPlugin|
 |''Description:''|Limits to only one tiddler open. Manages an history stack and provides macro to navigate in this history (<<history>><<history back>><<history forward>>).|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|0.7.1 (2013-09-05)|
+|''Version:''|0.7.2 (2013-09-05)|
 |''~CoreVersion:''|2.5.2|
 |''Documentation:''|http://singlepagehistory.tiddlyspace.com|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SinglePageHistoryPlugin.min.js|
@@ -283,9 +283,12 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
                 $('.btn-history-back').removeClass('btn-history-none');
         }
 
-        //tiddler open? => close
-        if (current && single) story.closeTiddler(current);
-
+        //tiddler open && single page mode and not overruled?
+        if (current && single && !story.reallyDoOpenAll){
+            // => close
+            story.closeTiddler(current,false,'OPENING');
+        }
+        
         //save current tiddler
         this.currentTiddler = next;
 
@@ -323,15 +326,18 @@ Story.prototype.closeTiddler = function(title,animate,unused) {
     //invoke core
     Story.prototype.closeTiddlerSINGLEPAGEHISTORY.apply(this,arguments);
     //when single page mode enabled and there's no tiddler left
-    if(config.options.chkOpenDefaultOnEmpty){
+    if(
+        unused != 'OPENING' &&
+        config.options.chkOpenDefaultOnEmpty
+    ){
         var t=0;
         //find open tiddlers
         this.forEachTiddler(function(title,element){
             t++;
-            return t>1;
+            return t<2;
         });
         //none open?
-        if(t<2){
+        if(t < 2){
             //show first default tiddler when tiddler is closed
             this.displayTiddler(
                 'top',
@@ -339,6 +345,32 @@ Story.prototype.closeTiddler = function(title,animate,unused) {
             )
         }
     }
+}
+
+onClickTagSINGLEPAGEHISTORY = onClickTag;
+onClickTag = function(ev){
+    onClickTagSINGLEPAGEHISTORY.apply(this,arguments);
+    var e = ev || window.event,
+        $pop = $('#popup');
+    if(e.ctrlKey){
+        $pop.attr('doOpenAll','true');
+    } else {
+        if(config.options.chkSinglePageMode){
+            var $all = $('a',$pop).first(),
+                $tag = $('a',$pop).last(),
+                $li = $tag.parent();
+            $tag.insertAfter($all);
+            $all.remove();
+            $li.add($li.prev('.listBreak')).remove();
+        }
+    }
+}
+
+onClickTagOpenAllSINGLEPAGEHISTORY =  onClickTagOpenAll;
+onClickTagOpenAll = function(ev){
+    story.reallyDoOpenAll = $(this).closest('#popup').attr('doOpenAll');
+    onClickTagOpenAllSINGLEPAGEHISTORY.apply(this, arguments);
+    story.reallyDoOpenAll = false;
 }
 
 })(jQuery);
