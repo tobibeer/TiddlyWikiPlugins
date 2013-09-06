@@ -3,8 +3,8 @@
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Description''|outputs the (modified) html representation with disqus in an iframe for a tiddler on TiddlySpace|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/DiscussPlugin.js|
-|''Documentation''|http://talk.tiddlyspace.com|
-|''Version''|0.9.2 2013-09-06|
+|''Documentation''|http://discuss.tiddlyspace.com|
+|''Version''|0.9.3 (2013-09-06)|
 |''~CoreVersion''|2.5.2|
 |''Requires''|TiddlySpace / TiddlyWeb|
 |''License''|Creative Commons 3.0|
@@ -158,7 +158,7 @@ config.macros.discuss = {
         //link inside was clicked
         if(!$target.is('.discuss_button, .discuss_count') && $target.is('a') )
             // don't handle
-            return false;
+            return true;
 
         //render the comments panel
         config.macros.discuss.render($btn[0], true);
