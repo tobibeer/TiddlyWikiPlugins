@@ -3,7 +3,7 @@
 |''Description''|shows a tiddler timeline using sliders|
 |''Documentation''|http://slidr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.6 2013-09-01|
+|''Version''|1.0.7 2013-09-06|
 |''CoreVersion''|2.6.5|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SlidrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -24,12 +24,12 @@
 
             //LOCALISATION
             //the slider tooltip | %0 = date range
-            txtSliderTooltip: 'Click to show tiddlers in %0. CTRL+Click to expand / collapse all.',
+            txtSliderTooltip: "Click to show tiddlers in '%0'. CTRL+Click to expand / collapse all.",
             //date error
-            errDate: '%0 is not a valid start or end date!',
+            errDate: "%0 is not a valid start or end date!",
             //tiddler names
-            lblTiddler1: 'tiddler',
-            lblTiddler2: 'tiddlers',
+            lblTiddler1: "tiddler",
+            lblTiddler2: "tiddlers",
 
             //PARAMETER DEFAULTs
             //the minimum number of tiddlers for subsliders
@@ -532,32 +532,53 @@
                 //get tids
                 tids = $sb.data('tiddlers'),
                 //output tids?
-                bT = typeof tids == 'object';
+                bT = typeof tids == 'object',
+                //the button text
+                txt = $sb.text(),
+                //get ctrl key
+                ctrl = e.ctrlKey,
+                //open all only when
+                openAll =
+                    //ctrl is pressed AND
+                    ctrl && 
+                    (
+                        //this button will be open any second OR
+                        !$sb.is('.slidr_open') ||
+                        //this is not a toplevel button AND
+                        !$sb.parent().is('.slidr') &&
+                        //there are any unopened besides this
+                        $('.slidr_button',$s).not('.slidr_open').length > 0
+                    );
 
             //slider exists?
             if ($sp.hasClass('slidr_list')) {
+
                 //when hidden
                 if ($sp.is(':hidden')) {
                     //show
                     $sp.slideDown();
                     //add class open
                     $sb.addClass('slidr_open');
-                //when visible
-                }else{
+                //when visible but not all to be opened
+                } else if (!openAll) {
                     //hide all inner
                     $sp.find('.slidr_list').slideUp()
                         .prev().removeClass('slidr_open');
                     //hide this
                     $sp.slideUp();
-                    //remove class popen
+                    //remove class open
                     $sb.removeClass('slidr_open');
                 }
 
             //no slider yet?
             } else {
                 //add container
-                place = ($('<div class="slidr_list' + (bT ? ' slidr_tids' : '') + '"/>')
-                    .insertAfter($sb))[0];
+                place = (
+                    $('<div class="slidr_list' +
+                        (bT ? ' slidr_tids' : '') +
+                    '"/>')
+                    .insertAfter($sb)
+                )[0];
 
                 //when tidlist
                 if (bT) {
@@ -611,29 +632,28 @@
                 $sb.addClass('slidr_open');
             }
             //control key pressed?
-            if(e.ctrlKey){
-                //is open now?
-                open = $sb.hasClass('slidr_open');
-                //remember global state
+            if(ctrl){
+                //remember global default
                 was = px.open == 'true';
-                //set temporarily to that of the current button
-                px.open = open;
+                //set temporarily to open
+                px.open = openAll;
 
                 //loop all (outer when closed) slidr buttons
-                $((!open ? ' > ' : '') + '.slidr_button', $s).each(function(i){
+                $((!openAll ? ' > ' : '') + '.slidr_button', $s).each(function(i){
                     //the button
                     var $el = $(this),
                         isOpen = $el.hasClass('slidr_open');
+
                     //if in a different state?
                     if(
-                         open && !isOpen ||
-                        !open &&  isOpen
+                         openAll && !isOpen ||
+                        !openAll &&  isOpen
                     //make same state
                     ){
                         $el.click();
                     }
                 })
-                //reset global state
+                //reset global default
                 px.open = was ? 'true' : 'false';
             }
         },
