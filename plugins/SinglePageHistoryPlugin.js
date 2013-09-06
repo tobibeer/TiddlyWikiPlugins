@@ -5,7 +5,7 @@
 |''Version:''|0.7.3 (2013-09-05)|
 |''~CoreVersion:''|2.5.2|
 |''Documentation:''|http://singlepagehistory.tiddlyspace.com|
-|''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SinglePageHistoryPlugin.min.js|
+|''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SinglePageHistoryPlugin.js|
 |''License''|Creative Commons 3.0|
 
 !Code
@@ -356,11 +356,12 @@ onClickTag = function(ev){
         $pop.attr('doOpenAll','true');
     } else {
         if(config.options.chkSinglePageMode){
-            var $all = $('a',$pop).first(),
-                $tag = $('a',$pop).last(),
+            var $a = $('a',$pop),
+                $all = $a.first(),
+                $tag = $.last(),
                 $li = $tag.parent();
             //only when not empty
-            if($all.length){
+            if($a.length > 1){
                 $tag.insertAfter($all);
                 $all.remove();
                 $li.add($li.prev('.listBreak')).remove();
