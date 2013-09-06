@@ -2,7 +2,7 @@
 |''Name:''|~PopupMacro|
 |''Author:''|Saq Imtiaz (mod: Tobias Beer)|
 |''Documentation:''|http://tobibeer.tiddlyspace.com/#PopupMacroMod|
-|''Version:''|1.3 TB (2009-09-30)|
+|''Version:''|1.3.1 TB (2013-09-05)|
 |''Description:''|Create popups with custom content|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PopupMacro.js|
 |''Requires:''|TW Version 2.5.3 or better|
@@ -48,6 +48,7 @@ config.macros.popup = {
             }
         );
         btn.setAttribute('popupid', !isNested(btn) ? id : 'popup');
+        btn.click = this.click;
         btn.onmouseover = hover ? (this.showAfter ? this.delay : this.show) : null;
         btn.onmouseout = hover && this.showAfter ? this.abort : null;
     },
@@ -79,14 +80,21 @@ config.macros.popup = {
             setTimeout(function () { cmp.close(p); }, cmp.hideAfter);
         }
     },
+    click: function(e){
+        var btn = resolveTarget(e || window.event);
+        btn.setAttribute('open',true);
+        this.show(btn);
+        btn.setAttribute('open',false);        
+    },
     show: function (e) {
-        var open, nest, p, tgt, cmp = config.macros.popup,
-            btn = this.innerHTML ? this : e;
-        btnId = btn.getAttribute('id'),
-		id = btn.getAttribute('popupid'),
-		cls = btn.getAttribute('popupclass'),
-		src = btn.getAttribute('content');
         e = e || window.event;
+        var open, nest, p, tgt, cmp = config.macros.popup,
+            btn = this.innerHTML ? this : e,
+            btnId = btn.getAttribute('id'),
+            id = btn.getAttribute('popupid'),
+            cls = btn.getAttribute('popupclass'),
+            src = btn.getAttribute('content');
+
         if (btn.getAttribute('abort') == 'true') return;
         open = btn.getAttribute('open') == 'true';
         btn.setAttribute('open', !open);
