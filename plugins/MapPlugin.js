@@ -7,7 +7,7 @@
 |''License''|Creative Commons 3.0|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/MapPlugin.js|
 !Usage
-Create a static map for tiddlers with either ''geo.loc'' or ''geo.long'' and ''geo.lat'' fields set.
+Create static maps for tiddlers with either ''geo.loc'' or ''geo.long'' and ''geo.lat'' fields set.
 {{{
 <<map>>
 
