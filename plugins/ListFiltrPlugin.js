@@ -5,8 +5,8 @@
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
 |Requires||
 |~CoreVersion|2.6.5|
-|License|Crea7ive Commons 3.0|
-|Version|1.0.9 (2013-09-04)|
+|License|Creative Commons 3.0|
+|Version|1.1.1 (2013-09-07)|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -29,31 +29,44 @@ Great!
         //any items to preserve by default
         defaultPreserve: '',
 
+        //macro handler
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
             var box, boxtitle, boxwrap, el, list, prev,
                 p = paramString.parseParams('anon', null, true),
                 preserve = getParam(p, 'preserve', this.defaultPreserve),
                 listClass = 'lf-' + new Date().formatString('YYYYMMDDhhmmss') + Math.random().toString().substr(6);
 
+            //get list as last element
             list = $(place).children().last();
+            //ignore any linebreaks
             while (list.is('br')) list = list.prev();
 
-            if (list.is('span,div')) list = list.contents();
+            //when not ol ul, take contents
+            if (list.is('span, div')) list = list.contents();
 
+            //wrap the contents in a class
             list.wrapAll('<div class="lf-list ' + listClass + '"/>');
+
+            //select ided element
             list = $('.' + listClass);
 
+            //if module present
             if ($.fn.outline)
+                //outline any inner ordered lists to preserve original numbering
                 $("ol:not(ol li > ol)", list).outline();
 
+            //add preservation class
             $(preserve, list).addClass('lf-preserve');
 
+            //loop all content elements that are not iframes
             list.find(":not(iframe)").addBack().contents().filter(function () {
+                //the element
                 var $el = $(this);
+                //when
                 return (
-                    //is text node
+                    //text node AND
                     this.nodeType == 3 &&
-                    //and preceded or followed by a linebreak
+                    // preceded or followed by a linebreak AND
                     ($el.prev().is('br') || $el.next().is('br')) &&
                     //not inside preserve
                     0 == $el.closest('.lf-preserve').length &&
@@ -159,8 +172,15 @@ Great!
                     })
                 }
 
-                //do not hide (links) inside definition terms 
+                //do not hide (links) inside definition terms
                 $('dt.lf-not .lf-h', list).removeClass('lf-h');
+
+                //do not hide stuff under list items except further ul ol
+                $('.lf-not', list)
+                    .children()
+                    .not('ol, ul')
+                    .find('.lf-h')
+                    .removeClass('lf-h');
 
                 //except when in preserved, hide all of class lf-h 
                 $('.lf-h', list).not('.lf-preserve .lf-h').addClass('lf-hide');
