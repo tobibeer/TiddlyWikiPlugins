@@ -3,5 +3,5 @@ tbGTD [![flattr me](http://api.flattr.com/button/flattr-badge-large.png)](https:
 
 A GTD type application based on TiddlyWiki.
 
-http://tbGTD.tiddlyspot.com
-http://tbGTD-deutsch.tiddlyspot.com
+* http://tbGTD.tiddlyspot.com
+* http://tbGTD-deutsch.tiddlyspot.com
