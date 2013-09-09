@@ -1,5 +1,7 @@
 <script>
 (function($){
+	if(readOnly) $('.readOnly').hide();
+
 	var
 		$tid = $(place).closest('.tiddler'),
 		$v = $tid.find('.viewer'),
@@ -22,7 +24,7 @@
 	if(tid.tags && tid.tags.contains('follow')){
 		wikify(
 			'{{followersFollowers{\n!This users followers...\n'+
-			'<<followers "' + tid.title + '" fat:n sort:server.bag hide:tobibeer>>}}}',
+			'<<followers "' + tid.title + '" sort:server.bag hide:tobibeer_public>>}}}',
 			( $('<div/>').appendTo($v) )[0]
 		)
 	}
@@ -30,7 +32,7 @@
 	if(tid.tags && tid.tags.containsAny(['Talks','WhatOthersSay'])){
 		wikify(
 			'{{tbScan{\n!What everyone says right now...\n'+
-			'<<tsScan "' + tid.title + '" fat:y template:Templates##TALK sort:server.bag hide:tobibeer>>\n}}}',
+			'<<tsScan "' + tid.title + '" fat:y template:Templates##TALK sort:server.bag hide:tobibeer_public>>\n}}}',
 			( $('<div/>').appendTo($v) )[0]
 		)
 	}
