@@ -3,7 +3,7 @@
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Description''|shows or runs a (commented) code block|
 |''Documentation''|http://tobibeer.tiddlyspace.com/#Code|
-|''Version''|0.3 (2013-09-04)|
+|''Version''|0.3.1 (2013-09-09)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/CodePlugin.js|
@@ -80,7 +80,7 @@ config.macros.code = {
 
             //remove leading or  trailing blanks
             code = jQuery.trim(code);
-console.log(code);
+
             //run code?
             if (run) {
                 //output
