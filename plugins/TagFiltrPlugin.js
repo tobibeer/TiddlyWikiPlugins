@@ -3,8 +3,7 @@
 |''Description''|tag-based faceted tiddler navigation based on FND's tagsplorer|
 |''Author''|Tobias Beer|
 |''Documentation''|http://tagfiltr.tiddlyspace.com|
-|''Version''|1.4.1|
-|''Status''|beta|
+|''Version''|1.4.2 (2013-09-12)|
 |''CoreVersion''|2.6.0|
 |''License''|Creative Commons 3.0|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/TagFiltrPlugin.js|
@@ -20,6 +19,7 @@ config.macros.tagfiltr = $.extend(me, {
 
 	//the output format for a list item
 	exclude: 'excludeLists',
+	filter: '',
 
 	tags: '',
 	fix: false,
@@ -61,6 +61,8 @@ config.macros.tagfiltr = $.extend(me, {
         //all code vars as 'prettyName|short'
         [
             'exclude|ex',
+            'filter',
+
             'tags',
             'fix',
 
@@ -131,6 +133,12 @@ config.macros.tagfiltr = $.extend(me, {
 		else
 			//set to empty array
 			d.fix=[];
+
+
+		//fix but no tags defined?
+		if(d.fix.length && !d.tags.length)
+			//take tags from fixed
+			d.tags = d.fix.slice();
 
 		//when external format contents
 		if(d.fmt.toLowerCase().indexOf('tiddler=') == 0){
@@ -227,6 +235,7 @@ config.macros.tagfiltr = $.extend(me, {
 		d.tags.map(function (tag) {
 			//tag fixed?
 			var fix = d.fix.contains(tag);
+
 			//only when there's not yet a prefix button for that tag
 			if(0 == $t.find('.tf-prefixes [tag="' + tag + '"]').length){
 				//create button
