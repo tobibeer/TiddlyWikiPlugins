@@ -3,7 +3,7 @@
 |''Description''|tag-based faceted tiddler navigation based on FND's tagsplorer|
 |''Author''|Tobias Beer|
 |''Documentation''|http://tagfiltr.tiddlyspace.com|
-|''Version''|1.4.0|
+|''Version''|1.4.1|
 |''Status''|beta|
 |''CoreVersion''|2.6.0|
 |''License''|Creative Commons 3.0|
@@ -88,11 +88,10 @@ config.macros.tagfiltr = $.extend(me, {
             );
 
             //if not a named parameter
-            if (px[0]['anon'].contains(x)) {
+            if (params.contains(x)) {
                 //set as true anyways
                 d[pa] = true;
             }
-
         });
 
         //all boolean params
@@ -120,11 +119,18 @@ config.macros.tagfiltr = $.extend(me, {
 
 		//turn string for excluded and tags into arrays
 		d.ex = d.ex.readBracketedList();
+
 		d.tags = d.tags.readBracketedList();
 
-		//sewhen tags to be fixed are defined, turn into array
-		//otherwise when fix==true, take tags as to be fixed
-		d.fix = typeof d.fix === 'string' ? d.fix.readBracketedList() : d.tags.slice();
+		//if any to be fixed
+		if(d.fix)
+			//when fix:"foo bar" defined, turn into array
+			//otherwise when just fix or fix==true, consider given tags as to be fixed
+			d.fix = typeof d.fix === 'string' ? d.fix.readBracketedList() : d.tags.slice();
+		//otherwise
+		else
+			//set to empty array
+			d.fix=[];
 
 		//when external format contents
 		if(d.fmt.toLowerCase().indexOf('tiddler=') == 0){
