@@ -2,34 +2,24 @@
 |Name|NodeTreePlugin|
 |Original Source|http://treedg.tiddlyspace.com|
 |Documentation|TBD|
-|Version|0.5.1|
+|Version|0.5.2|
 |Author|G.J.Robert Ciang (江瑋平) / @@MOD: Tobias Beer@@|
 |License|CC BY-SA|
 |~CoreVersion|2.1+|
 |Type|plugin|
 |Description|Extends TiddlyWiki list markup to add tree diagram type lists.|
 |Comments|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/NodeTreePlugin.js|
-!Example
+!Syntax
+{{{
 &&Root Node&&
 %1st level child
-%1st level 2nd child
 %&&1st level parent&&
-%%2nd level child
-%%2nd level 2nd child
-%%&&2nd level parent&&
-%%%3rd level child
-%%%3rd level 2nd child
+%2nd level child
 ?
-?
-%&&Want spacers?&&
-%%''{{{?}}}''
-// @@color:gray; creates a spacer@@
-??
-%%''{{{/}}}''
-// @@color:gray; produces nodeless content@@
-??
-%%The number of {{{?}}} and {{{/}}} must be that of the nesting level.
-%Neat!
+/? creates a spacer
+/ forward slash renders text w/o a node
+%the end
+}}}
 !Code
 ***/
 //{{{
@@ -110,8 +100,9 @@ config.formatters.push(
 });
 
 config.shadowTiddlers['StyleSheetNodeTree'] =
+	"\n/*{{{*/\n"+
 	store.getTiddlerText(tiddler.title +'##CSS') +
-	"\n/*\n"+
+	"\n/*}}}*/\n/*\n"+
 	"\n!COMMON\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAQRJREFUeF7t0TENwDAQwMCH9vxJpYWQJZKHs3QIPLt7bv0NbxkSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMISlnPp2Sauq8hHx5AAAAAElFTkSuQmCC'"+
 	"\n!FIRST\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAB9JREFUOE9jGAWjAAQcHBz+A/EhKJd0MGrA0DeAgQEAQ4caCSjqq+0AAAAASUVORK5CYII='"+
 	"\n!LAST\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAACxJREFUOE9jcHBw+A/EhxjIBaMGDAYDzMzM/gMx+QYAASsQs0CYo2BEAgYGALC7GdaOpx7MAAAAAElFTkSuQmCC'"+
