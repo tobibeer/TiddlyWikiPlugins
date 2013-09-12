@@ -2,7 +2,7 @@
 |Name|NodeTreePlugin|
 |Original Source|http://treedg.tiddlyspace.com|
 |Documentation|TBD|
-|Version|0.5.0|
+|Version|0.5.1|
 |Author|G.J.Robert Ciang (江瑋平) / @@MOD: Tobias Beer@@|
 |License|CC BY-SA|
 |~CoreVersion|2.1+|
@@ -109,21 +109,21 @@ config.formatters.push(
 	handler: config.formatterHelpers.createElementAndWikify
 });
 
-config.shadowTiddlers.StyleSheetTreePlugin = store.getTiddlerText("NodeTreePlugin##CSS");
-store.addNotification("StyleSheetTreePlugin", refreshStyles);
-//}}}
+config.shadowTiddlers['StyleSheetNodeTree'] =
+	store.getTiddlerText(tiddler.title +'##CSS') +
+	"\n/*\n"+
+	"\n!COMMON\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAQRJREFUeF7t0TENwDAQwMCH9vxJpYWQJZKHs3QIPLt7bv0NbxkSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMISlnPp2Sauq8hHx5AAAAAElFTkSuQmCC'"+
+	"\n!FIRST\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAB9JREFUOE9jGAWjAAQcHBz+A/EhKJd0MGrA0DeAgQEAQ4caCSjqq+0AAAAASUVORK5CYII='"+
+	"\n!LAST\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAACxJREFUOE9jcHBw+A/EhxjIBaMGDAYDzMzM/gMx+QYAASsQs0CYo2BEAgYGALC7GdaOpx7MAAAAAElFTkSuQmCC'"+
+	"\n!BAR\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAADNJREFUOE9jGAWDATg4OMiTgBmh2hAAKPifBMwF1YYAWBThw1gNwOZUXBjTC6NgwAEDAwBGSDyrun/7KAAAAABJRU5ErkJggg=='"+
+	"\n!START\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAC5JREFUOE9jGAVDDTg4OMgCsTwyhkoRB4AavgLxf2QMlSIOUMMAyrwwCmgCGBgAuAgaFbnh+uoAAAAASUVORK5CYII='"+
+	"\n!END*/";
 
-/***
-!COMMON
-'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAQRJREFUeF7t0TENwDAQwMCH9vxJpYWQJZKHs3QIPLt7bv0NbxkSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMISlnPp2Sauq8hHx5AAAAAElFTkSuQmCC'
-!FIRST
-'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAB9JREFUOE9jGAWjAAQcHBz+A/EhKJd0MGrA0DeAgQEAQ4caCSjqq+0AAAAASUVORK5CYII='
-!LAST
-'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAACxJREFUOE9jcHBw+A/EhxjIBaMGDAYDzMzM/gMx+QYAASsQs0CYo2BEAgYGALC7GdaOpx7MAAAAAElFTkSuQmCC'
-!BAR
-'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAADNJREFUOE9jGAWDATg4OMiTgBmh2hAAKPifBMwF1YYAWBThw1gNwOZUXBjTC6NgwAEDAwBGSDyrun/7KAAAAABJRU5ErkJggg=='
-!START
-'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAC5JREFUOE9jGAVDDTg4OMgCsTwyhkoRB4AavgLxf2QMlSIOUMMAyrwwCmgCGBgAuAgaFbnh+uoAAAAASUVORK5CYII='
+store.addNotification('StyleSheetNodeTree', refreshStyles);
+
+//}}}
+// /%
+/* 
 !CSS
 ti {
 display: table-row;
@@ -133,26 +133,26 @@ ti:before {
 content: '　';
 display: table-cell;
 vertical-align: middle;
-background-image: url([[NodeTreePlugin##COMMON]]), url([[NodeTreePlugin##BAR]]);
+background-image: url([[StyleSheetNodeTree##COMMON]]), url([[StyleSheetNodeTree##BAR]]);
 background-size: 100% 100%, 16px 16px;
 background-position: left;
 background-repeat:
 no-repeat;
 }
 ti:first-of-type:before{
-background-image: url([[NodeTreePlugin##FIRST]]), url([[NodeTreePlugin##BAR]]);
+background-image: url([[StyleSheetNodeTree##FIRST]]), url([[StyleSheetNodeTree##BAR]]);
 background-size: 100% 100%, 16px 16px;
 background-position: left;
 background-repeat: no-repeat;
 }
 ti:last-of-type:before {
-background-image:url([[NodeTreePlugin##LAST]]), url([[NodeTreePlugin##BAR]]);
+background-image:url([[StyleSheetNodeTree##LAST]]), url([[StyleSheetNodeTree##BAR]]);
 background-size: 100% 100%, 16px 16px;
 background-position: left;
 background-repeat: no-repeat;
 }
 ti:only-child:before, ti:only-of-type:before {
-background-image: url([[NodeTreePlugin##BAR]]);
+background-image: url([[StyleSheetNodeTree##BAR]]);
 background-size: 16px 16px;
 background-position: left;
 background-repeat: no-repeat;
@@ -163,7 +163,7 @@ vertical-align: middle;
 }
 ts:before {
 content: '　';
-background-image:url([[NodeTreePlugin##COMMON]]);
+background-image:url([[StyleSheetNodeTree##COMMON]]);
 background-size:100% 100%
 }
 ts:first-child:before,
@@ -186,7 +186,7 @@ tp{
 display: table-cell;
 vertical-align:middle;
 padding-right:1em;
-background-image: url([[NodeTreePlugin##START]]);
+background-image: url([[StyleSheetNodeTree##START]]);
 background-size: 16px 16px;
 background-position: right;
 background-repeat: no-repeat;
@@ -194,5 +194,5 @@ background-repeat: no-repeat;
 tp+br{
 display:none;
 }
-!END
-***/
+!END */
+// %/
