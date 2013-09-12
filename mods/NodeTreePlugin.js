@@ -1,14 +1,13 @@
 /***
-|Name|NodeTreePlugin|
-|Original Source|http://treedg.tiddlyspace.com|
-|Documentation|TBD|
-|Version|0.5.2|
-|Author|G.J.Robert Ciang (江瑋平) / @@MOD: Tobias Beer@@|
-|License|CC BY-SA|
-|~CoreVersion|2.1+|
-|Type|plugin|
-|Description|Extends TiddlyWiki list markup to add tree diagram type lists.|
-|Comments|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/NodeTreePlugin.js|
+|''Name''|NodeTreePlugin|
+|''Description''|Extends TiddlyWiki list markup to add tree diagram type lists.|
+|''Version''|0.5.3|
+|''Author''|G.J.Robert Ciang (江瑋平) / Tobias Beer|
+|''Documentation''|http://nodetree.tiddlyspace.com|
+|''Source''|http://nodetreeplugin.tiddlyspace.com#NodeTreePlugin|
+|''License''|CC BY-SA|
+|''~CoreVersion''|2.1+|
+|''Type''|plugin|
 !Syntax
 {{{
 &&Root Node&&
