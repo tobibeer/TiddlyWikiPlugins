@@ -3,10 +3,11 @@
 |''Description''|tag-based faceted tiddler navigation based on FND's tagsplorer|
 |''Author''|Tobias Beer|
 |''Documentation''|http://tagfiltr.tiddlyspace.com|
-|''Version''|1.4.2 (2013-09-12)|
+|''Version''|1.4.3 (2013-09-12)|
 |''CoreVersion''|2.6.0|
 |''License''|Creative Commons 3.0|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/TagFiltrPlugin.js|
+<<tagfiltr>>
 ***/
 /*{{{*/
 (function($) {
@@ -20,6 +21,7 @@ config.macros.tagfiltr = $.extend(me, {
 	//the output format for a list item
 	exclude: 'excludeLists',
 	filter: '',
+	listfiltr: true,
 
 	tags: '',
 	fix: false,
@@ -27,7 +29,7 @@ config.macros.tagfiltr = $.extend(me, {
 	prefixes: 'TagFiltrConfig##Prefixes',
 	onlyPrefixed: false,
 
-	format: '[[» %0|%0]]',
+	format: '[[%0]]',
 
 	//translation
 	lingo: {
@@ -62,6 +64,7 @@ config.macros.tagfiltr = $.extend(me, {
         [
             'exclude|ex',
             'filter',
+            'listfiltr|lf',
 
             'tags',
             'fix',
@@ -99,7 +102,10 @@ config.macros.tagfiltr = $.extend(me, {
         //all boolean params
 	    [
 	        //prefixed only
-	        'bP'
+	        'bP',
+
+	        //listfiltr
+	        'lf'
 	    //loop params
 	    ].map(function (b) {
 	        //set depending on whether true
@@ -112,7 +118,7 @@ config.macros.tagfiltr = $.extend(me, {
 			.children(":last")
 			.text(me.lingo.lblTags).end()
 			.append('<div class="tf-tags" />')
-			.append('<div class="tf-tids" />').attr({
+			.append('<ul class="tf-tids" />').attr({
 			    //set wrapper attributes for refresh
 			    'refresh': 'macro',
 			    'macroName': 'tagfiltr',
@@ -185,16 +191,16 @@ config.macros.tagfiltr = $.extend(me, {
 		//only when not on startup (otherwise invoked twice!)
 		if(!startingUp)
 			//run refreshers
-			me.refresh($t, false);
+			me.refresh($t);
 	},
 
 	//refreshes tagfiltr upon changes
-	refresh: function($t, paramString) {
+	refresh: function($t) {
 
 		//when invoked by refresh handler
-		if(paramString) $t = $($t);
+		if(!$t.html) $t = $($t);
 
-		var $li, tags, tids,
+		var $li, tags, tids, $tls,
 			d = $t.data(),
 			$tags = $t.find(".tf-tags"),
 			$tids = $t.find(".tf-tids"),
@@ -252,6 +258,9 @@ config.macros.tagfiltr = $.extend(me, {
 
 		//remove tids
 		$tids.empty();
+
+		$tls = $('<div class="tf-listfiltr"/>').appendTo($tids);
+
 		if(d.fmt == me.format)$tids.addClass('tf-default');
 
 		//get new tids
@@ -259,9 +268,19 @@ config.macros.tagfiltr = $.extend(me, {
 
 		//get tids for tags and loop them
 		tids.map(function(tid) {
-			//add button
-			wikify(d.fmt.format([tid.title]), $tids[0]);
+			$li = $('<li/>').appendTo($tls);
+			//wikify
+			wikify(
+				//tiddler entry
+				d.fmt.format([tid.title]),
+				//into list item in tid list
+				$li[0]);
 		});
+
+		//when listfitlr enabled and installed 
+		if(d.lf && config.macros.listfiltr)
+			//render it
+			wikify('<<listfiltr>>', $tids[0]);
 
 		//get tags for remaining tids
 		tags = me.getTagSelection($t, tids);
