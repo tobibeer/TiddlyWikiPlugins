@@ -1,62 +1,41 @@
 /***
-|Name|TreeDiagramFormatterPlugin|
-|Source|http://treedg.tiddlyspace.com/#TreeDiagramFormatterPlugin|
+|Name|NodeTreePlugin|
+|Original Source|http://treedg.tiddlyspace.com|
 |Documentation|TBD|
-|Version|0.4|
-|Author|G.J.Robert Ciang (江瑋平)|
+|Version|0.5.0|
+|Author|G.J.Robert Ciang (江瑋平) / @@MOD: Tobias Beer@@|
 |License|CC BY-SA|
 |~CoreVersion|2.1+|
 |Type|plugin|
 |Description|Extends TiddlyWiki list markup to add tree diagram type lists.|
-An ugly hack to the built-in TiddlyWiki list markup. Generating a set of 3 HTML elements and uses CSS "table-row" and "table-cell" display attributes.
-!Syntax
-{{{
-&&A parent node (as the root if not behind "%" characters)&&
+|Comments|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/NodeTreePlugin.js|
+!Example
+&&Root Node&&
 %1st level child
 %1st level 2nd child
-%&&1st level child which is a parent itself&&
+%&&1st level parent&&
 %%2nd level child
-%%2nd level child
+%%2nd level 2nd child
+%%&&2nd level parent&&
+%%%3rd level child
+%%%3rd level 2nd child
 ?
-%&&putting "?" between two children (branches)&&
-%%to avoid the lines
-%%from linking together
-%%&&I can also have&&
-%%%3rd level grand-son
-///(Another separator or "annotation placeholder", both "?" and "/" can be used)
-%%%or grand-daughter
-%Isn't this clean?
-}}}
-Result:
-&&A parent node (as the root if not behind "%" characters)&&
-%1st level child
-%1st level 2nd child
-%&&1st level child which is a parent itself&&
-%%2nd level child
-%%2nd level child
 ?
-%&&putting "?" between two children (branches)&&
-%%to avoid the lines
-%%from linking together
-%%&&I can also have&&
-%%%3rd level grand-son
-///(Another separator or "annotation placeholder", both "?" and "/" can be used)
-%%%or grand-daughter
-%Isn't this clean?
-!Revision History
-*0.4 (2013/09/08): so happy to learn to use ''background images'' (even layered!) to make vertical and horizon bars necessary for this plugin. Now it has a real tree diagram look!
-**--''[Issue]'' Using PNG images directly would make Firefox 23 using high CPU. Currently using online images shared from Google Drive drawing.-- Using uploaded bitmaps as branches. Due to [[a bug of Firefox|https://bugzilla.mozilla.org/show_bug.cgi?id=846315]], if you find Firefox using high CPU when the tree diagrams are displayed, please go to __about:config__ and turn ''image.high_quality_downscaling.enabled'' to ''false''. Not sure what functions of Firefox may be affected by this attribute, just a temporary workaround.
-*0.3 (2012/11/28): adapting the {{{termRegExp}}} from @line-break-hack space, to allow a second linebreak after each tree item for more readable source codes.
-*0.2.2 (2012/11/26): adding {{{vertical-align: middle}}} style to {{{<tl>}}} element too
-*0.2.1 (2012/11/20): adding "/" as an alternative marker for {{{<ts>}}} element in addition to "?", so to avoid conflict with my [[(adapted) MediaWikiTableFormatterPlugin]], which uses "?" to denote a {{{<th>}}} in the beginning of a cell.
-*0.2 (2012/11/16): adding {{{<ts>}}} element for a blank separator in the tree list; adding syntax instruction
-*0.1 (2012/11/13): first working edition
+%&&Want spacers?&&
+%%''{{{?}}}''
+// @@color:gray; creates a spacer@@
+??
+%%''{{{/}}}''
+// @@color:gray; produces nodeless content@@
+??
+%%The number of {{{?}}} and {{{/}}} must be that of the nesting level.
+%Neat!
 !Code
 ***/
 //{{{
 config.formatters.push(
 {
-	name: "listPlusTreeDiagram",
+	name: "NodeTree",
 	match: "^(?:[\\*#;:%\\?/]+)",
 	lookaheadRegExp: /^(?:(?:(\*)|(#)|(;)|(:)|(%)|(\?)|(\/))+)/mg,
 	termRegExp: /(\n{1,2})/mg,
@@ -123,26 +102,97 @@ config.formatters.push(
 
 config.formatters.push(
 {
-	name: "treeDiagramParentNode",
+	name: "NodeTreeParent",
 	match: "&&",
 	termRegExp: /(&&)/mg,
 	element: "tp",
 	handler: config.formatterHelpers.createElementAndWikify
 });
 
-setStylesheet(
-"ti {display: table-row; vertical-align: middle;}\n"+
-"ti:before {content: '　'; display: table-cell; vertical-align: middle; background-image: url(treeDGCommon), url(treeDGHBar); background-size: 100% 100%, 16px 16px; background-position: left; background-repeat: no-repeat;}\n"+
-"ti:first-of-type:before {background-image: url(treeDGFirst), url(treeDGHBar); background-size: 100% 100%, 16px 16px; background-position: left; background-repeat: no-repeat;}\n"+
-"ti:last-of-type:before {background-image: url(treeDGLast), url(treeDGHBar); background-size: 100% 100%, 16px 16px; background-position: left; background-repeat: no-repeat;}\n"+
-"ti:only-child:before, ti:only-of-type:before {background-image: url(treeDGHBar); background-size: 16px 16px; background-position: left; background-repeat: no-repeat;}\n"+
-"ts, ts:before {display: table-cell; vertical-align: middle;}\n"+
-"ts:before {content: '　'; background-image: url(treeDGCommon); background-size: 100% 100%}\n"+
-"ts:first-child:before, ts:last-child:before, ts:only-child:before {background-image: none;}\n"+
-"ts:before {display: table-cell;}\n"+
-"ts {display: table-row;}\n"+
-"tl {display: table-cell; padding-left: 0; margin-left:0; vertical-align: middle;}\n"+
-"tp {display: table-cell; vertical-align: middle; padding-right: 1em;}\n"+
-"tp+br {display:none;}\n"+
-"\n","treeDiagramStyles");
+config.shadowTiddlers.StyleSheetTreePlugin = store.getTiddlerText("NodeTreePlugin##CSS");
+store.addNotification("StyleSheetTreePlugin", refreshStyles);
 //}}}
+
+/***
+!COMMON
+'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAQRJREFUeF7t0TENwDAQwMCH9vxJpYWQJZKHs3QIPLt7bv0NbxkSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMISlnPp2Sauq8hHx5AAAAAElFTkSuQmCC'
+!FIRST
+'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAB9JREFUOE9jGAWjAAQcHBz+A/EhKJd0MGrA0DeAgQEAQ4caCSjqq+0AAAAASUVORK5CYII='
+!LAST
+'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAACxJREFUOE9jcHBw+A/EhxjIBaMGDAYDzMzM/gMx+QYAASsQs0CYo2BEAgYGALC7GdaOpx7MAAAAAElFTkSuQmCC'
+!BAR
+'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAADNJREFUOE9jGAWDATg4OMiTgBmh2hAAKPifBMwF1YYAWBThw1gNwOZUXBjTC6NgwAEDAwBGSDyrun/7KAAAAABJRU5ErkJggg=='
+!START
+'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAC5JREFUOE9jGAVDDTg4OMgCsTwyhkoRB4AavgLxf2QMlSIOUMMAyrwwCmgCGBgAuAgaFbnh+uoAAAAASUVORK5CYII='
+!CSS
+ti {
+display: table-row;
+vertical-align: middle;
+}
+ti:before {
+content: '　';
+display: table-cell;
+vertical-align: middle;
+background-image: url([[NodeTreePlugin##COMMON]]), url([[NodeTreePlugin##BAR]]);
+background-size: 100% 100%, 16px 16px;
+background-position: left;
+background-repeat:
+no-repeat;
+}
+ti:first-of-type:before{
+background-image: url([[NodeTreePlugin##FIRST]]), url([[NodeTreePlugin##BAR]]);
+background-size: 100% 100%, 16px 16px;
+background-position: left;
+background-repeat: no-repeat;
+}
+ti:last-of-type:before {
+background-image:url([[NodeTreePlugin##LAST]]), url([[NodeTreePlugin##BAR]]);
+background-size: 100% 100%, 16px 16px;
+background-position: left;
+background-repeat: no-repeat;
+}
+ti:only-child:before, ti:only-of-type:before {
+background-image: url([[NodeTreePlugin##BAR]]);
+background-size: 16px 16px;
+background-position: left;
+background-repeat: no-repeat;
+}
+ts, ts:before {
+display: table-cell;
+vertical-align: middle;
+}
+ts:before {
+content: '　';
+background-image:url([[NodeTreePlugin##COMMON]]);
+background-size:100% 100%
+}
+ts:first-child:before,
+ts:last-child:before,
+ts:only-child:before{
+background-image: none;
+}
+ts:before{
+display: table-cell;
+}
+ts{
+display:table-row;
+}
+tl{
+display: table-cell;
+padding-left: 0;
+margin-left:0;
+vertical-align: middle;}
+tp{
+display: table-cell;
+vertical-align:middle;
+padding-right:1em;
+background-image: url([[NodeTreePlugin##START]]);
+background-size: 16px 16px;
+background-position: right;
+background-repeat: no-repeat;
+}
+tp+br{
+display:none;
+}
+!END
+***/
