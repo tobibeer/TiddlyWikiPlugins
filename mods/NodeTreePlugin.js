@@ -109,9 +109,9 @@ config.shadowTiddlers['NodeTreeImages'] =
 
 
 config.shadowTiddlers['NodeTreeStyles'] =
-	"\n/*{{{*/\n"+
+	"/*{{{*/\n"+
 	store.getTiddlerText(tiddler.title +'##CSS') +
-	"\n/*}}}*/\n/*\n";
+	"\n/*}}}*/";
 
 store.addNotification('NodeTreeStyles', refreshStyles);
 
