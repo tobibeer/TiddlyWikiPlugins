@@ -1,7 +1,7 @@
 /***
 |''Name''|NodeTreePlugin|
 |''Description''|Extends TiddlyWiki list markup to add tree diagram type lists.|
-|''Version''|0.5.3|
+|''Version''|0.5.5|
 |''Author''|G.J.Robert Ciang (江瑋平) / Tobias Beer|
 |''Documentation''|http://nodetree.tiddlyspace.com|
 |''Source''|http://nodetreeplugin.tiddlyspace.com#NodeTreePlugin|
@@ -100,16 +100,18 @@ config.formatters.push(
 	handler: config.formatterHelpers.createElementAndWikify
 });
 
-config.shadowTiddlers['StyleSheetNodeTree'] =
-	"\n/*{{{*/\n"+
-	store.getTiddlerText(tiddler.title +'##CSS') +
-	"\n/*}}}*/\n/*\n"+
-	"\n!COMMON\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAQRJREFUeF7t0TENwDAQwMCH9vxJpYWQJZKHs3QIPLt7bv0NbxkSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMISlnPp2Sauq8hHx5AAAAAElFTkSuQmCC'"+
+config.shadowTiddlers['NodeTreeImages'] =
+    "!COMMON\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAQRJREFUeF7t0TENwDAQwMCH9vxJpYWQJZKHs3QIPLt7bv0NbxkSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMITGGxBgSY0iMISlnPp2Sauq8hHx5AAAAAElFTkSuQmCC'"+
 	"\n!FIRST\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAB9JREFUOE9jGAWjAAQcHBz+A/EhKJd0MGrA0DeAgQEAQ4caCSjqq+0AAAAASUVORK5CYII='"+
 	"\n!LAST\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAACxJREFUOE9jcHBw+A/EhxjIBaMGDAYDzMzM/gMx+QYAASsQs0CYo2BEAgYGALC7GdaOpx7MAAAAAElFTkSuQmCC'"+
 	"\n!BAR\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAADNJREFUOE9jGAWDATg4OMiTgBmh2hAAKPifBMwF1YYAWBThw1gNwOZUXBjTC6NgwAEDAwBGSDyrun/7KAAAAABJRU5ErkJggg=='"+
-	"\n!START\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAC5JREFUOE9jGAVDDTg4OMgCsTwyhkoRB4AavgLxf2QMlSIOUMMAyrwwCmgCGBgAuAgaFbnh+uoAAAAASUVORK5CYII='"+
-	"\n!END*/";
+	"\n!START\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAC5JREFUOE9jGAVDDTg4OMgCsTwyhkoRB4AavgLxf2QMlSIOUMMAyrwwCmgCGBgAuAgaFbnh+uoAAAAASUVORK5CYII='";
+
+
+config.shadowTiddlers['StyleSheetNodeTree'] =
+	"\n/*{{{*/\n"+
+	store.getTiddlerText(tiddler.title +'##CSS') +
+	"\n/*}}}*/\n/*\n";
 
 store.addNotification('StyleSheetNodeTree', refreshStyles);
 
@@ -125,26 +127,26 @@ ti:before {
 content: '　';
 display: table-cell;
 vertical-align: middle;
-background-image: url([[StyleSheetNodeTree##COMMON]]), url([[StyleSheetNodeTree##BAR]]);
+background-image: url([[NodeTreeImages##COMMON]]), url([[NodeTreeImages##BAR]]);
 background-size: 100% 100%, 16px 16px;
 background-position: left;
 background-repeat:
 no-repeat;
 }
 ti:first-of-type:before{
-background-image: url([[StyleSheetNodeTree##FIRST]]), url([[StyleSheetNodeTree##BAR]]);
+background-image: url([[NodeTreeImages##FIRST]]), url([[NodeTreeImages##BAR]]);
 background-size: 100% 100%, 16px 16px;
 background-position: left;
 background-repeat: no-repeat;
 }
 ti:last-of-type:before {
-background-image:url([[StyleSheetNodeTree##LAST]]), url([[StyleSheetNodeTree##BAR]]);
+background-image:url([[NodeTreeImages##LAST]]), url([[NodeTreeImages##BAR]]);
 background-size: 100% 100%, 16px 16px;
 background-position: left;
 background-repeat: no-repeat;
 }
 ti:only-child:before, ti:only-of-type:before {
-background-image: url([[StyleSheetNodeTree##BAR]]);
+background-image: url([[NodeTreeImages##BAR]]);
 background-size: 16px 16px;
 background-position: left;
 background-repeat: no-repeat;
@@ -155,7 +157,7 @@ vertical-align: middle;
 }
 ts:before {
 content: '　';
-background-image:url([[StyleSheetNodeTree##COMMON]]);
+background-image:url([[NodeTreeImages##COMMON]]);
 background-size:100% 100%
 }
 ts:first-child:before,
@@ -178,7 +180,7 @@ tp{
 display: table-cell;
 vertical-align:middle;
 padding-right:1em;
-background-image: url([[StyleSheetNodeTree##START]]);
+background-image: url([[NodeTreeImages##START]]);
 background-size: 16px 16px;
 background-position: right;
 background-repeat: no-repeat;
