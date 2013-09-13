@@ -108,12 +108,12 @@ config.shadowTiddlers['NodeTreeImages'] =
 	"\n!START\n'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAC5JREFUOE9jGAVDDTg4OMgCsTwyhkoRB4AavgLxf2QMlSIOUMMAyrwwCmgCGBgAuAgaFbnh+uoAAAAASUVORK5CYII='";
 
 
-config.shadowTiddlers['StyleSheetNodeTree'] =
+config.shadowTiddlers['NodeTreeStyles'] =
 	"\n/*{{{*/\n"+
 	store.getTiddlerText(tiddler.title +'##CSS') +
 	"\n/*}}}*/\n/*\n";
 
-store.addNotification('StyleSheetNodeTree', refreshStyles);
+store.addNotification('NodeTreeStyles', refreshStyles);
 
 //}}}
 // /%
