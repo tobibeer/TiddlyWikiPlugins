@@ -1,7 +1,7 @@
 /***
 |''Name''|NodeTreePlugin|
 |''Description''|Extends TiddlyWiki list markup to add tree diagram type lists.|
-|''Version''|0.5.5|
+|''Version''|0.5.6|
 |''Author''|G.J.Robert Ciang (江瑋平) / Tobias Beer|
 |''Documentation''|http://nodetree.tiddlyspace.com|
 |''Source''|http://nodetreeplugin.tiddlyspace.com#NodeTreePlugin|
@@ -184,6 +184,10 @@ background-image: url([[NodeTreeImages##START]]);
 background-size: 16px 16px;
 background-position: right;
 background-repeat: no-repeat;
+}
+tl, tp{
+border-top:7px solid transparent;
+border-bottom:7px solid transparent;
 }
 tp+br{
 display:none;
