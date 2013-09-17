@@ -1,13 +1,12 @@
 /***
 |''Name''|TagFiltrPlugin|
 |''Description''|tag-based faceted tiddler navigation based on FND's tagsplorer|
-|''Author''|Tobias Beer|
 |''Documentation''|http://tagfiltr.tiddlyspace.com|
-|''Version''|1.4.3 (2013-09-12)|
-|''CoreVersion''|2.6.0|
-|''License''|Creative Commons 3.0|
+|''Author''|Tobias Beer|
+|''Version''|1.4.4 (2013-09-16)|
+|''CoreVersion''|2.6.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/TagFiltrPlugin.js|
-<<tagfiltr>>
+|''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 ***/
 /*{{{*/
 (function($) {
@@ -26,103 +25,104 @@ config.macros.tagfiltr = $.extend(me, {
 	tags: '',
 	fix: false,
 
-	prefixes: 'TagFiltrConfig##Prefixes',
-	onlyPrefixed: false,
+	groups: 'TagFiltrConfig##Groups',
+	onlyGroups: false,
 
 	format: '[[%0]]',
 
 	//translation
-	lingo: {
-		lblTags: "tags:",
-		lblAdd: "+",
-		tipAdd: "add tag to filter",
-		tipPrefix: "select tag from prefix",
-		tipRemove: "remove tag from filter",
-		tipFix: "this tag cannot be removed"
-	},
+	lblTags: "tags:",
+	lblAdd: "+",
+	tipAdd: "add tag to filter",
+	tipPrefix: "select tag from group",
+	tipRemove: "remove tag from filter",
+	tipFix: "this tag cannot be removed",
 
 	handler: function(place, macroName, params, wikifier, paramString, tiddler) {
-	    var d={}, ref, $t, tx = {},
-            //parse params
-            px = paramString.parseParams('anon', null, true),
-            //get template parameter
-            tpl = getParam(px, 'template', '');
+		var d={}, ref, $t, tx = {},
+			//parse params
+			px = paramString.parseParams('anon', null, true),
+			//get template parameter
+			tpl = getParam(px, 'template', ''),
+			//find viewer
+			inStory = $(place).closest('#tiddlerDisplay').length;
 
-        //fetch template
-        (store.getTiddlerText(tpl)||'')
-            //split by newline
-            .split('\n')
-            //loop all lines
-            .map(function(v){
-                //split line by colon
-                var l = v.split(':');
-                //store into template vars
-                tx[l[0]] = undefined != l[1] ? l[1] : true;
-            });
+		//fetch template
+		(store.getTiddlerText(tpl)||'')
+			//split by newline
+			.split('\n')
+			//loop all lines
+			.map(function(v){
+				//split line by colon
+				var l = v.split(':');
+				//store into template vars
+				tx[l[0]] = undefined != l[1] ? l[1] : true;
+			});
 
-        //all code vars as 'prettyName|short'
-        [
-            'exclude|ex',
-            'filter',
-            'listfiltr|lf',
+		//all code vars as 'prettyName|short'
+		[
+			'exclude|ex',
+			'filter',
+			'listfiltr|lf',
 
-            'tags',
-            'fix',
+			'tags',
+			'fix',
 
-            'prefixes',
-            'onlyPrefixed|bP',
+			'groups',
+			'onlyGroups|bG',
+			'lblTags',
 
-            'format|fmt'
+			'format|fmt'
 
-        //loop all these vars
-        ].map(function (v) {
-            //split by pipe
-            v = v.split('|');
-            var
-                //get parameter name
-                x = v[0],
-                //get short (or take full)
-                pa = v[1] || v[0];
+		//loop all these vars
+		].map(function (v) {
+			//split by pipe
+			v = v.split('|');
+			var
+				//get parameter name
+				x = v[0],
+				//get short (or take full)
+				pa = v[1] || v[0];
 
-            //initialize param variable as given by params
-            d[pa] = getParam( px, x,
-                //fallback to template, if defined
-                tpl && tx[x] ? tx[x] :
-                    //otherwise fallback to default
-                    (me[x] != undefined ? me[x] : '')
-            );
+			//initialize param variable as given by params
+			d[pa] = getParam( px, x,
+				//fallback to template, if defined
+				tpl && tx[x] ? tx[x] :
+					//otherwise fallback to default
+					(me[x] != undefined ? me[x] : '')
+			);
 
-            //if not a named parameter
-            if (params.contains(x)) {
-                //set as true anyways
-                d[pa] = true;
-            }
-        });
+			//if not a named parameter
+			if (params.contains(x)) {
+				//set as true anyways
+				d[pa] = true;
+			}
+		});
 
-        //all boolean params
-	    [
-	        //prefixed only
-	        'bP',
+		//all boolean params
+		[
+			//only tids in groups
+			'bG',
 
-	        //listfiltr
-	        'lf'
-	    //loop params
-	    ].map(function (b) {
-	        //set depending on whether true
-	        d[b] = 'true' == d[b].toString();
-	    });
+			//listfiltr
+			'lf'
+		//loop params
+		].map(function (b) {
+			//set depending on whether true
+			d[b] = 'true' == d[b].toString();
+		});
 
 		//create output
 		$t = $('<div class="tagfiltr" />')
 			.append('<b class="tp_tags_label" />')
 			.children(":last")
-			.text(me.lingo.lblTags).end()
+			.text(d.lblTags).end()
 			.append('<div class="tf-tags" />')
 			.append('<ul class="tf-tids" />').attr({
-			    //set wrapper attributes for refresh
-			    'refresh': 'macro',
-			    'macroName': 'tagfiltr',
-			    'params': paramString
+				//set wrapper attributes for refresh
+				'refresh': 'macro',
+				'macroName': 'tagfiltr',
+				'params': paramString
 			});
 
 		//turn string for excluded and tags into arrays
@@ -133,7 +133,7 @@ config.macros.tagfiltr = $.extend(me, {
 		//if any to be fixed
 		if(d.fix)
 			//when fix:"foo bar" defined, turn into array
-			//otherwise when just fix or fix==true, consider given tags as to be fixed
+			//otherwise when just fix or fix==true, set given tags as fixed
 			d.fix = typeof d.fix === 'string' ? d.fix.readBracketedList() : d.tags.slice();
 		//otherwise
 		else
@@ -157,27 +157,38 @@ config.macros.tagfiltr = $.extend(me, {
 		//set format as given, fetched or default
 		d.fmt = d.fmt || me.format;
 
-		//initialise prefix index
-	    d.px = {
-	    	//whith list for all prefix tags for easy access
-	        tf_a: [],
-	        //and list for all matching prefix tags
-	        tf_m : {}
-	    };
+		//just to be safe, initialise all group indexes
+		$.extend (d, {
+			//defined
+			g_def: {},
+			//all
+			g_all: {},
+			//tag groups
+			g_tags: {},
+			// groups with matches
+			g_match: {}
+		});
 
-		//get prefixes from fixed reference
-		(store.getTiddlerText( me.getRef(d.prefixes, tpl) )  || '')
+		//get groups from fixed reference
+		(store.getTiddlerText( me.getRef(d.groups, tpl) )  || '')
 			//split by newline and loop
-			.split('\n').map(function(prefix){
-			    //split prefix definition by pipe
-			    prefix = $.trim(prefix).split('|');
-			    //must be at least two, otherwise ignore line
-			    if(prefix.length < 3){
-			        //add prefix as object with title
-			        d.px[ prefix[0] ] = {
-			            title: prefix[1]
-			        }
-			    }
+			.split('\n').map(function(g){
+				//split group definition by pipe
+				g = $.trim(g).split('|');
+				var p = $.trim(g[0]),
+					group = $.trim(g[1]),
+					title = p && !g[2] ? p + group : $.trim(g[2]?g[2]:group),
+					key = p ? p : group;
+				//must be at least two, otherwise ignore line
+				if(g.length > 1){
+					//add group as object with title and prefix
+					d.g_def[ key ] = {
+						//set title and prefix properties
+						'title': title,
+						'group': group,
+						'prefix': p
+					}
+				}
 			});
 
 		//output tagfiltr
@@ -188,8 +199,9 @@ config.macros.tagfiltr = $.extend(me, {
 		//set data
 		$t.data(d);
 
-		//only when not on startup (otherwise invoked twice!)
-		if(!startingUp)
+		//only refresh when not in story column on startup
+		//otherwise invoked twice by core
+		if ( !(startingUp && inStory) )
 			//run refreshers
 			me.refresh($t);
 	},
@@ -200,39 +212,50 @@ config.macros.tagfiltr = $.extend(me, {
 		//when invoked by refresh handler
 		if(!$t.html) $t = $($t);
 
+		//update index of tags tagging to a group
+		me.getGroupTags($t);
+
 		var $li, tags, tids, $tls,
 			d = $t.data(),
 			$tags = $t.find(".tf-tags"),
 			$tids = $t.find(".tf-tids"),
-			$px = $t.find('.tf-prefixes');
+			$gs = $t.find('.tf-groups');
 
-		//empty tags panel
+		//remove any non-group buttons from tags
 		$('.tf-tag, .tf-add', $tags).remove();
 
-		//no prefix wrapper yet
-		if(0 == $px.length){
+		//no group wrapper yet
+		if(0 == $gs.length){
 			//add to tags
-			$px = $('<span class="tf-prefixes"/>').appendTo($tags);
+			$gs = $('<span class="tf-groups"/>').appendTo($tags);
 
-			//loop prefixes
-			$.each(d.px, function(p, attr) {
-				var cat = p + attr.title;
+			//loop groups as [group => group properties]
+			$.each(d.g_def, function(g, ps) {
+				var
+					//get prefix from properties
+					p = ps.prefix || '',
+					//or title
+					ti = ps.title,
+					//get group title as either prefix+title or group tag
+					title = ti ? ti : (p ? p + ps.group : g);
 
-				//skip all and matched lists
-				if(['tf_a','tf_m'].contains(p))return true;
-
-				//create button
+				//create tag button for this group
 				me.newTagButton(
-					$px,
-					cat,
-					me.lingo.tipPrefix,
-					me.addTag,
+					$gs,
+					title,
+					me.tipPrefix,
+					me.clickTag,
 					'button'
 				)
-					.data('tags',[])
+					.data({
+						//the group title
+						'group': title,
+						//init matching tags
+						'tags':[],
+					})
 					.attr({
-					    'prefix': p,
-					    'category': cat
+						//group index is either prefix or group
+						'group': p ? p : g
 					});
 			});
 		}
@@ -242,13 +265,13 @@ config.macros.tagfiltr = $.extend(me, {
 			//tag fixed?
 			var fix = d.fix.contains(tag);
 
-			//only when there's not yet a prefix button for that tag
-			if(0 == $t.find('.tf-prefixes [tag="' + tag + '"]').length){
+			//only when there's not yet a group button for that tag
+			if(0 == $t.find('.tf-groups [tag="' + tag + '"]').length){
 				//create button
 				me.newTagButton(
 					$tags,
 					tag,
-					fix ? me.lingo.tipFix : me.lingo.tipRemove,
+					fix ? me.tipFix : me.tipRemove,
 					me.removeTag,
 					'button tf-tag' + (fix ? ' tf-fix' : '')
 				//remember tag
@@ -286,29 +309,37 @@ config.macros.tagfiltr = $.extend(me, {
 		tags = me.getTagSelection($t, tids);
 		//when there are any
 		if(tags.length){
-			//create button
+			//create button to add one of the remaining tags (default tagsplorer)
 			me.newTagButton(
 				//in button container
 				$tags,
 				//with label and tooltip
-				me.lingo.lblAdd,
-				me.lingo.tipAdd,
-				//add action
-				me.addTag,
+				me.lblAdd,
+				me.tipAdd,
+				//define action via jQuery
+				null,
 				'button tf-add'
-			//add tags to button data
-			).data('tags',tags);
+			)
+				//add tags to button data
+				.data('tags',tags)
+				//add action
+				.click(me.clickTag);
 		}
+
 	},
 
-	addTag: function(ev) {
-	    var pop, was, $tag,
-	    	$btn = $(this),
+	//tag button click
+	clickTag: function(ev) {
+		var pop, was, $tag,
+			$btn = $(this),
 			$t = $btn.closest('.tagfiltr'),
 			d = $t.data(),
-			p = $btn.attr('prefix');
+			group = $btn.data('group');
 
-		//selected prefix tag click
+		//fixed button? => do nothing
+		if($btn.hasClass('tf-fix'))return false;
+
+		//already selected group tag clicked?
 		if($btn.hasClass('tf-selected')){
 
 			//get text of all selected buttons
@@ -317,33 +348,29 @@ config.macros.tagfiltr = $.extend(me, {
 			//remove tag
 			me.removeTag(0, $btn);
 
-			//reset text to category
-			$btn.text( $btn.attr('category') )
-				//remove tag attribute 
-				.attr('tag',undefined)
-				//unselect
-				.removeClass('tf-selected');
+			//unselect
+			me.setGroupButton($btn);
+
 			//refresh tagfiltr
 			me.refresh($t);
 
-			//nothing changed?
+			//selection didn't change?
 			if(was == $('.tf-selected',$t).text()){
-				//if there's a last tag-button
+				//get last tag-button
 				$tag = $('.tf-tag', $t);
 
 				//if there is any
 				if ($tag.length){
-					//remove that first
+					//try to remove that first
 					$tag.click();
 
-				//otherwise when there is a last clicked prefix button
+				//otherwise when there is a last clicked group button
 				} else if(d.last && d.last.is('.tf-selected')) {
 					//simulate clicking it
 					d.last.click();
 
 				//stuck?!?
 				} else {
-
 					//remove all tags and set to fixed
 					d.tags = d.fix.slice();
 					//refresh
@@ -353,96 +380,109 @@ config.macros.tagfiltr = $.extend(me, {
 			//out we go, closing any popups
 			return true;
 
-		//otherwise
+		//otherwise when unselected tag
 		} else {
-
-			//create new popup
-			pop = Popup.create(this, 'ul');
-			
-		    //set popup data
-		    $(pop).data({
-				//pointing to tagfiltr
-				'tagfiltr': $t,
-		    	//remembering any prefix
-				'prefix': p,
-		    	//reference to button
-				'button': $btn
-	    	});
-			
-			//loop buttont ags
-			$btn.data('tags').map(function(tag) {
-				//add new button for all options
-				me.newTagButton(pop, tag , me.lingo.tipAdd, me.popClick);
-			});
-
 			//show the popup
-			Popup.show();
+			me.openPopup($t, this);
 			//no bubbling
 			ev.stopPropagation();
 			return false;
 		}
 	},
 
+	openPopup: function($t, btn){
+		var 
+			//get button
+			$btn = $(btn),
+			//create new popup
+			pop = Popup.create(btn, 'ul');
+		
+		//set popup data
+		$(pop).data({
+			//reference to tagfiltr and button
+			'tagfiltr': $t,
+			'button': $btn
+		});
+		
+		//loop button tags
+		$btn.data('tags').map(function(tag) {
+			//add new popup button for this tag
+			me.newTagButton(pop, tag , me.tipAdd, me.popClick);
+		});
+
+		//show the popup
+		Popup.show();
+	},
+
+	//clicking a popup button
 	popClick: function(ev) {
 
 		var $tag = $(this),
 			tag = $tag.text(),
 			$popup = $tag.closest(".popup");
-			pd = $popup.data(),
-			p = pd.prefix,
-			$btn = pd.button,
-			$t = pd.tagfiltr,
-			d = $t.data();
+			d = $popup.data(),
+			$t = d.tagfiltr,
+			$btn = d.button,
+			g = $btn.attr('group');
+		
+		//reuse the variable but now as tagfiltr data
+		d = $t.data();
 
-		//when prefix button
-		if(p){
-			//set tag value as button text
-			$btn.text(tag)
-				//and attr
-				.attr('tag',tag)
-				//add selected class
-				.addClass('tf-selected');
-		}
+		//when group button => set button
+		if(g) me.setGroupButton($btn, tag);
 
-		//add tag to tagiltr tags
+		//add tag to active tagfiltr tags
 		d.tags.pushUnique( tag );
 
+		//refresh tagfiltr, especially matching tiddlers
+		me.refresh($t);
+
+		//when group was clicked => remember last clicked button
+		if(g) d.last = $btn;
+
+		//scroll to the tagfilter
 		if(config.options.chkAnimate && anim && typeof Scroller == "function")
 			anim.startAnimating(new Scroller($t[0]));
 		else
 			window.scrollTo(0, ensureVisible($t[0]));
+		
+		if(ev.ctrlKey && $btn.hasClass('tf-add')){
+			//close popup
+			$popup.remove();
+			//click add button agains
+			$('.tf-add',$t).first().click();
+		}
 
-		//refresh tagfiltr
-		me.refresh($t);
-
-		//when prefix was clicked => remember last clicked button
-		if(p) d.last = $btn;
-
-		//keep open unless control clicked
+		//CTRL+CLick
 		return !ev.ctrlKey;
 	},
 
 	//tag button click and general button removal
+	//(e is event)
 	removeTag: function(e, el) {
 		var
 			//get tag either as passed or as clicked element
-			$tag = el ? $(el) : $(this),
+			$btn = el ? $(el) : $(this),
 			//get outer tagfiltr
-			$t = $tag.closest(".tagfiltr"),
+			$t = $btn.closest(".tagfiltr"),
 			//tagfiltr data
 			d = $t.data();
 
 		//when fixed
-		if($tag.is('.tf-fix')){
+		if($btn.is('.tf-fix')){
 			//remove all non-fixed
+			//(that's what you get for clicking me ;-)
 			$('.tf-tag', $t).not('.tf-fix').each(function(){
 				d.tags.remove( $(this).text() );
 			});
-		//otherwise remove this tag from tags
-		} else d.tags.remove( $tag.text() );
 
-		//update only when this button clicked
+		//otherwise remove this tag from tags
+		} else d.tags.remove( $btn.text() );
+
+		//refresh only when actual button click
 		if(!el) me.refresh($t);
+
+		//no bubbling
 		return false;
 
 	},
@@ -452,12 +492,12 @@ config.macros.tagfiltr = $.extend(me, {
 
 		var $btn, $tag, t,
 			tids = [],
-			d = $t.data(),
-			px = d.px;
+			d = $t.data();
 
+		//reset the index for all group tags
+		d.g_all = {};
 		//reset matches
-		pm = px.tf_m = {};
-		px.tf_a = [];
+		gm = d.g_match = {};
 
 		//with
 		(
@@ -473,81 +513,87 @@ config.macros.tagfiltr = $.extend(me, {
 
 			//when
 			if(
-				//tids has tags but not any excluded tags AND
+				//not a tids with excluded tags AND
 				!(tid.tags && tid.tags.containsAny( d.ex )) &&
 
-				//no tags selected OR tid has all tags
+				//no tags selected yet OR tid has all those tags AND
 				(1 > d.tags.length || tid.tags.containsAll( d.tags ) ) &&
 
-			    //only prefixed tids and this tiddler has any prefix
-				(!d.bP || me.hasPrefix($t, tid, true) )
-                                //also indexes prefixes
+				//not just group tids OR this tiddler is in a group
+				(!d.bG || me.inGroup($t, tid, true) )
+											//true = also index groups
 			)
 				//add
 				tids.push(tid);
 		})
 
-		//only when any prefixes matched
-		if(!$.isEmptyObject(pm)){
+		//only when any groups matched
+		if(!$.isEmptyObject(gm)){
 
-			//loop prefixes
-			$.each(px, function(p, attr){
+			//loop group definitions
+			$.each(d.g_def, function(g, ps){
 
-				//skip all and matches
-				if(['tf_a','tf_m'].contains(p)) return true;
-
-				//get matches for prefix
+				//initialise array for matching tags
 				var m = [];
 
 				//if there are any matches
-				if(pm[p])
-					//get only prefix keys from matches
-					$.each(pm[p], function(item){
+				if(gm[g])
+					//loop keys from matches for this group
+					$.each(gm[g], function(item){
+						//add to matching tags
 						m.push(item);
 					})
 
-				//find button
-				$btn = $t.find('.tf-tags [prefix="' + p + '"]');
+				//find group button
+				$btn = $t.find('.tf-tags [group="' + g + '"]');
 
-				//sort them
+				//when there are matching tags for this group
 				if(m.length) {
+					//sort them
 					m.sort();
 					//add all matched tags
 					m.map(function(tag){
-						//to all prefixed tags
-						px.tf_a.push(tag);
+						//add to all tags index
+						d.g_all[tag] = g;
 					})
-					//only one matching prefix tag and
-					//number of tids for it same as number of all tids
-					if(1 == m.length && tids.length == pm[p][m[0]].length ){
-
-						$btn.text(m[0])
-							.attr('tag',m[0])
-							.addClass('tf-selected');
+					//only when
+					if(
+						//one matching group tag AND
+						1 == m.length &&
+						//number of tids for it same as number of all tids AND
+						tids.length == gm[g][m[0]].length &&
+						//and no duplicate around yet
+						!me.hasFixedDuplicate($t, m[0], g)
+					//thus not yet active
+					){
+						//set tag
+						me.setGroupButton($btn, m[0]);
+					//otherwise
 					} else {
-						$btn.text( $btn.attr('category') )
-						.attr('tag', undefined )
-						.removeClass('tf-selected');						
+						//unselect
+						me.setGroupButton($btn);
 					}
 
-					//set to visible prefix button
-					$btn.addClass('tf-prefix')
-						//remember tag
+					//turn into visible group button
+					$btn.addClass('tf-group')
+						//and store the matching tags
 						.data('tags', m);
 
-					//any actual tag button for the same tag?
+					//any non-group tag button for the same tag?
 					$tag = $('.tf-tag[tag="' + m[0] + '"]', $t);
 
 					//if there is one
 					if($tag.length){
 						//out with it
 						$tag.remove();
-						//set last to this button
+						//reset last clicked tag to this button
 						d.last = $btn;
 					}
+				//when there are no matching tags
 				} else {
-					//set button tags to matches
-					$btn.removeClass('tf-prefix')
+					//hide group-button
+					$btn.removeClass('tf-group')
+						//remove matching tags
 						.data('tags', undefined);
 				}
 			});
@@ -555,31 +601,33 @@ config.macros.tagfiltr = $.extend(me, {
 		return tids;
 	},
 
-	//gets remaining tags of current tids
+	//gets remaining tags of current tid selection
 	getTagSelection: function($t, tids) {
 		//initiate
-	    var tags = [],
-	    	d = $t.data();
+		var tags = [],
+			d = $t.data();
 
 		//loop tids
-        tids.map(function(tid){
+		tids.map(function(tid){
 			//loop tid tags
 			tid.tags.map(function(tag){
 				//only when not...
-			    if (!(
-			    	//already an indexed prefix tag
-			    	d.px.tf_a.contains(tag) ||
-			    	//in excluded OR
-			    	d.ex.contains(tag) ||
-			    	//already in tags
-			    	d.tags.contains(tag)
-		    	)){
-					//add  unique tag to tags
+				if (!(
+					//in excluded OR
+					d.ex.contains(tag) ||
+					//already in the prefix index OR
+					d.g_all[tag] ||
+					//already in the tagged index OR
+					d.g_tags[tag] ||
+					//already selected
+					d.tags.contains(tag)
+				)){
+					//add unique tag to remaining tags
 					tags.pushUnique(tag);
 				}				
 			})
 		});
-		//sort tags
+		//sort remaining tags
 		return tags.sort();
 	},
 
@@ -598,40 +646,143 @@ config.macros.tagfiltr = $.extend(me, {
 			.appendTo(where);
 	},
 
-	//checks a tiddlers tags for having a prefix
-	//also searches for and collects all prefix tags
-	hasPrefix: function($t, tid, index){
-		var any = 0,
-			px = $t.data('px');
+	//updates group index gor groups that are not prefix indexes
+	getGroupTags :function($t){
+		//get data
+		var d = $t.data();
 
+		//reset tag groups
+		d.g_tags = {};
+
+		//loop defined groups as [group => properties]
+		$.each(d.g_def, function (g, ps) {
+			//only unprefixed
+			if (!ps.prefix) {
+				//loop tags tagging to group
+				store.getTaggedTiddlers(g).map(function (tag) {
+					//add to group tag index, pointing to group
+					d.g_tags[tag.title] = g;
+				});
+			}
+		});
+	},
+
+	//checks a tiddlers tags for belonging to any group and also
+	//1. searches for and indexes matchin group tags
+	//2. sets fixed group tags
+	inGroup: function($t, tid, index){
+		var $btn,
+			any = 0,
+			//get groups
+			d = $t.data();
 
 		//when tid has tags
 		if(tid.tags){
 			//loop tid tags
-		    tid.tags.map(function (tag) {
-		        //loop prefixes
-		        $.each(px, function (p, attr) {
-		            //if tag starts with any prefix
-		            if (tag.indexOf(p) == 0) {
-		                //ok
-		                any = 1;
-		                //also index?
-		                if (index) {
-		                    //init object for matching tags
-		                    if (!px.tf_m[p]) px.tf_m[p] = {};
-		                    //when key not present
-		                    if (!px.tf_m[p][tag]) px.tf_m[p][tag] = [];
-		                    //add tag to matches
-		                    px.tf_m[p][tag].push(tid.title);
-		                }
-		            }
-		            return index || !any;
-		        });
-		        return index || !any;
-		    });
+			tid.tags.map(function (tag) {
+				//loop groups
+				$.each(d.g_def, function (g, ps) {
+					var 
+						//get prefix
+						p = ps.prefix,
+						//shortcut to matches
+						gm = d.g_match;
+
+					//when
+					if (
+						//this is a prefix group and tag starts with prefix OR
+						p && tag.indexOf(g) == 0 ||
+						//not a prefix group and tag matches a group tag
+						!p && d.g_tags[tag] == g
+					){
+						//ok, found
+						any = 1;
+						//find the corresponding group button
+						$btn = $t.find('.tf-tags [group="' + g + '"]');
+
+						//but not one that already exists
+						if(!p && me.hasFixedDuplicate($t, tag, g)){
+							//hide it
+							$btn.hide();
+						//otherwise when this is a fixed tag
+						} else if ( d.fix.contains(tag) ){
+							//preselect...
+							me.setGroupButton(
+								//set fixed flag
+								$btn.data('fixed',true)
+									//set fixed class
+									.addClass('tf-fix')
+									//set fixed title
+									.attr('title', me.tipFix),
+								//with this tag
+								tag
+							);
+						};
+
+						//also index?
+						if (index) {
+							//if not existing, init collection of matching tids in this group
+							if (!gm[g]) gm[g] = {};
+							//if not existing, initialize tag entry as empty array
+							if (!gm[g][tag]) gm[g][tag] = [];
+							//add tiddler to matches
+							gm[g][tag].push(tid.title);
+						}
+					}
+					return index || !any;
+				});
+				return index || !any;
+			});
 		}
 		//any found?
 		return any;
+	},
+
+	setGroupButton: function($btn, tag, force){
+		//tag defined? => select
+		if(tag){
+			//set button text to tag
+			$btn.text(tag)
+				//also the tag attribute
+				.attr('tag', tag)
+				//set selected class
+				.addClass('tf-selected');
+		//tag undefined => deselect (only when not fixed or forced)
+		} else if ( !$btn.data('fixed') || force) {
+			//set button text to group text
+			$btn.text( $btn.data('group') )
+				//remove tag attribute
+				.attr('tag', undefined )
+				//and selected class
+				.removeClass('tf-selected');
+		}
+	},
+
+	//find duplicate buttons set to same tag
+	hasFixedDuplicate: function($t, tag, g){
+		var has,
+			//find selected group tag buttons
+			$tags = $t.find('.tf-tags .tf-selected');
+
+		//loop all tag buttons
+		$tags.each(function(){
+			var $b = $(this);
+			//when
+			if(
+				//not same button
+				g != $b.attr('group') &&
+				//is fixed
+				$b.data('fixed') &&
+				//but has same tag
+				tag == $b.attr('tag')
+			){
+				//found one
+				has = true;
+			}
+			return !has;
+		});
+
+		return has;
 	},
 
 	//get reference, potentially to same tid
@@ -654,19 +805,19 @@ Array.prototype.containsAll = function(items) {
 };
 
 config.shadowTiddlers.TagFiltrConfig =
-'!Prefixes\n' +
+'!Groups\n' +
+' -|realm\n' +
+' &|area\n' +
+' $|project' +
+' +|opportunity\n' +
+' §|stage\n' +
+' ?|who\n' +
+' /|where\n' +
+' !|resolution\n' +
 ' #|status\n' +
 ' ^|prio\n' +
 ' @|context\n' +
-' &|area\n' +
-' ?|who\n' +
-' -|realm\n' +
-' =|type\n' +
-' !|resolution\n' +
-' §|stage\n' +
-' +|opportunity\n' +
-' /|where\n' +
-' $|project';
+' =|type\n';
 
 config.shadowTiddlers.StyleSheetTagFiltr = '/*{{{*/\n' +
 '.filtr {display:block;}\n' +
@@ -674,13 +825,13 @@ config.shadowTiddlers.StyleSheetTagFiltr = '/*{{{*/\n' +
 '.tagfiltr ul {margin: 0;padding: 0;}\n' +
 '.tagfiltr > b,\n' +
 '.tf-tags,\n' +
-'.tf-tags .button {float: left;}\n' +
+'.tf-tags .button {float: left;margin: 0 0.25em 0 0;padding: 0 0.25em;}\n' +
 '.tf-tags .tf-fix {border-color:[[ColorPalette::TertiaryPale]];pointer:default;}\n' +
 '.tf-tags {padding-bottom: 0.5em;}\n'+
-'.tf-prefixes {padding-right:7px;float:left;}\n' +
-'.tf-prefixes .button {display:none;}\n' +
-'.tf-prefixes .tf-prefix {display:block;}\n' +
-'.tf-prefixes .tf-selected {color:[[ColorPalette::SecondaryMid]];}\n' +
+'.tf-groups {padding-right:7px;float:left;}\n' +
+'.tf-groups .button {display:none;}\n' +
+'.tf-groups .tf-group {display:block;}\n' +
+'.tf-groups .tf-selected {color:[[ColorPalette::SecondaryMid]];}\n' +
 '.tagfiltr .tf-tids {clear:left;}\n' +
 '.tf-default li {list-style-type:none;}\n'+
 '.tf-default .tiddlyLink{display:block; padding: 1px 1px 1px 7px;}\n'+
