@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
-|Version|1.1.1 (2013-09-07)|
+|Version|1.1.2 (2013-09-20)|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -33,8 +33,17 @@ Great!
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
             var box, boxtitle, boxwrap, el, list, prev,
                 p = paramString.parseParams('anon', null, true),
+                appendTo = getParam(p, 'appendTo', this.appendTo),
                 preserve = getParam(p, 'preserve', this.defaultPreserve),
                 listClass = 'lf-' + new Date().formatString('YYYYMMDDhhmmss') + Math.random().toString().substr(6);
+
+            //when appendTo defined 
+            if(appendTo){
+                //find tiddler
+                list = $(place).closest('.tiddler');
+                //find element in list
+                place = $(appendTo, list).first()[0] || place;
+            }
 
             //get list as last element
             list = $(place).children().last();
@@ -113,9 +122,8 @@ Great!
 
                         li.not('br, .pseudo-ol-li').addClass('lf-' + (found ? 'found' : 'h'));
 
-
                         if (li.is('dt')) {
-                            dd = li.nextUntil('dd','dt');
+                            dd = li.nextUntil('dt','dd');
                             if (found) dd.addClass('lf-not');
                         };
                         li = li.closest('dd');
@@ -138,12 +146,8 @@ Great!
                 if (term.length > 1) {
                     $('.lf-found', list).each(function (i) {
                         $(this).parentsUntil(until, '.lf-h').removeClass('lf-h').not('.pseudo-ol-li').addClass('lf-not');
-                    });
-
-                    $('.lf-found', list).each(function (i) {
                         $('.lf-h', this).removeClass('lf-h').not('.pseudo-ol-li').addClass('lf-not');
                     });
-
 
                     $.fn.highlight = function (term) {
                         var pattern = new RegExp('(\\b\\w*' + term + '\\w*\\b)', 'gi'),
