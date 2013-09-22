@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
-|Version|1.1.3 (2013-09-22)|
+|Version|1.1.4 (2013-09-22)|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -31,7 +31,7 @@ Great!
 
         //macro handler
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
-            var box, boxtitle, boxwrap, el, list, prev,
+            var box, boxtitle, boxwrap, dd, el, list, lt, prev,
                 p = paramString.parseParams('anon', null, true),
                 appendTo = getParam(p, 'appendTo', this.appendTo),
                 preserve = getParam(p, 'preserve', this.defaultPreserve),
@@ -128,14 +128,30 @@ Great!
                                 dd.addClass('lf-not');
                             }
                         };
-                        li = li.closest('dd');
-                        if (li.length) {
-                            dt = li.prevAll('dt:first');
+                        dd = li.closest('dd');
+                        if (dd.length) {
+                            dt = dd.prevAll('dt:first');
                             if (found) {
                                 if (!dt.hasClass('lf-found'))
                                     dt.addClass('lf-not').removeClass('lf-h');
                             } else if (dt.hasClass('lf-found')) {
-                                li.removeClass('lf-h');
+                                dd.removeClass('lf-h');
+                            }
+                        }
+
+                        if(found){
+                            if(li.is('.listTitle')){
+                                console.log(li.parent().find('> li'));
+                                li.parent().find('> li').each(function(){
+                                    var li = $(this);
+                                    if(!li.hasClass('lf-found'))
+                                        li.addClass('lf-not');
+                                })
+                            }
+
+                            lt = li.closest('li').parent().find('> .listTitle');
+                            if(lt.length && !lt.hasClass('lf-found')){
+                                lt.addClass('lf-not');
                             }
                         }
                     }
@@ -178,8 +194,8 @@ Great!
                     })
                 }
 
-                //do not hide (links) inside definition terms
-                $('dt.lf-not .lf-h', list).removeClass('lf-h');
+                //do not hide (links) inside definition terms or timeline list items related to match 
+                $('dt.lf-not .lf-h, li.lf-not.lf-h', list).removeClass('lf-h');
 
                 //do not hide stuff under list items except further ul ol
                 $('.lf-not', list)
