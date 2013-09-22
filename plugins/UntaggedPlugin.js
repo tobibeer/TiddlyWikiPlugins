@@ -1,15 +1,18 @@
 /***
 |''Name''|UntaggedPlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Description''|provides an """<<untagged>>""" macro and adds an untagged button to the tags tab|
+|''Description''|provides an """<<untagged>>""" macro<br>adds an untagged button to the tags tab<br>allows to hide (empty) tags / tagging|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/UntaggedPlugin.js|
 |''Documentation''|http://untagged.tiddlyspace.com|
-|''Version''|0.9.2 (2013-09-22)|
+|''Version''|0.9.3 (2013-09-22)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 !Options
-<<option chkShowUntagged>> show in [[sidebar tags|TabTags]]
-<<option chkShowUntaggedShadows>> also list untagged shadow tiddlers
+|!Option|!Description|!Default|h
+|<<option chkShowUntagged>> ''chkShowUntagged'' |show untagged with the """<<alltags>>""" macro, e.g. in the [[sidebar|TabTags]]| ☑ |
+|<<option chkShowUntaggedShadows>> ''chkShowUntaggedShadows'' |also list untagged shadow tiddlers| ☐ |
+|<<option chkHideEmptyTags>> ''chkHideEmptyTags'' |hide tags when empty| ☑ |
+|<<option chkHideEmptyTagging>> ''chkHideEmptyTagging'' |hide tagging when empty| ☑ |
 !Usage
 {{{
 <<untagged>>
@@ -32,6 +35,12 @@ if(!config.options.chkShowUntagged){
 if(!config.options.chkShowUntaggedShadows){
     config.options.chkShowUntaggedShadows = false;
 }
+if(!config.options.chkHideEmptyTags){
+    config.options.chkHideEmptyTags = true;
+}
+if(!config.options.chkHideEmptyTagging){
+    config.options.chkHideEmptyTagging = true;
+}
 
 //localisation
 merge(config.views.wikified.tag,{
@@ -46,6 +55,10 @@ var lingo = config.views.wikified.tag;
 
 //define get macro
 var me = config.macros.untagged = {
+        selectorTags: '.tagged, .tidTags, .infoTags',
+        selectorTagging: '.tagging, .infoTagging',
+        noTagsWhenTagged:'no-tags',
+        noTaggingWhenTagged:'no-tagging',
 
         //the macro handler
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
@@ -221,6 +234,43 @@ config.macros.allTags.handler = function(place, macroName, params) {
         wikify('<<untagged alltags>>',place);
     }
 };
+
+//hijack displayTiddler to hide tags or tagging when set or empty
+Story.prototype.displayTiddlerUNTAGGED = Story.prototype.displayTiddler;
+Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,unused,customFields,toggle,animationSrc){
+    var
+        //run default and get tid element
+        el = Story.prototype.displayTiddlerUNTAGGED.apply(this, arguments),
+        //get title
+        title = (tiddler instanceof Tiddler) ? tiddler.title : tiddler,
+        //get tiddler
+        tid = store.getTiddler(title);
+
+    //when
+    if(
+        //tid has tags and tag to hide tagged OR
+        (tid && tid.tags && tid.tags.contains(me.noTagsWhenTagged))
+        ||
+        //empty tags to be hidden and this tid has no tags
+        (config.options.chkHideEmptyTags && (!tid || !tid.tags || !tid.tags.length))
+    ){
+        //hide tags
+        $(me.selectorTags, el).hide();
+    }
+
+    //when
+    if(
+        //tid has tags and has tag to hide tagging OR
+        (tid && tid.tags && tid.tags.contains(me.noTaggingWhenTagged))
+        ||
+        //empty tagging to be hidden and this tid has no tids tagging to it
+        (config.options.chkHideEmptyTagging && (!tid || !store.getTaggedTiddlers(title).length))
+    ){
+        //hide tagging
+        $(me.selectorTagging, el).hide();
+    }
+}
+
 
 })(jQuery);
 //}}}
