@@ -4,10 +4,12 @@
 |''Description''|provides an """<<untagged>>""" macro and adds an untagged button to the tags tab|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/UntaggedPlugin.js|
 |''Documentation''|http://untagged.tiddlyspace.com|
-|''Version''|0.9.1 (2013-09-22)|
+|''Version''|0.9.2 (2013-09-22)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
+!Options
 <<option chkShowUntagged>> show in [[sidebar tags|TabTags]]
+<<option chkShowUntaggedShadows>> also list untagged shadow tiddlers
 !Usage
 {{{
 <<untagged>>
@@ -26,6 +28,9 @@
 //optionfor sidebar tags
 if(!config.options.chkShowUntagged){
     config.options.chkShowUntagged = true;
+}
+if(!config.options.chkShowUntaggedShadows){
+    config.options.chkShowUntaggedShadows = false;
 }
 
 //localisation
@@ -68,6 +73,12 @@ var me = config.macros.untagged = {
 
             //get all tids
             store.getTiddlers('title').map(function(t){
+                //skip shadows and has shadow?
+                if(!config.options.chkShowUntaggedShadows &&
+                    config.shadowTiddlers[t.title])
+                    //skip
+                    return true;
+
                 //add those w/o tags
                 if(!t.tags||!t.tags.length)
                     tids.push(t);
