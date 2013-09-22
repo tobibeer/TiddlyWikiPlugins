@@ -6,7 +6,7 @@
 |Requires||
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
-|Version|1.1.2 (2013-09-20)|
+|Version|1.1.3 (2013-09-22)|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -124,7 +124,9 @@ Great!
 
                         if (li.is('dt')) {
                             dd = li.nextUntil('dt','dd');
-                            if (found) dd.addClass('lf-not');
+                            if (found) {
+                                dd.addClass('lf-not');
+                            }
                         };
                         li = li.closest('dd');
                         if (li.length) {
