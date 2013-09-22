@@ -1,10 +1,10 @@
 /***
 |''Name''|NodeTreePlugin|
 |''Description''|Extends TiddlyWiki list markup to add tree diagram type lists.|
-|''Version''|0.5.7 (2013-09-17 / tentative)|
+|''Version''|0.5.7 (2013-09-22)|
 |''Author''|G.J.Robert Ciang (江瑋平) / Tobias Beer|
 |''Documentation''|http://nodetree.tiddlyspace.com|
-|''Source''|http://nodetreeplugin.tiddlyspace.com#NodeTreePlugin|
+|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/NodeTreePlugin.js|
 |''License''|CC BY-SA|
 |''~CoreVersion''|2.1+|
 |''Type''|plugin|
