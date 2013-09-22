@@ -1,7 +1,7 @@
 /***
 |''Name''|NodeTreePlugin|
 |''Description''|Extends TiddlyWiki list markup to add tree diagram type lists.|
-|''Version''|0.5.6|
+|''Version''|0.5.7 (2013-09-17 / tentative)|
 |''Author''|G.J.Robert Ciang (江瑋平) / Tobias Beer|
 |''Documentation''|http://nodetree.tiddlyspace.com|
 |''Source''|http://nodetreeplugin.tiddlyspace.com#NodeTreePlugin|
@@ -24,6 +24,8 @@
 !Code
 ***/
 //{{{
+(function($){
+
 config.formatters.push(
 {
 	name: "NodeTree",
@@ -69,7 +71,7 @@ config.formatters.push(
 			if(listLevel > currLevel) {
 				for(t=currLevel; t<listLevel; t++) {
 					var target = (currLevel == 0) ? stack[stack.length-1] : stack[stack.length-1].lastChild;
-					stack.push(createTiddlyElement(target,listType));
+					stack.push(createTiddlyElement(target,'div',null,'nt-'+listType));
 				}
 			} else if(listType!=baseType && listLevel==1) {
 				w.nextMatch -= lookaheadMatch[0].length;
@@ -79,11 +81,16 @@ config.formatters.push(
 					stack.pop();
 			} else if(listLevel == currLevel && listType != currType) {
 				stack.pop();
-				stack.push(createTiddlyElement(stack[stack.length-1].lastChild,listType));
+				stack.push(createTiddlyElement(stack[stack.length-1].lastChild,'div',null,'nt-'+listType));
 			}
 			currLevel = listLevel;
 			currType = listType;
-			var e = createTiddlyElement(stack[stack.length-1],itemType);
+			var e = createTiddlyElement(stack[stack.length-1],'div',null,'nt-'+itemType);
+			//fix for non-working :last-of-type
+		   	if('ti' == itemType){
+		   		$('> .nt-ti-last', $(e).parent() ).removeClass('nt-ti-last');
+				$(e).addClass('nt-ti-last');
+		    }
 			w.subWikifyTerm(e,this.termRegExp);
 			this.lookaheadRegExp.lastIndex = w.nextMatch;
 			lookaheadMatch = this.lookaheadRegExp.exec(w.source);
@@ -96,8 +103,11 @@ config.formatters.push(
 	name: "NodeTreeParent",
 	match: "&&",
 	termRegExp: /(&&)/mg,
-	element: "tp",
-	handler: config.formatterHelpers.createElementAndWikify
+	element: "div",
+	handler: function(w)
+	{
+		w.subWikifyTerm(createTiddlyElement(w.output,this.element,null,'nt-tp'),this.termRegExp);
+	}
 });
 
 config.shadowTiddlers['NodeTreeImages'] =
@@ -115,15 +125,17 @@ config.shadowTiddlers['NodeTreeStyles'] =
 
 store.addNotification('NodeTreeStyles', refreshStyles);
 
+})(jQuery);
+
 //}}}
 // /%
 /* 
 !CSS
-ti {
+.nt-ti {
 display: table-row;
 vertical-align: middle;
 }
-ti:before {
+.nt-ti:before {
 content: '　';
 display: table-cell;
 vertical-align: middle;
@@ -133,50 +145,51 @@ background-position: left;
 background-repeat:
 no-repeat;
 }
-ti:first-of-type:before{
+.nt-ti:first-of-type:before{
 background-image: url([[NodeTreeImages##FIRST]]), url([[NodeTreeImages##BAR]]);
 background-size: 100% 100%, 16px 16px;
 background-position: left;
 background-repeat: no-repeat;
 }
-ti:last-of-type:before {
+.nt-ti-last:before {
 background-image:url([[NodeTreeImages##LAST]]), url([[NodeTreeImages##BAR]]);
 background-size: 100% 100%, 16px 16px;
 background-position: left;
 background-repeat: no-repeat;
 }
-ti:only-child:before, ti:only-of-type:before {
+.nt-ti:only-child:before,
+.nt-ti:only-of-type:before {
 background-image: url([[NodeTreeImages##BAR]]);
 background-size: 16px 16px;
 background-position: left;
 background-repeat: no-repeat;
 }
-ts, ts:before {
+.nt-ts, .nt-ts:before {
 display: table-cell;
 vertical-align: middle;
 }
-ts:before {
+.nt-ts:before {
 content: '　';
 background-image:url([[NodeTreeImages##COMMON]]);
 background-size:100% 100%
 }
-ts:first-child:before,
-ts:last-child:before,
-ts:only-child:before{
+.nt-ts:first-child:before,
+.nt-ts:last-child:before,
+.nt-ts:only-child:before{
 background-image: none;
 }
-ts:before{
+.nt-ts:before{
 display: table-cell;
 }
-ts{
+.nt-ts{
 display:table-row;
 }
-tl{
+.nt-tl{
 display: table-cell;
 padding-left: 0;
 margin-left:0;
 vertical-align: middle;}
-tp{
+.nt-tp{
 display: table-cell;
 vertical-align:middle;
 padding-right:1em;
@@ -185,11 +198,12 @@ background-size: 16px 16px;
 background-position: right;
 background-repeat: no-repeat;
 }
-tl, tp{
+.nt-tl,
+.nt-tp{
 border-top:7px solid transparent;
 border-bottom:7px solid transparent;
 }
-tp+br{
+.nt-tp + br{
 display:none;
 }
 !END */
