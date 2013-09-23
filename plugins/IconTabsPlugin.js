@@ -3,7 +3,7 @@
 |''Description''|extends the tabs macro to replace tabnames with icons|
 |''Documentation''|http://icontabs.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.2|
+|''Version''|1.0.3|
 |''CoreVersion''|2.6.1|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/IconTabsPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -21,27 +21,48 @@
         vSpace: '20px'
     }
     config.macros.tabs.handler = function (place, macroName, params, wikifier, paramString, tiddler) {
-        var arrSpacer = [], hspace, icons, iconParams, pa, pal, path, space,
+        var arrSpacer = [], hspace, icons, iconParams, next, p=0, pa, pal, path,
             cfg = this.IconTabsConfig;
-        for (p = 0; p < params.length; p++) {
+        //loop params
+        while(p < params.length) {
+            //get param
             pa = params[p];
+            //hidden on readonly?
             if (pa.indexOf('--') == 0) {
+                //when on readOnly
                 if (readOnly) {
-                    p--;
+                    //get param
+                    pal = pa.substr(2).toLowerCase();
+                    //remove from params, either spacer or set
+                    params.splice(p, pal == 'hspace' || pal == 'vspace' ? 1 : 3);
+                    //next
                     continue;
+                //not on readOnly
                 } else {
+                    //remove from param
                     params[p] = pa = pa.substr(2);
                 }
             }
-            if (space) {
-                space = false;
-                arrSpacer.push(pa);
-                params.splice(p - 1, 1);
-                icons--;
-            }
+
+            //get param as lowercase
             pal = pa.toLowerCase();
-            space = pal == 'hspace' || pal == 'vspace';
-            hspace = hspace || pal == 'hspace';
+            
+            //is spacer
+            if(pal == 'hspace' || pal == 'vspace'){
+                //remember if horizontal space
+                hspace = pal == 'hspace';
+                //remove spacer
+                params.splice(p, 1);
+                //get next param
+                next = params[p];
+                //add if existing
+                if(next) arrSpacer.push(next.replace(/^\-{2}/,''));
+                //next param
+                continue;
+            }
+
+            //next params
+            p++;
         }
         icons = params.indexOf('icons:');
         if (icons > 0) {
