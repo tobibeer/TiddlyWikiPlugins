@@ -4,7 +4,7 @@
 |''Description''|provides an """<<untagged>>""" macro<br>adds an untagged button to the tags tab<br>allows to hide (empty) tags / tagging|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/UntaggedPlugin.js|
 |''Documentation''|http://untagged.tiddlyspace.com|
-|''Version''|1.0.0 (2013-09-23)|
+|''Version''|1.0.1 (2013-09-23)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 !Options
@@ -319,7 +319,7 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
         (tid && tid.tags && tid.tags.containsAny(me.noTaggingWhenTagged.readBracketedList()))
         ||
         //empty tagging to be hidden and this tid has no tids tagging to it
-        (config.options.chkHideEmptyTagging && (!tid || !store.getTaggedTiddlers(title).length))
+        (config.options.chkHideEmptyTagging && (!store.getTaggedTiddlers(title).length))
     ){
         //hide tagging
         $(me.selectorTagging, el).hide();
