@@ -4,7 +4,7 @@
 |''Documentation''|http://pagr.tiddlyspace.com|
 |''Author''|Tobias Beer|
 |''~CoreVersion''|2.5.3|
-|''Version''|0.5.0 (2013-09-11)|
+|''Version''|0.5.1 (2013-09-23)|
 |''Readable source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PagrPlugin.js|
 |''License''|[[Creative Commons Attribution-ShareAlike 2.5 License|http://creativecommons.org/licenses/by-sa/2.5/]]|
 ***/
@@ -103,10 +103,12 @@ var me = config.macros.pagr = {
 	}
 }
 
-config.shadowTiddlers.StyleSheetPagr = '/*{{{*/ \n\
-	.pagr {margin: 0 0 0.5em 1em;} \n\
-	.pagr a{padding:5px;} \n\
-	/*}}}*/';
+config.shadowTiddlers.StyleSheetPagr =
+'/*{{{*/\n'+
+'.pagr {margin: 0 0 0.5em 1em;}\n'+
+'.pagr a{padding:5px;}\n'+
+'/*}}}*/';
+
 store.addNotification("StyleSheetPagr", refreshStyles);
 
 })(jQuery);
