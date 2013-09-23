@@ -2,11 +2,10 @@
 |Name|ListFiltrPlugin|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |Documentation|http://listfiltr.tiddlyspace.com|
-|Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
-|Requires||
+|Version|1.1.5 (2013-09-23)|
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
-|Version|1.1.4 (2013-09-22)|
+|Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
 !Info
 This plugin allows to filter lists based on a search term and to browse through filter results.
 !Example
@@ -24,18 +23,22 @@ Great!
 //{{{
 (function ($) {
 
-    config.macros.listfiltr = {
+me = config.macros.listfiltr = {
+
+        //localisation
+        InputPlaceholder: 'filter list',
+        InputLabel: 'Filter list:',
+        InputTooltip: 'enter a search term to filter the list',
 
         //any items to preserve by default
         defaultPreserve: '',
 
         //macro handler
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
-            var box, boxtitle, boxwrap, dd, el, list, lt, prev,
+            var box, boxwrap, dd, el, list, lt, placeholder, prev,
                 p = paramString.parseParams('anon', null, true),
                 appendTo = getParam(p, 'appendTo', this.appendTo),
-                preserve = getParam(p, 'preserve', this.defaultPreserve),
-                listClass = 'lf-' + new Date().formatString('YYYYMMDDhhmmss') + Math.random().toString().substr(6);
+                preserve = getParam(p, 'preserve', this.defaultPreserve);
 
             //when appendTo defined 
             if(appendTo){
@@ -54,10 +57,10 @@ Great!
             if (list.is('span, div')) list = list.contents();
 
             //wrap the contents in a class
-            list.wrapAll('<div class="lf-list ' + listClass + '"/>');
+            list.wrapAll('<div class="lf-list"/>');
 
-            //select ided element
-            list = $('.' + listClass);
+            //get the list wrapper
+            list = list.closest('.lf-list');
 
             //if module present
             if ($.fn.outline)
@@ -85,17 +88,21 @@ Great!
             }).wrap('<span class="lf-p"/>');
 
             boxwrap = $('<div class=lf-search/>').insertBefore(list);
-            boxtitle = $('<span class=lf-label/>').html('Filter list:').appendTo(boxwrap);
+            placeholder = placeholderIsSupported() ? me.InputPlaceholder : '';
+
+            if(!placeholder){
+                $('<span class=lf-label/>').html(me.InputLabel + ':').appendTo(boxwrap);
+            }
             box = $('<input type="search"/>').attr({
-                'title': 'enter your search term here'
+                'title': me.InputTooltip,
+                'placeholder' : placeholder
             }).appendTo(boxwrap);
 
-            box.data('list', listClass).bind('keyup search', function () {
+            box.bind('keyup search', function () {
                 var els, found, text, until,
                 box = $(this),
                 term = box.val(),
-                listClass = box.data('list'),
-                list = $('.' + listClass);
+                list = box.closest('.lf-search').next();
 
                 term.length > 1 ?
                     list.addClass('lf-filtered') :
@@ -140,15 +147,15 @@ Great!
                         }
 
                         if(found){
-                            if(li.is('.listTitle')){
-                                console.log(li.parent().find('> li'));
+                            //keep timeline items
+                            if(li.is('.listTitle') && li.parent().hasClass('timeline')){
                                 li.parent().find('> li').each(function(){
                                     var li = $(this);
                                     if(!li.hasClass('lf-found'))
                                         li.addClass('lf-not');
                                 })
                             }
-
+                            //keep listTitle when found
                             lt = li.closest('li').parent().find('> .listTitle');
                             if(lt.length && !lt.hasClass('lf-found')){
                                 lt.addClass('lf-not');
@@ -209,7 +216,7 @@ Great!
     
                 return true;
             });
-        }
+        },
     }
 
     config.shadowTiddlers['StyleSheetListFiltr'] =
@@ -224,6 +231,12 @@ Great!
     '.lf-preserve.lf-found br {display: block;}\n' +
     '/*}}}*/';
     store.addNotification('StyleSheetListFiltr', refreshStyles);
+
+    //check for placeholder support
+    function placeholderIsSupported() {
+        var test = document.createElement('input');
+        return ('placeholder' in test);
+    }
 
 })(jQuery);
 //}}}
