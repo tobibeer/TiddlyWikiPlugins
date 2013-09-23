@@ -4,7 +4,7 @@
 |''Description''|provides an """<<untagged>>""" macro<br>adds an untagged button to the tags tab<br>allows to hide (empty) tags / tagging|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/UntaggedPlugin.js|
 |''Documentation''|http://untagged.tiddlyspace.com|
-|''Version''|0.9.3 (2013-09-22)|
+|''Version''|0.9.3 (2013-09-23)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 !Options
@@ -47,7 +47,8 @@ merge(config.views.wikified.tag,{
         untaggedButton: "untagged (%0)",
         untaggedTooltip: "Show untagged tiddlers...",  
         untaggedListTitle: "Untagged tiddlers:",
-        untaggedNone: "There are no untagged tiddlers..."
+        untaggedNone: "There are no untagged tiddlers...",
+        openUntagged: "Open '%0'"
 });
 
 //shortcut
@@ -59,6 +60,8 @@ var me = config.macros.untagged = {
         selectorTagging: '.tagging, .infoTagging',
         noTagsWhenTagged:'no-tags',
         noTaggingWhenTagged:'no-tagging',
+        untaggedTiddler: 'untagged',
+        hideTagsReadOnly:'excludeLists excludeMissing excludeSearch excludePublisher systemConfig',
 
         //the macro handler
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
@@ -144,7 +147,9 @@ var me = config.macros.untagged = {
 
         //renders the actual list either directly or into a popup
         showList: function(ev, place){
-            var e = ev || window.event,
+            var el,
+                //get event
+                e = ev || window.event,
                 //get the tids
                 tids = $(place?place:this).data('tids'),
                 //where to render? when place defined => inline list
@@ -162,7 +167,7 @@ var me = config.macros.untagged = {
                     //add the list title
                     createTiddlyElement(out,'li',null,'listTitle',lingo.untaggedListTitle);
                 //in the popup
-                } else {
+                } else if (!config.options.chkSinglePageMode) {
                     //add the open all link
                     createTiddlyButton(
                         createTiddlyElement(out,"li"),
@@ -179,6 +184,21 @@ var me = config.macros.untagged = {
                     //add link
                     createTiddlyLink(createTiddlyElement(out,"li"),t.title,true);
                 });
+                //when link to untagged tiddler enabled and in popup
+                if(me.untaggedTiddler && !place){
+                    //new separator
+                    createTiddlyElement(
+                        createTiddlyElement(out,"li",null,"listBreak"),
+                        'div'                    );
+                    //link to open the untagged tiddler
+                    el = createTiddlyLink(
+                        createTiddlyElement(out,"li"),
+                        me.untaggedTiddler,
+                        false
+                    );
+                    //set link text
+                    createTiddlyText(el,lingo.openUntagged.format([me.untaggedTiddler]));
+                }
             //no untagged tids
             } else {
                 //render message
@@ -213,6 +233,27 @@ var me = config.macros.untagged = {
                 $(this).closest('.taggedTiddlerList').data('tids')
             );
             return false;
+        },
+
+        //hides tag buttons on readOnly
+        hideReadOnly: function(place){
+            //get tags to be hidden
+            var hide = me.hideTagsReadOnly;
+            //get all buttons
+            if(hide && readOnly){
+                //get as array
+                hide = hide.readBracketedList();
+                //loop all buttons
+                $('.button, .tiddlyLink',place).each(function(){
+                    //get tag button
+                    $btn = $(this);
+                    //when to be hide
+                    if(hide.contains($btn.attr('tag'))){
+                        //hide
+                        $btn.hide();
+                    }
+                });
+            }
         }
     }
 
@@ -227,13 +268,27 @@ store.addNotification("StyleSheetUntagged", refreshStyles);
 //hijack tags tab
 config.macros.allTags.handlerUNTAGGED = config.macros.allTags.handler;
 config.macros.allTags.handler = function(place, macroName, params) {
+    //run default
     config.macros.allTags.handlerUNTAGGED.apply(this, arguments);
+    //hide readonly tags
+    me.hideReadOnly($(place).last());
     //show untagged?
     if(config.options.chkShowUntagged){
         //render it
         wikify('<<untagged alltags>>',place);
     }
 };
+
+
+//hijack tags handler
+config.macros.tags.handlerUNTAGGED = config.macros.tags.handler;
+config.macros.tags.handler = function(place,macroName,params,wikifier,paramString,tiddler){
+    //run default
+    config.macros.tags.handlerUNTAGGED.apply(this,arguments);
+    //hide readOnly tags
+    me.hideReadOnly($(place).last());  
+}
+
 
 //hijack displayTiddler to hide tags or tagging when set or empty
 Story.prototype.displayTiddlerUNTAGGED = Story.prototype.displayTiddler;
@@ -249,7 +304,7 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
     //when
     if(
         //tid has tags and tag to hide tagged OR
-        (tid && tid.tags && tid.tags.contains(me.noTagsWhenTagged))
+        (tid && tid.tags && tid.tags.containsAny(me.noTagsWhenTagged.readBracketedList()))
         ||
         //empty tags to be hidden and this tid has no tags
         (config.options.chkHideEmptyTags && (!tid || !tid.tags || !tid.tags.length))
@@ -261,7 +316,7 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
     //when
     if(
         //tid has tags and has tag to hide tagging OR
-        (tid && tid.tags && tid.tags.contains(me.noTaggingWhenTagged))
+        (tid && tid.tags && tid.tags.containsAny(me.noTaggingWhenTagged.readBracketedList()))
         ||
         //empty tagging to be hidden and this tid has no tids tagging to it
         (config.options.chkHideEmptyTagging && (!tid || !store.getTaggedTiddlers(title).length))
