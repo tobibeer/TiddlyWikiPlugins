@@ -3,7 +3,7 @@
 |''Description''|extends the tabs macro to replace tabnames with icons|
 |''Documentation''|http://icontabs.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.1|
+|''Version''|1.0.2|
 |''CoreVersion''|2.6.1|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/IconTabsPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -60,12 +60,15 @@
             $tabs.addClass(cfg.defaultWrapperClass + (css ? ' ' + css : ''));
         }
         $('.tab', $tabs).each(function () {
-            var $t = $(this),
+            var base64,
+                $t = $(this),
                 txt = $t.text().trim(),
                 tab = $t.attr('content').replace(/\#\#/, '__').replace(/\:\:/, '__');
             if (icons > 0) {
+                //tiddler exitsts with a data section?
+                base64 = store.getTiddlerText(path.format([tab]) + '##data');
                 $t.html(
-                '<img src="' + path.format([tab]) +
+                '<img src="' + (base64 ? base64 : path.format([tab])) +
                     '" class="' + cfg.defaultIconClass + (txt ? ' icon' + txt.trim().replace(/(\s|\W)/mg, '_') : '') +
                 '"/>');
             }
