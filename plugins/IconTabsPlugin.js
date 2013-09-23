@@ -60,15 +60,17 @@
             $tabs.addClass(cfg.defaultWrapperClass + (css ? ' ' + css : ''));
         }
         $('.tab', $tabs).each(function () {
-            var base64,
+            var img,
                 $t = $(this),
                 txt = $t.text().trim(),
                 tab = $t.attr('content').replace(/\#\#/, '__').replace(/\:\:/, '__');
             if (icons > 0) {
-                //tiddler exitsts with a data section?
-                base64 = store.getTiddlerText(path.format([tab]) + '##data');
+                //check for AttachFormatterPlugin image
+                img = store.getTiddlerText(path.format([tab]) + '##data');
+                img = img ? img : store.getTiddlerText(path.format([tab]) + '##file');
+                img = img ? img : store.getTiddlerText(path.format([tab]) + '##url');
                 $t.html(
-                '<img src="' + (base64 ? base64 : path.format([tab])) +
+                '<img src="' + (img ? img : path.format([tab])) +
                     '" class="' + cfg.defaultIconClass + (txt ? ' icon' + txt.trim().replace(/(\s|\W)/mg, '_') : '') +
                 '"/>');
             }
