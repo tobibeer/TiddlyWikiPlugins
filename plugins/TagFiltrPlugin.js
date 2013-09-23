@@ -3,7 +3,7 @@
 |''Description''|tag-based faceted tiddler navigation based on FND's tagsplorer|
 |''Documentation''|http://tagfiltr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.4.4 (2013-09-16)|
+|''Version''|1.4.5 (2013-09-23)|
 |''CoreVersion''|2.6.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/TagFiltrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -828,6 +828,7 @@ config.shadowTiddlers.StyleSheetTagFiltr = '/*{{{*/\n' +
 '.tf-tags .button {float: left;margin: 0 0.25em 0 0;padding: 0 0.25em;}\n' +
 '.tf-tags .tf-fix {border-color:[[ColorPalette::TertiaryPale]];pointer:default;}\n' +
 '.tf-tags {padding-bottom: 0.5em;}\n'+
+'.tf-tag {\nborder-top-right-radius:7px;\n-webkit-border-top-right-radius: 7px;\n-moz-border-radius-topright: 7px;\nborder-bottom-right-radius: 7px;\n-webkit-border-bottom-right-radius: 7px;\n-moz-border-radius-bottomright: 7px;}\n'+
 '.tf-groups {padding-right:7px;float:left;}\n' +
 '.tf-groups .button {display:none;}\n' +
 '.tf-groups .tf-group {display:block;}\n' +
