@@ -4,6 +4,8 @@
 |''Description''|Open tiddlers at the top of the screen.|
 |''Version''|0.2|
 |''Requires''|2.5.2|
+|''License''|CC BY-SA|
+|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/OpenTopPlugin.js|
 ***/
 // /%
 Story.prototype.displayTiddlerOPENTOP = Story.prototype.displayTiddler;
