@@ -1,7 +1,7 @@
 /***
 |''Name''|OpenTopPlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]] / original by Saq Imtiaz|
-|''Description''|Open tiddlers at the top of the screen.|
+|''Description''|open tiddlers at the top of the screen|
 |''Version''|0.2|
 |''Requires''|2.5.2|
 |''License''|CC BY-SA|
