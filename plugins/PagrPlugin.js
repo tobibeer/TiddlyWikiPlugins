@@ -4,7 +4,7 @@
 |''Documentation''|http://pagr.tiddlyspace.com|
 |''Author''|Tobias Beer|
 |''~CoreVersion''|2.5.3|
-|''Version''|0.5.1 (2013-09-23)|
+|''Version''|0.5.2 (2013-09-24)|
 |''Readable source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PagrPlugin.js|
 |''License''|[[Creative Commons Attribution-ShareAlike 2.5 License|http://creativecommons.org/licenses/by-sa/2.5/]]|
 ***/
@@ -15,18 +15,20 @@
 var me = config.macros.pagr = {
 
 	//link formats
-	fmtNext:   '[[%0 »|%0]]',
+	fmtNext: '[[%0]]',
 	fmtHome: '[[\u25B2|%0]]',
-	fmtPrev:   '[[« %0|%0]]',
+	fmtPrev: '[[%0]]',
 	//no default toc tiddler
 	toc:'',
 
 	handler: function(place, macroName, params, wikifier, paramString, theTiddler){
 
 		//init vars
-		var links, n, out='', p={}, prev, pos, pg, tid, tids, temp,
+		var links, n, out='', oul, p={}, prev, pos, pg, tid, tids, temp, tocTid,
 			//parse params
-			px = paramString.parseParams('anon', null, true);
+			px = paramString.parseParams('anon', null, true),
+			//show toc?
+			sub = params.contains('sub');
 
 		//all params
 		[
@@ -67,6 +69,23 @@ var me = config.macros.pagr = {
 		//render toc in temporary container
 		wikify(links, temp[0]);
 
+		//try to get toc tiddler as either named variable or this tiddler when unnamed
+		sub = getParam(px, 'sub', sub ? tid : '');
+		//if generic toc
+		if(sub){
+			//find tid in toc
+			oul = temp.find('[tiddlyLink="' + sub + '"]')
+				.first()
+				//get next ol or ul
+				.next('ol,ul');
+			//make pseudo-ol
+			if(oul.closest('.pseudo-ol').length)oul.addClass('pseudo-ol');
+			//output
+			oul.appendTo(place);
+			//done
+			return;
+		}
+
 		//initialise toc-tids
 		tids = [];
 		//loop all tiddlylinks from rendered toc
@@ -90,13 +109,13 @@ var me = config.macros.pagr = {
 
 		//when applicable, output...
 		if (p.p && prev >=0 )
-			out += p.p.format([ tids[prev] ]);		
+			out += '{{pagr_prev{' + p.p.format([ tids[prev] ]) + '}}}';
 
 		if (p.h)
 			out += p.h.format([ p.toc      ]);
 
 		if (p.n && next)
-			out += p.n.format([ tids[next] ]);
+			out += '{{pagr_next{' + p.n.format([ tids[next] ]) + '}}}';
 
 		//render output
 		wikify(out, pg);
@@ -106,7 +125,9 @@ var me = config.macros.pagr = {
 config.shadowTiddlers.StyleSheetPagr =
 '/*{{{*/\n'+
 '.pagr {margin: 0 0 0.5em 1em;}\n'+
-'.pagr a{padding:5px;}\n'+
+'.pagr a {padding:5px;}\n'+
+'.pagr_prev a:before {content:"« ";}\n'+
+'.pagr_next a:after {content:" »";}\n'+
 '/*}}}*/';
 
 store.addNotification("StyleSheetPagr", refreshStyles);
