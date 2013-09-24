@@ -1,9 +1,22 @@
 /***
+|''Name''|jQueryOutline|
 |''Documentation''|http://listfiltr.tiddlyspace.com|
+|''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Idea''|http://stackoverflow.com/questions/1852816/nested-ordered-lists|
-|''Version''|2013.03.01|
+|''Version''|0.4.0 (2013.09.24)|
+|''CoreVersion''|2.5.3|
 !Use
 {{{$(selector).outline();}}}
+
+Alternatively, use the outline macro behind a list...
+{{{
+# foo
+## bar
+<<outline>>
+}}}
+# foo
+## bar
+<<outline>>
 !Options
 Either override the defaults globally...
 {{{
@@ -78,6 +91,25 @@ $(selector).outline({olClass: 'myClass'});
         counterTemplates: ['1.', 'a.', 'i.'],
         plain: true
     }
+
+var me = config.macros.outline = {
+    handler: function(place) {
+        //get last rendered element
+        var $o = $(place).children().last();
+        //skip any newlines
+        while ( $o.is('br') ){
+            $o = $o.prev();
+        }
+        //when div or span
+        if( $o.is('span, div') ){
+            //get first ol within
+            $o = $o.children('ol').first();
+        }
+        //outline the bugger
+        $o.outline();
+    }
+}
+
 })(jQuery);
 /*}}}*/
 /*{{{*/
