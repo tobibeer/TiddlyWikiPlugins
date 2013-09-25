@@ -196,7 +196,7 @@ me = config.macros.listfiltr = {
                     //highlight links
                     $('.externalLink, .tiddlyLink', list).each(function () {
                         var l = $(this),
-                            link = l.hasClass('tiddlyLink') ? l.attr('tiddlyLink') : l.attr('href').replace('http://', '');
+                            link = (l.hasClass('tiddlyLink') ? l.attr('tiddlyLink') : l.attr('href').replace('http://', ''))||'';
                         if (term.length > 1 && link.indexOf(term) > -1) l.addClass('highlight');
                     })
                 }
