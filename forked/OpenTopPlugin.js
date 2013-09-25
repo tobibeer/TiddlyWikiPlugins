@@ -9,11 +9,12 @@
 ***/
 /*{{{*/
 Story.prototype.displayTiddlerOPENTOP = Story.prototype.displayTiddler;
-Story.prototype.displayTiddler = function (srcElement, tiddler, template, animate, unused, customFields, toggle,animationSrc) {
+Story.prototype.displayTiddler =
+function (srcElement, tiddler, template, animate, unused, customFields, toggle,animationSrc) {
 	srcElement = null;
 	this.closeTiddler((tiddler instanceof Tiddler) ? tiddler.title : tiddler);
 	//call default
 	this.displayTiddlerOPENTOP.apply(this, arguments);
 	window.scrollTo(0,0);
 }
-//}}}//
+/*}}}*/
