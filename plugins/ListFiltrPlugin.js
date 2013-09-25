@@ -2,7 +2,7 @@
 |Name|ListFiltrPlugin|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |Documentation|http://listfiltr.tiddlyspace.com|
-|Version|1.1.5 (2013-09-23)|
+|Version|1.1.6 (2013-09-25)|
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
@@ -196,7 +196,7 @@ me = config.macros.listfiltr = {
                     //highlight links
                     $('.externalLink, .tiddlyLink', list).each(function () {
                         var l = $(this),
-                            link = l.hasClass('tiddlyLink') ? l.attr('tiddlylink') : l.attr('href').replace('http://', '');
+                            link = l.hasClass('tiddlyLink') ? l.attr('tiddlyLink') : l.attr('href').replace('http://', '');
                         if (term.length > 1 && link.indexOf(term) > -1) l.addClass('highlight');
                     })
                 }
@@ -210,9 +210,8 @@ me = config.macros.listfiltr = {
                     .not('ol, ul')
                     .find('.lf-h')
                     .removeClass('lf-h');
-
                 //except when in preserved, hide all of class lf-h 
-                $('.lf-h', list).not('.lf-preserve .lf-h').addClass('lf-hide');
+                $('.lf-h', list).addClass('lf-hide');
     
                 return true;
             });
