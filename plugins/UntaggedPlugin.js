@@ -4,7 +4,7 @@
 |''Description''|provides an """<<untagged>>""" macro<br>adds an untagged button to the tags tab<br>allows to hide (empty) tags / tagging|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/UntaggedPlugin.js|
 |''Documentation''|http://untagged.tiddlyspace.com|
-|''Version''|1.0.2 (2013-09-25)|
+|''Version''|1.0.3 (2013-09-25)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 !Options
@@ -56,206 +56,223 @@ var lingo = config.views.wikified.tag;
 
 //define get macro
 var me = config.macros.untagged = {
-        selectorTags: '.tagged, .tidTags, .infoTags',
-        selectorTagging: '.tagging, .infoTagging',
-        noTagsWhenTagged:'no-tags',
-        noTaggingWhenTagged:'no-tagging',
-        untaggedTiddler: 'untagged',
-        hideTagsReadOnly:'excludeLists excludeMissing excludeSearch excludePublisher systemConfig',
+    selectorTags: '.tagged, .tidTags, .infoTags',
+    selectorTagging: '.tagging, .infoTagging',
+    noTagsWhenTagged:'no-tags',
+    noTaggingWhenTagged:'no-tagging',
+    untaggedTiddler: 'untagged',
+    hideTags:'excludeLists excludeMissing excludePublisher excludeSearch',
+    hideTagsReadOnly: 'systemConfig',
 
-        //the macro handler
-        handler: function (place, macroName, params, wikifier, paramString, tiddler) {
-            //call the refresh handler
-            me.refresh(place, paramString);
-        },
+    //the macro handler
+    handler: function (place, macroName, params, wikifier, paramString, tiddler) {
+        //call the refresh handler
+        me.refresh(place, paramString);
+    },
 
-        refresh: function (el, paramString) {
-            var $out, tids = [], ul,
-                //parse params
-                p = paramString.parseParams('anon',null,true),
-                //get unnamed params
-                params = p[0]['anon'] || [],
-                //check if the list is to be rendered
-                list = params.contains('list'),
-                //is this an actual refresh?
-                refresh = $(el).attr('macroName') == 'untagged',
-                //the element as jQuery object
-                $el = $(el),
-                //where to render stuff
-                place = refresh ? $el.parent()[0] : el;
+    refresh: function (el, paramString) {
+        var $out, tids = [], ul,
+            //parse params
+            p = paramString.parseParams('anon',null,true),
+            //get unnamed params
+            params = p[0]['anon'] || [],
+            //check if the list is to be rendered
+            list = params.contains('list'),
+            //is this an actual refresh?
+            refresh = $(el).attr('macroName') == 'untagged',
+            //the element as jQuery object
+            $el = $(el),
+            //where to render stuff
+            place = refresh ? $el.parent()[0] : el;
 
-            //on refresh, hide previous element
-            if(refresh) $el.hide();
+        //on refresh, hide previous element
+        if(refresh) $el.hide();
 
-            //get all tids
-            store.getTiddlers('title').map(function(t){
-                //skip shadows and has shadow?
-                if(!config.options.chkShowUntaggedShadows &&
-                    config.shadowTiddlers[t.title])
-                    //skip
-                    return true;
+        //get all tids
+        store.getTiddlers('title').map(function(t){
+            //skip shadows and has shadow?
+            if(!config.options.chkShowUntaggedShadows &&
+                config.shadowTiddlers[t.title])
+                //skip
+                return true;
 
-                //add those w/o tags
-                if(!t.tags||!t.tags.length)
-                    tids.push(t);
+            //add those w/o tags
+            if(!t.tags||!t.tags.length)
+                tids.push(t);
+        });
+
+        //render list or popup button
+        $out = $(
+            //render list?
+            list ?
+            //create ul
+            createTiddlyElement(place,'ul') : 
+            //render popup button?
+            createTiddlyButton(
+                place,
+                lingo.untaggedButton.format([tids.length]),
+                lingo.untaggedTooltip,
+                me.showList,
+                'tiddlyLink untagged'
+            )
+        )
+            //remember tids
+            .data('tids',tids)
+            //set refresh params
+            .attr({
+                'tiddlyLink': me.untaggedTiddler ? me.untaggedTiddler : '',
+                'refresh': 'macro',
+                'macroName': 'untagged',
+                'params': paramString
             });
 
-            //render list or popup button
-            $out = $(
-                //render list?
-                list ?
-                //create ul
-                createTiddlyElement(place,'ul') : 
-                //render popup button?
-                createTiddlyButton(
-                    place,
-                    lingo.untaggedButton.format([tids.length]),
-                    lingo.untaggedTooltip,
-                    me.showList,
-                    'tiddlyLink untagged'
+        //render list
+        if(list)
+            me.showList(null, $out[0]);
+        //or button into new li in sidebar
+        else if(params.contains('alltags')) {
+            $out.appendTo(
+                $('<li/>').appendTo(
+                    $out.prev()
                 )
             )
-                //remember tids
-                .data('tids',tids)
-                //set refresh params
-                .attr({
-                    'tiddlyLink': me.untaggedTiddler ? me.untaggedTiddler : '',
-                    'refresh': 'macro',
-                    'macroName': 'untagged',
-                    'params': paramString
-                });
+        }
 
-            //render list
-            if(list)
-                me.showList(null, $out[0]);
-            //or button into new li in sidebar
-            else if(params.contains('alltags')) {
-                $out.appendTo(
-                    $('<li/>').appendTo(
-                        $out.prev()
-                    )
-                )
-            }
+        //on refresh
+        if(refresh){
+            //append new
+            $out.insertAfter($el);
+            //remove old
+            $el.remove();
+        }
+    },
 
-            //on refresh
-            if(refresh){
-                //append new
-                $out.insertAfter($el);
-                //remove old
-                $el.remove();
-            }
-        },
+    //renders the actual list either directly or into a popup
+    showList: function(ev, place){
+        var el,
+            //get event
+            e = ev || window.event,
+            //get the tids
+            tids = $(place?place:this).data('tids'),
+            //where to render? when place defined => inline list
+            out = place ? place : Popup.create(this),
+            //the output container as a jQuery object
+            $out = $(out);
 
-        //renders the actual list either directly or into a popup
-        showList: function(ev, place){
-            var el,
-                //get event
-                e = ev || window.event,
-                //get the tids
-                tids = $(place?place:this).data('tids'),
-                //where to render? when place defined => inline list
-                out = place ? place : Popup.create(this),
-                //the output container as a jQuery object
-                $out = $(out);
+        //set classes
+        $out.addClass("taggedTiddlerList untaggedTiddlerList");
 
-            //set classes
-            $out.addClass("taggedTiddlerList untaggedTiddlerList");
-
-            //when there are untagged tids
-            if(tids.length > 0) {
-                //in the inline list
-                if(place){
-                    //add the list title
-                    createTiddlyElement(out,'li',null,'listTitle',lingo.untaggedListTitle);
-                //in the popup
-                } else if (!config.options.chkSinglePageMode) {
-                    //add the open all link
-                    createTiddlyButton(
-                        createTiddlyElement(out,"li"),
-                        lingo.openAllText.format([lingo.untaggedButton]),
-                        lingo.untaggedTooltip,
-                        me.openAll
-                    );
-                    //spacer
-                    createTiddlyElement(createTiddlyElement(out,"li",null,"listBreak"),"div");
-                }
-                //loop all tids
-                tids.map(function(t){
-                    //add link
-                    createTiddlyLink(createTiddlyElement(out,"li"),t.title,true);
-                });
-                //when link to untagged tiddler enabled and in popup
-                if(me.untaggedTiddler && !place){
-                    //new separator
-                    createTiddlyElement(
-                        createTiddlyElement(out,"li",null,"listBreak"),
-                        'div'                    );
-                    //link to open the untagged tiddler
-                    el = createTiddlyLink(
-                        createTiddlyElement(out,"li"),
-                        me.untaggedTiddler,
-                        false
-                    );
-                    //set link text
-                    createTiddlyText(el,lingo.openUntagged.format([me.untaggedTiddler]));
-                }
-            //no untagged tids
-            } else {
-                //render message
-                createTiddlyElement(
-                    out,
-                    "li",
-                    null,
-                    "disabled",
-                    lingo.untaggedNone
+        //when there are untagged tids
+        if(tids.length > 0) {
+            //in the inline list
+            if(place){
+                //add the list title
+                createTiddlyElement(out,'li',null,'listTitle',lingo.untaggedListTitle);
+            //in the popup
+            } else if (!config.options.chkSinglePageMode) {
+                //add the open all link
+                createTiddlyButton(
+                    createTiddlyElement(out,"li"),
+                    lingo.openAllText.format([lingo.untaggedButton]),
+                    lingo.untaggedTooltip,
+                    me.openAll
                 );
+                //spacer
+                createTiddlyElement(createTiddlyElement(out,"li",null,"listBreak"),"div");
             }
-
-            //append tids
-            $out.data('tids',tids);
-
-            //when popup
-            if(!place){
-                //show it and be done
-                Popup.show();
-                e.cancelBubble = true;
-                if(e.stopPropagation) e.stopPropagation();
-                return false;
+            //loop all tids
+            tids.map(function(t){
+                //add link
+                createTiddlyLink(createTiddlyElement(out,"li"),t.title,true);
+            });
+            //when link to untagged tiddler enabled and in popup
+            if(me.untaggedTiddler && !place){
+                //new separator
+                createTiddlyElement(
+                    createTiddlyElement(out,"li",null,"listBreak"),
+                    'div'                    );
+                //link to open the untagged tiddler
+                el = createTiddlyLink(
+                    createTiddlyElement(out,"li"),
+                    me.untaggedTiddler,
+                    false
+                );
+                //set link text
+                createTiddlyText(el,lingo.openUntagged.format([me.untaggedTiddler]));
             }
-        },
-
-        //opens all untagged tids
-        openAll: function(){
-            //open tids
-            story.displayTiddlers(
-                this,
-                //from container
-                $(this).closest('.taggedTiddlerList').data('tids')
+        //no untagged tids
+        } else {
+            //render message
+            createTiddlyElement(
+                out,
+                "li",
+                null,
+                "disabled",
+                lingo.untaggedNone
             );
-            return false;
-        },
+        }
 
-        //hides tag buttons on readOnly
-        hideReadOnly: function(place){
-            //get tags to be hidden
-            var hide = me.hideTagsReadOnly;
-            //get all buttons
-            if(hide && readOnly){
-                //get as array
-                hide = hide.readBracketedList();
-                //loop all buttons
-                $('.button, .tiddlyLink',place).each(function(){
-                    //get tag button
-                    $btn = $(this);
-                    //when to be hide
-                    if(hide.contains($btn.attr('tag'))){
-                        //hide
-                        $btn.hide();
-                    }
-                });
+        //append tids
+        $out.data('tids',tids);
+
+        //when popup
+        if(!place){
+            //show it and be done
+            Popup.show();
+            e.cancelBubble = true;
+            if(e.stopPropagation) e.stopPropagation();
+            return false;
+        }
+    },
+
+    //opens all untagged tids
+    openAll: function(){
+        //open tids
+        story.displayTiddlers(
+            this,
+            //from container
+            $(this).closest('.taggedTiddlerList').data('tids')
+        );
+        return false;
+    },
+
+    //hides tag buttons on readOnly
+    hide: function(place, what){
+        //get tags to be hidden
+        var hide = me.hideTags;
+            hideR = me.hideTagsReadOnly;
+        //get all buttons
+        if(hide || hideR){
+            //get as array
+            hide = hide.readBracketedList();
+            hideR = hideR.readBracketedList();
+            //loop all buttons
+            $('.button, .tiddlyLink',place).each(function(){
+                //get tag button
+                var $btn = $(this),
+                    tag = $btn.attr('tag');
+                //when to be hide
+                if(
+                    hide.contains(tag) ||
+                    readOnly && hideR.contains(tag)
+                ){
+                    //hide
+                    $btn.hide();
+                }
+            });
+            //when
+            if(
+                //this list to be hidden on empty
+                config.options['chkHideEmpty' + what] && 
+                //and there is no more button
+                !$('.button, .tiddlyLink',place).filter(':visible').length
+            ){
+                //remove this place
+                place.remove();
             }
         }
     }
+}
 
 //define stylesheet
 config.shadowTiddlers.StyleSheetUntagged =
@@ -271,7 +288,7 @@ config.macros.allTags.handler = function(place, macroName, params) {
     //run default
     config.macros.allTags.handlerUNTAGGED.apply(this, arguments);
     //hide readonly tags
-    me.hideReadOnly($(place).last());
+    me.hide($(place).last());
     //show untagged?
     if(config.options.chkShowUntagged){
         //render it
@@ -285,8 +302,8 @@ config.macros.tags.handlerUNTAGGED = config.macros.tags.handler;
 config.macros.tags.handler = function(place,macroName,params,wikifier,paramString,tiddler){
     //run default
     config.macros.tags.handlerUNTAGGED.apply(this,arguments);
-    //hide readOnly tags
-    me.hideReadOnly($(place).last());  
+    //hide tags for tags list
+    me.hide($(place).last(),'Tags');  
 }
 
 
