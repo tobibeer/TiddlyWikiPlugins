@@ -4,7 +4,7 @@
 |''Description''|provides an """<<untagged>>""" macro<br>adds an untagged button to the tags tab<br>allows to hide (empty) tags / tagging|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/UntaggedPlugin.js|
 |''Documentation''|http://untagged.tiddlyspace.com|
-|''Version''|1.0.1 (2013-09-23)|
+|''Version''|1.0.2 (2013-09-25)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 !Options
@@ -119,6 +119,7 @@ var me = config.macros.untagged = {
                 .data('tids',tids)
                 //set refresh params
                 .attr({
+                    'tiddlyLink': me.untaggedTiddler ? me.untaggedTiddler : '',
                     'refresh': 'macro',
                     'macroName': 'untagged',
                     'params': paramString
@@ -173,8 +174,7 @@ var me = config.macros.untagged = {
                         createTiddlyElement(out,"li"),
                         lingo.openAllText.format([lingo.untaggedButton]),
                         lingo.untaggedTooltip,
-                        me.openAll,
-                        'tiddlyLink'
+                        me.openAll
                     );
                     //spacer
                     createTiddlyElement(createTiddlyElement(out,"li",null,"listBreak"),"div");
