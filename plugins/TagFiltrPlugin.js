@@ -7,6 +7,7 @@
 |''CoreVersion''|2.6.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/TagFiltrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
+<<tagfiltr>>
 ***/
 /*{{{*/
 (function($) {
@@ -317,10 +318,15 @@ config.macros.tagfiltr = $.extend(me, {
 				//when button hidden
 				if(d.hide.contains($tag.attr('tag'))){
 					//hide it
-					$tag.remove();
+					$tag.hide();
 				}
 			})
 		}
+
+		//hide tag buttons in the list results, too
+		d.hide.map(function(tag){
+			$('a.button[tag="' + tag + '"]',$tids).hide();
+		});
 
 		//when listfitlr enabled and installed 
 		if(d.lf && config.macros.listfiltr)
