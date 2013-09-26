@@ -4,7 +4,7 @@
 |''Description''|provides an """<<untagged>>""" macro<br>adds an untagged button to the tags tab<br>allows to hide (empty) tags / tagging|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/UntaggedPlugin.js|
 |''Documentation''|http://untagged.tiddlyspace.com|
-|''Version''|1.0.3 (2013-09-25)|
+|''Version''|1.0.4 (2013-09-26)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 !Options
@@ -258,6 +258,8 @@ var me = config.macros.untagged = {
                 ){
                     //hide
                     $btn.hide();
+                    $btn = $btn.parent();
+                    if($btn.is('li') && $btn.children().length < 2) $btn.hide();
                 }
             });
             //when
