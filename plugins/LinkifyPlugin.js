@@ -1,10 +1,10 @@
 /***
 |''Macro''|LinkifyPlugin|
-|''Description''|Automatically turns text into links, optionally using aliases<br>The plugin is based on Clint Checketts and Paul Petterson's [[RedirectMacro|http://checkettsweb.com/styles/themes.htm#RedirectMacro]]|
-|Documentation|http://linkify.tiddlyspot.com|
+|''Description''|Automatically turns text into links, optionally using aliases<br>The plugin idea is based on Clint Checketts and Paul Petterson's [[RedirectMacro|http://checkettsweb.com/styles/themes.htm#RedirectMacro]]|
+|''Documentation''|http://linkify.tiddlyspot.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.5|
-|''CoreVersion''|2.5.0|
+|''Version''|1.1.0|
+|''CoreVersion''|2.5.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/LinkifyPlugin.js|
 |''Usage''|define redirects in LinkifyConfig|
 !Code
@@ -321,11 +321,12 @@
     }
 
     /* hijack saveTiddler */
-    store.saveTiddler_Linkify = store.saveTiddler;
-    store.saveTiddler = function (title, newTitle) {
+    store.saveTiddlerLINKIFY = store.saveTiddler;
+    store.saveTiddler = function unction(title,newTitle,newBody,modifier,modified,tags,fields,clearChangeCount,created,creator) {
         //hijacked by LinkifyPlugin
-        //invoke core
-        var r = store.saveTiddler_Linkify.apply(this, arguments),
+        var tids = [],
+            //invoke core
+            r = store.saveTiddlerLINKIFY.apply(this, arguments),
             tid = newTitle;
 
         //add formatter if not excluded or not existing yet
@@ -345,8 +346,50 @@
         cel.indexExcludes();
         //update formatters
         formatter = new Formatter(config.formatters);
-        //refresh tiddlers to update changes
-        story.refreshAllTiddlers(true);
+
+        //renamed?
+        if(tid != title){
+            console.log(tid,title)
+            //loop all refresh elements
+            $('[tiddler]',$('[content]')).each(function(){
+                //get telement
+                var $t = $(this),
+                    //contents
+                    txt = $t.text() || '',
+                    //tiddler
+                    tid= $t.attr(tiddler)|'';
+
+                //contains old or new?
+                if(txt.indexOf(newTitle) >- 1 || txt.indexOf(title) > -1){
+                    if(tid)tids.pushUnique(tid);
+                }
+            });
+
+            //loop all tag buttons or tiddlyLinks
+            $('a[tag], a[tiddlyLink]').each(function(){
+                //get tid from tiddlyLink
+                var t,
+                    $t = $(this),
+                    tid = $t.attr('tiddlyLink');
+
+                //none? => get from tag
+                tid = tid ? tid : $t.attr('tag');
+
+                //if it's the same as the old or new
+                if(tid == title || tid == newTitle){
+                    //find outer tiddler for refresh
+                    t = $(this).closest('.tiddler').attr('tiddler')
+                    //add to tids for refreshing
+                    if(t)tids.pushUnique(t);
+                }
+            });
+
+            //loop all matching tids
+            tids.map(function(tid){
+                //refresh
+                story.refreshTiddler(tid, null, true);
+            });
+        }
         //return
         return r;
     };
