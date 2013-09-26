@@ -3,7 +3,7 @@
 |''Description''|tag-based faceted tiddler navigation based on FND's tagsplorer|
 |''Documentation''|http://tagfiltr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.4.5 (2013-09-23)|
+|''Version''|1.4.6 (2013-09-25)|
 |''CoreVersion''|2.6.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/TagFiltrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -23,6 +23,7 @@ config.macros.tagfiltr = $.extend(me, {
 	listfiltr: true,
 
 	tags: '',
+	hide:'',
 	fix: false,
 
 	groups: 'TagFiltrConfig##Groups',
@@ -67,6 +68,7 @@ config.macros.tagfiltr = $.extend(me, {
 
 			'tags',
 			'fix',
+			'hide',
 
 			'groups',
 			'onlyGroups|bG',
@@ -127,6 +129,7 @@ config.macros.tagfiltr = $.extend(me, {
 
 		//turn string for excluded and tags into arrays
 		d.ex = d.ex.readBracketedList();
+		d.hide = d.hide.readBracketedList();
 
 		d.tags = d.tags.readBracketedList();
 
@@ -203,11 +206,11 @@ config.macros.tagfiltr = $.extend(me, {
 		//otherwise invoked twice by core
 		if ( !(startingUp && inStory) )
 			//run refreshers
-			me.refresh($t);
+			me.refresh($t, true);
 	},
 
 	//refreshes tagfiltr upon changes
-	refresh: function($t) {
+	refresh: function($t, init) {
 
 		//when invoked by refresh handler
 		if(!$t.html) $t = $($t);
@@ -265,8 +268,13 @@ config.macros.tagfiltr = $.extend(me, {
 			//tag fixed?
 			var fix = d.fix.contains(tag);
 
-			//only when there's not yet a group button for that tag
-			if(0 == $t.find('.tf-groups [tag="' + tag + '"]').length){
+			//only when
+			if(
+				//there's not yet a group button for that tag
+				0 == $t.find('.tf-groups [tag="' + tag + '"]').length &&
+				//and not hidden
+				!d.hide.contains(tag)
+			){
 				//create button
 				me.newTagButton(
 					$tags,
@@ -299,6 +307,20 @@ config.macros.tagfiltr = $.extend(me, {
 				//into list item in tid list
 				$li[0]);
 		});
+
+		//on init
+		if(init){
+			//loop all group buttons
+			$('.tf-group',$t).each(function(){
+				//the button
+				var $tag = $(this);
+				//when button hidden
+				if(d.hide.contains($tag.attr('tag'))){
+					//hide it
+					$tag.remove();
+				}
+			})
+		}
 
 		//when listfitlr enabled and installed 
 		if(d.lf && config.macros.listfiltr)
@@ -619,8 +641,10 @@ config.macros.tagfiltr = $.extend(me, {
 					d.g_all[tag] ||
 					//already in the tagged index OR
 					d.g_tags[tag] ||
-					//already selected
-					d.tags.contains(tag)
+					//already selected OR
+					d.tags.contains(tag) ||
+					//hidden from tagadder
+					d.hide.contains(tag)
 				)){
 					//add unique tag to remaining tags
 					tags.pushUnique(tag);
