@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>Bookmark</title>
+	<link rel="stylesheet" href="http://tiddlyspace.com/bags/benspa_public/tiddlers/bootvelcro.css">
+	<style>
+		html,
+		body {
+			overflow: hidden;
+			background-color: transparent;
+		}
+
+		#container {
+			/* prevent a fouc if no images present */
+			display: none;
+		}
+
+		.modal-header {
+			border-bottom: none;
+			padding: 5px 0 0;
+			position: absolute;
+			width: 100%;
+			background-color: #e0e0e0;
+			-webkit-border-radius: 6px 6px 0 0;
+			-moz-border-radius: 6px 6px 0 0;
+			border-radius: 6px 6px 0 0;
+			cursor: move;
+			overflow: hidden;
+		}
+
+		.form-actions {
+			position: absolute;
+			bottom: 0;
+			box-sizing: border-box;
+			-moz-box-sizing: border-box;
+			width: 100%;
+			margin: 0;
+			border-radius: 0 0 6px 6px;
+			background-color: #e0e0e0;
+			border-top: 1px solid gray;
+		}
+
+		.form-actions input.btn {
+			width: auto;
+			float: right;
+			margin: 0 0.2em;
+		}
+
+		.closeBtn {
+			background-color: #DCE7F1 !important;
+		}
+
+		.primary {
+			background-color: #09F !important;
+		}
+
+		h1 {
+			margin-bottom: 9px;
+			margin-top: 9px;
+		}
+
+		body {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+		}
+
+		.modal {
+			margin: 10px;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			width: 510px;
+			position: absolute;
+			box-shadow: #444 0px 0px 10px 2px;
+			border-radius: 6px;
+			background-color: white;
+			border: 1px solid gray;
+			background-color: #F0F4F8;
+		}
+
+		label em {
+			cursor: pointer;
+		}
+
+		.modal-body {
+			overflow: auto;
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			margin: 65px 20px 67px;
+			background-color: transparent;
+			display: none;
+		}
+
+		.nav-tabs {
+			padding-left: 1%;
+			margin: 0;
+			width: 99%;
+			border-color: gray;
+		}
+
+		.nav-tabs > li {
+			cursor: pointer;
+		}
+
+		.nav-tabs > li > a {
+			line-height: 2.4em;
+			font-weight: bold;
+			font-size: 100%;
+		}
+
+		.nav-tabs > li.active > a{
+			background-color: #F0F4F8;
+			border-color: gray;
+			border-bottom-color: #F0F4F8;
+		}
+
+		.modal-body.active {
+			display: block;
+		}
+
+		input,
+		textarea,
+		select,
+		.uneditable-input {
+			color: #606060;
+		}
+
+		.imagePicker {
+			-moz-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+			-webkit-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+			box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+			border: 1px solid #CCC;
+			height: 110px;
+			overflow: auto;
+			-webkit-border-radius: 3px;
+			-moz-border-radius: 3px;
+			border-radius: 3px;
+			margin-left: 0;
+		}
+
+		.imagePicker img {
+			margin: 5px;
+			border: 2px solid transparent;
+		}
+
+		.imagePicker .current {
+			border: 2px dotted #555;
+		}
+
+		label {
+			font-weight: bold;
+		}
+
+		.form-actions label {
+			float: left;
+			margin-top: 0.75em;
+		}
+
+		fieldset input,
+		fieldset textarea {
+			width: 90%;
+			border-color: gray;
+		}
+
+		@media all and (max-width: 550px) {
+			.modal {
+				width: 95%;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div id="container">
+		<form action="#" class="modal">
+			<div class="modal-header">
+				<ul class="nav nav-tabs" data-tabs="tabs">
+					<li data-tab-name="post"><a href="#postForm">Post</a></li>
+					<li class="active" data-tab-name="link"><a href="#linkForm">Link</a></li>
+					<li data-tab-name="quote"><a href="#quoteForm">Quote</a></li>
+					<li data-tab-name="image"><a href="#imageForm">Image</a></li>
+				</ul>
+			</div>
+
+
+			<fieldset id="postForm" class="modal-body">
+				<input type="hidden" name="url">
+				<label>Title
+					<input type="text" name="title">
+				</label>
+				<label>Post
+					<textarea name="text" rows="8"></textarea>
+				</label>
+				<label>Tags
+					<input type="text" name="tags" value="post">
+				</label>
+				<label><i>URL (field)</i>
+					<input type="text" class="span8" name="url">
+				</label>
+			</fieldset>
+
+
+			<fieldset id="linkForm" class="modal-body active">
+				<label>Title
+					<input type="text" name="title">
+				</label>
+				<label>URL
+					<input type="text" class="span8" name="url">
+				</label>
+				<label>Description
+					<textarea name="text" rows="5"></textarea>
+				</label>
+				<label>Tags
+					<input type="text" name="tags" value="bookmark">
+				</label>
+			</fieldset>
+
+
+
+			<fieldset id="quoteForm" class="modal-body">
+				<label>Title
+					<input type="text" name="title">
+				</label>
+				<label>Quote
+					<textarea name="quote" rows="5"></textarea>
+				</label>
+				<label>Note
+					<textarea name="text" rows="4"></textarea>
+				</label>
+				<label>Tags
+					<input type="text" name="tags" value="bookmark">
+				</label>
+				<label><i>URL (field)</i>
+					<input type="text" class="span8" name="url">
+				</label>
+			</fieldset>
+
+
+			<fieldset id="imageForm" class="modal-body">
+				<label>Title
+					<input type="text" name="title">
+				</label>
+				<label>Image
+					<input type="hidden" name="image">
+					<div class="imagePicker"></div>
+				</label>
+				<label>Notes
+					<textarea name="text" rows="4"></textarea>
+				</label>
+				<label>Tags
+					<input type="text" name="tags" value="bookmark image">
+				</label>
+				<label><i>URL (field)</i>
+					<input type="text" class="span8" name="url">
+				</label>
+			</fieldset>
+
+
+			<div class="form-actions">
+				<label class='checkbox'>
+					<input type="checkbox" name="private" val="private">
+					keep private
+				</label>
+				<input type="submit" class="btn primary btn-large" value="Done">
+				<input type="button" class="btn btn-large closeBtn" value="Cancel">
+			</div>
+		</form>
+	</div>
+
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://tiddlyspace.com/bags/tiddlyspace/tiddlers/chrjs"></script>
+	<script type="text/javascript" src="bookmarker.js"></script>
+</body>
+</html>
