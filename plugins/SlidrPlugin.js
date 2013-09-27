@@ -3,7 +3,7 @@
 |''Description''|shows a tiddler timeline using sliders|
 |''Documentation''|http://slidr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.0.7 2013-09-06|
+|''Version''|1.1.0 2013-09-27|
 |''CoreVersion''|2.6.5|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SlidrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -97,7 +97,7 @@
                 //get level
                 l = getParam(p, 'level', tags ? '' : def.level),
                 //tagged tiddlers to be excluded
-                ex = getParam(p, 'exclude', def.exclude),
+                ex = getParam(p, 'exclude', def.exclude).readBracketedList(),
                 //get field
                 f = getParam(p, 'field', def.field),
                 //or kept
@@ -126,7 +126,9 @@
                     //the number of minimum items for further drilldown
                     min: getParam(p, 'min', def.minGroup),
                     //exclude
-                    ex: ex
+                    ex: ex,
+                    //tags to be excluded
+                    hideTags: getParam(p, 'hideTags', '').readBracketedList()
                 },
                 //determine descending
                 desc = f.substr(0, 1) == '-',
@@ -200,8 +202,6 @@
                 //if desc => reverse
                 if (desc) tids.reverse();
             }
-            //get excluded as array
-            ex = ex.readBracketedList();
 
             //loop all tids
             for (t = 0; t < tids.length; t++) {
@@ -294,9 +294,16 @@
                 }
                 //display tags?
                 if(tags){
-                    //get all tags
+                    //loop all tags
                     $.each(tt, function(i,t){
-                        if(!ex.contains(t)) tags.pushUnique(t);
+                        //add to tags
+                        if(
+                            keep.contains(t) ||
+                            (
+                                !ex.contains(t) && 
+                                !px.hideTags.contains(t)
+                            )
+                        ) tags.pushUnique(t);
                     })
                 }
             }
@@ -594,7 +601,9 @@
                                     //if not current tag
                                     stag != tag &&
                                     //and not in excludelist
-                                    !px.ex.readBracketedList().contains(tag)
+                                    !px.ex.contains(tag) &&
+                                    //and not hidden
+                                    !px.hideTags.contains(tag)
                                 )
                                 //add to display tags
                                 tags += ts.defaults.fmtTag.format([tag]);
@@ -736,10 +745,16 @@
     padding:0;
     clear:left;
 }
-.viewer .slidr_title .button{
+.viewer .slidr_button .button{
     border-color:transparent;
+    background:transparent;
 }
 .viewer .slidr_button:hover .button{
+    color:[[ColorPalette::SecondaryMid]];
+    background:[[ColorPalette::Background]];
+}
+.viewer .slidr_button .button:hover{
+    color:[[ColorPalette::SecondaryDark]];
     background:[[ColorPalette::Background]];
 }
 .viewer .slidr_title{
