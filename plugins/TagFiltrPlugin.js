@@ -3,7 +3,7 @@
 |''Description''|tag-based faceted tiddler navigation based on FND's tagsplorer|
 |''Documentation''|http://tagfiltr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.4.6 (2013-09-25)|
+|''Version''|1.4.7 (2013-09-28)|
 |''CoreVersion''|2.6.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/TagFiltrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -121,7 +121,8 @@ config.macros.tagfiltr = $.extend(me, {
 			.children(":last")
 			.text(d.lblTags).end()
 			.append('<div class="tf-tags" />')
-			.append('<ul class="tf-tids" />').attr({
+			.append('<div class="tf-listfiltr" />')
+			.attr({
 				//set wrapper attributes for refresh
 				'refresh': 'macro',
 				'macroName': 'tagfiltr',
@@ -222,7 +223,7 @@ config.macros.tagfiltr = $.extend(me, {
 		var $li, tags, tids, $tls,
 			d = $t.data(),
 			$tags = $t.find(".tf-tags"),
-			$tids = $t.find(".tf-tids"),
+			$tids = $t.find(".tf-listfiltr"),
 			$gs = $t.find('.tf-groups');
 
 		//remove any non-group buttons from tags
@@ -291,7 +292,7 @@ config.macros.tagfiltr = $.extend(me, {
 		//remove tids
 		$tids.empty();
 
-		$tls = $('<div class="tf-listfiltr"/>').appendTo($tids);
+		$tls = $('<ul class="tf-tids"/>').appendTo($tids);
 
 		if(d.fmt == me.format)$tids.addClass('tf-default');
 
@@ -306,7 +307,10 @@ config.macros.tagfiltr = $.extend(me, {
 				//tiddler entry
 				d.fmt.format([tid.title]),
 				//into list item in tid list
-				$li[0]);
+				$li[0],
+				null,
+				tid
+			)
 		});
 
 		//on init
@@ -851,7 +855,6 @@ config.shadowTiddlers.TagFiltrConfig =
 
 config.shadowTiddlers.StyleSheetTagFiltr = '/*{{{*/\n' +
 '.filtr {display:block;}\n' +
-'.tagfiltr {padding:5px;}\n' +
 '.tagfiltr ul {margin: 0;padding: 0;}\n' +
 '.tagfiltr > b,\n' +
 '.tf-tags,\n' +
@@ -866,6 +869,7 @@ config.shadowTiddlers.StyleSheetTagFiltr = '/*{{{*/\n' +
 '.tagfiltr .tf-tids {clear:left;}\n' +
 '.tf-default li {list-style-type:none;}\n'+
 '.tf-default .tiddlyLink{display:block; padding: 1px 1px 1px 7px;}\n'+
+'.tf-listfiltr{clear:left;}\n'+
 '/*}}}*/';
 
 store.addNotification("StyleSheetTagFiltr", refreshStyles);
