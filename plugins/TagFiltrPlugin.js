@@ -3,7 +3,7 @@
 |''Description''|tag-based faceted tiddler navigation based on FND's tagsplorer|
 |''Documentation''|http://tagfiltr.tiddlyspace.com|
 |''Author''|Tobias Beer|
-|''Version''|1.4.7 (2013-09-28)|
+|''Version''|1.4.8 (2013-09-30)|
 |''CoreVersion''|2.6.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/TagFiltrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -204,11 +204,13 @@ config.macros.tagfiltr = $.extend(me, {
 		//set data
 		$t.data(d);
 
+		//NOW SEEMS TO FAIL?!?
 		//only refresh when not in story column on startup
 		//otherwise invoked twice by core
-		if ( !(startingUp && inStory) )
-			//run refreshers
-			me.refresh($t, true);
+		//if ( !(startingUp && inStory) )
+
+		//run refreshers
+		me.refresh($t, true);
 	},
 
 	//refreshes tagfiltr upon changes
