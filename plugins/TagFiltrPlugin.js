@@ -35,9 +35,9 @@ config.macros.tagfiltr = $.extend(me, {
 	//translation
 	lblTags: "tags:",
 	lblAdd: "+",
-	tipAdd: "add tag to filter",
+	tipAdd: "select tag to filter by",
 	tipPrefix: "select tag from group",
-	tipRemove: "remove tag from filter",
+	tipRemove: "click remove tag from filter",
 	tipFix: "this tag cannot be removed",
 
 	handler: function(place, macroName, params, wikifier, paramString, tiddler) {
