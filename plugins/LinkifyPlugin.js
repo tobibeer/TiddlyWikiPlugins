@@ -3,7 +3,7 @@
 |''Description''|Automatically turns text into links, optionally using aliases<br>The plugin idea is based on Clint Checketts and Paul Petterson's [[RedirectMacro|http://checkettsweb.com/styles/themes.htm#RedirectMacro]]|
 |''Documentation''|http://linkify.tiddlyspot.com|
 |''Author''|Tobias Beer|
-|''Version''|1.1.0|
+|''Version''|1.1.1 (2013-10-02)|
 |''CoreVersion''|2.5.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/LinkifyPlugin.js|
 |''Usage''|define redirects in LinkifyConfig|
@@ -321,8 +321,8 @@
     }
 
     /* hijack saveTiddler */
-    store.saveTiddlerLINKIFY = store.saveTiddler;
-    store.saveTiddler = function unction(title,newTitle,newBody,modifier,modified,tags,fields,clearChangeCount,created,creator) {
+    TiddlyWiki.prototype.saveTiddlerLINKIFY = TiddlyWiki.prototype.saveTiddler;
+    TiddlyWiki.prototype.saveTiddler = function(title,newTitle,newBody,modifier,modified,tags,fields,clearChangeCount,created,creator) {
         //hijacked by LinkifyPlugin
         var tids = [],
             //invoke core
@@ -349,7 +349,6 @@
 
         //renamed?
         if(tid != title){
-            console.log(tid,title)
             //loop all refresh elements
             $('[tiddler]',$('[content]')).each(function(){
                 //get telement
