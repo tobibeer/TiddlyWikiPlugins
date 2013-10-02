@@ -3,7 +3,7 @@
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Description''|outputs links in tiddlers|
 |''Documentation''|http://links.tiddlyspace.com|
-|''Version''|0.5.1 (2013-10-01)|
+|''Version''|0.5.2 (2013-10-01)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/LinksPlugin.js|
@@ -65,6 +65,8 @@ var me = config.macros.links = {
 		$.each(me.defaults,function(key,val){
 			//initialize param variable as given by params
 			p[key] = getParam( px, key, val);
+
+			if(typeof p[key] == 'string')p[key] = p[key].replace(/\\n/mg,'\n');
 
 			//if a named parameter, set as true anyways
 			if (params.contains(key)) p[key] = true;
@@ -163,7 +165,8 @@ var me = config.macros.links = {
 								p[isExternal ? 'fmtExternalPlus' : 'fmtInternalPlus'].format([key])
 							) :
 							key
-						)
+						),
+						[key]
 					]);
 			});
 		});
