@@ -1,102 +1,70 @@
 /***
 |''Name:''|TiddlersBarPlugin|
-|''Description:''|Provides browser-like tabs to switch between tiddlers.|
-|''Author:''|Pascal Collin / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.3.0 (2013-10-02)|
-|''~CoreVersion:''|2.5.2|
-|''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
-|''License:''|[[BSD Open Source License|http://visualtw.ouvaton.org/VisualTW.html#License]]|
+|''Description:''|A bar to switch between tiddlers through tabs (like browser tabs bar).|
+|''Version:''|1.2.5|
+|''Date:''|Jan 18,2008|
+|''Source:''|http://visualtw.ouvaton.org/VisualTW.html|
+|''Author:''|Pascal Collin|
+|''License:''|[[BSD open source license|License]]|
+|''~CoreVersion:''|2.1.0|
+|''Browser:''|Firefox 2.0; InternetExplorer 6.0, others|
+!Demos
+On [[homepage|http://visualtw.ouvaton.org/VisualTW.html]], open several tiddlers to use the tabs bar.
 !Installation
-#import this tiddler
-#*tag it <<tag systemConfig>>
+#import this tiddler from [[homepage|http://visualtw.ouvaton.org/VisualTW.html]] (tagged as systemConfig)
 #save and reload
-#when using a custom [[PageTemplate]], add the following before {{{<div id='tiddlerDisplay'></div>}}}:
-#* {{{<div id='tiddlersBar' refresh='none' ondblclick='config.macros.tiddlersBar.onTiddlersBarAction(event)'></div>}}}
+#''if you're using a custom [[PageTemplate]]'', add {{{<div id='tiddlersBar' refresh='none' ondblclick='config.macros.tiddlersBar.onTiddlersBarAction(event)'></div>}}} before {{{<div id='tiddlerDisplay'></div>}}}
 #optionally, adjust StyleSheetTiddlersBar
-!Usage
-*doubleclick on the tiddlers bar (where there is no tab) to create a new tiddler.
-*tabs include a button to close {{{x}}} or save {{{!}}} the tiddler.
-*by default, clicking on the current tab close all others tiddlers.
-!Options 
-<<option chkDisableTabsBar>> ''chkDisableTabsBar'' &nbsp; <<option chkHideTabsBarWhenSingleTab>> ''chkHideTabsBarWhenSingleTab''
-;txtSelectedTiddlerTabButton
-:<<option txtSelectedTiddlerTabButton>> (selected tab command)
-;txtPreviousTabKey
-:<<option txtPreviousTabKey>> (access key)
-;txtNextTabKey
-:<<option txtNextTabKey>> (access key)
+!Tips
+*Doubleclick on the tiddlers bar (where there is no tab) create a new tiddler.
+*Tabs include a button to close {{{x}}} or save {{{!}}} their tiddler.
+*By default, click on the current tab close all others tiddlers.
+!Configuration options 
+<<option chkDisableTabsBar>> Disable the tabs bar (to print, by example).
+<<option chkHideTabsBarWhenSingleTab >> Automatically hide the tabs bar when only one tiddler is displayed. 
+<<option txtSelectedTiddlerTabButton>> ''selected'' tab command button.
+<<option txtPreviousTabKey>> previous tab access key.
+<<option txtNextTabKey>> next tab access key.
 !Code
 ***/
 //{{{
-(function($){
-
-//shortcut
-var co = config.options;
-
-//default options
-$.each({
-	chkDisableTabsBar:false,
-	chkHideTabsBarWhenSingleTab:false,
-	txtSelectedTiddlerTabButton:"closeOthers",
-	txtPreviousTabKey:"",
-	txtNextTabKey:""
-//loop them
-},function(key,val){
-	//set if not existing
-	if(co[key] == undefined)co[key] = val;
-});
-
-var me = config.macros.tiddlersBar = {
-	tooltip : "Show %0...",
-	tooltipClose : "Click to close tiddler...",
-	tooltipSave : "Click to save tiddler...",
-	promptRename : "Enter new tiddler name",
-
+config.options.chkDisableTabsBar = config.options.chkDisableTabsBar ? config.options.chkDisableTabsBar : false;
+config.options.chkHideTabsBarWhenSingleTab  = config.options.chkHideTabsBarWhenSingleTab  ? config.options.chkHideTabsBarWhenSingleTab  : false;
+config.options.txtSelectedTiddlerTabButton = config.options.txtSelectedTiddlerTabButton ? config.options.txtSelectedTiddlerTabButton : "closeOthers";
+config.options.txtPreviousTabKey = config.options.txtPreviousTabKey ? config.options.txtPreviousTabKey : "";
+config.options.txtNextTabKey = config.options.txtNextTabKey ? config.options.txtNextTabKey : "";
+config.macros.tiddlersBar = {
+	tooltip : "see ",
+	tooltipClose : "click here to close this tab",
+	tooltipSave : "click here to save this tab",
+	promptRename : "Enter tiddler new name",
 	currentTiddler : "",
 	previousState : false,
-	previousKey : co.txtPreviousTabKey,
-	nextKey : co.txtNextTabKey,	
-
-	//use document.getElementById("tiddlerDisplay") if you need animation on tab switching
-	tabsAnimationSource : null,
-
+	previousKey : config.options.txtPreviousTabKey,
+	nextKey : config.options.txtNextTabKey,	
+	tabsAnimationSource : null, //use document.getElementById("tiddlerDisplay") if you need animation on tab switching.
 	handler: function(place,macroName,params) {
-		var btn, c, d, isDirty,
-			previous = null;
-
-		if (me.isShown())
+		var previous = null;
+		if (config.macros.tiddlersBar.isShown())
 			story.forEachTiddler(function(title,e){
-				if (title == me.currentTiddler){
-					d = createTiddlyElement(null,"span",null,"tab tabSelected");
-					me.createActiveTabButton(d,title);
-					if (previous && me.previousKey)
-						previous.setAttribute("accessKey", me.nextKey);
+				if (title==config.macros.tiddlersBar.currentTiddler){
+					var d = createTiddlyElement(null,"span",null,"tab tabSelected");
+					config.macros.tiddlersBar.createActiveTabButton(d,title);
+					if (previous && config.macros.tiddlersBar.previousKey) previous.setAttribute("accessKey",config.macros.tiddlersBar.nextKey);
 					previous = "active";
-				} else {
-					d = createTiddlyElement(place,"span",null,"tab tabUnselected");
-					btn = createTiddlyButton(
-						d,
-						title,
-						me.tooltip.format([title]),
-						me.onSelectTab
-					);
-					btn.setAttribute("tiddler", title);
-					if (previous=="active" && me.nextKey)
-						btn.setAttribute("accessKey",me.previousKey);
-					previous = btn;
 				}
-				isDirty = story.isDirty(title);
-				c = createTiddlyButton(
-					d,
-					isDirty ? "!" : "x",
-					isDirty ? me.tooltipSave : me.tooltipClose,
-					isDirty ? me.onTabSave : me.onTabClose,
-					"tabButton"
-				);
+				else {
+					var d = createTiddlyElement(place,"span",null,"tab tabUnselected");
+					var btn = createTiddlyButton(d,title,config.macros.tiddlersBar.tooltip + title,config.macros.tiddlersBar.onSelectTab);
+					btn.setAttribute("tiddler", title);
+					if (previous=="active" && config.macros.tiddlersBar.nextKey) btn.setAttribute("accessKey",config.macros.tiddlersBar.previousKey);
+					previous=btn;
+				}
+				var isDirty =story.isDirty(title);
+				var c = createTiddlyButton(d,isDirty ?"!":"x",isDirty?config.macros.tiddlersBar.tooltipSave:config.macros.tiddlersBar.tooltipClose, isDirty ? config.macros.tiddlersBar.onTabSave : config.macros.tiddlersBar.onTabClose,"tabButton");
 				c.setAttribute("tiddler", title);
 				if (place.childNodes) {
-					// to allow break line here when many tiddlers are open
-					place.insertBefore(document.createTextNode(" "),place.firstChild);
+					place.insertBefore(document.createTextNode(" "),place.firstChild); // to allow break line here when many tiddlers are open
 					place.insertBefore(d,place.firstChild); 
 				}
 				else place.appendChild(d);
@@ -104,42 +72,40 @@ var me = config.macros.tiddlersBar = {
 	}, 
 	refresh: function(place,params){
 		removeChildren(place);
-		me.handler(place,"tiddlersBar",params);
-		if (me.previousState != me.isShown()) {
+		config.macros.tiddlersBar.handler(place,"tiddlersBar",params);
+		if (config.macros.tiddlersBar.previousState!=config.macros.tiddlersBar.isShown()) {
 			story.refreshAllTiddlers();
-			if (me.previousState) story.forEachTiddler(function(t,e){e.style.display="";});
-			me.previousState = !me.previousState;
+			if (config.macros.tiddlersBar.previousState) story.forEachTiddler(function(t,e){e.style.display="";});
+			config.macros.tiddlersBar.previousState = !config.macros.tiddlersBar.previousState;
 		}
 	},
 	isShown : function(){
-		if (co.chkDisableTabsBar) return false;
-		if (!co.chkHideTabsBarWhenSingleTab) return true;
+		if (config.options.chkDisableTabsBar) return false;
+		if (!config.options.chkHideTabsBarWhenSingleTab) return true;
 		var cpt=0;
 		story.forEachTiddler(function(){cpt++});
 		return (cpt>1);
 	},
-	//to select another tab when the current tab is closed
-	selectNextTab : function(){
+	selectNextTab : function(){  //used when the current tab is closed (to select another tab)
 		var previous="";
 		story.forEachTiddler(function(title){
-			if (!me.currentTiddler) {
-				story.displayTiddler(null, title);
+			if (!config.macros.tiddlersBar.currentTiddler) {
+				story.displayTiddler(null,title);
 				return;
 			}
-			if (title == me.currentTiddler) {
+			if (title==config.macros.tiddlersBar.currentTiddler) {
 				if (previous) {
-					story.displayTiddler(null, previous);
+					story.displayTiddler(null,previous);
 					return;
 				}
-				//so next tab will be selected
-				else me.currentTiddler=""; 
+				else config.macros.tiddlersBar.currentTiddler=""; 	// so next tab will be selected
 			}
 			else previous=title;
-		});		
+			});		
 	},
 	onSelectTab : function(e){
 		var t = this.getAttribute("tiddler");
-		if (t) story.displayTiddler(null, t);
+		if (t) story.displayTiddler(null,t);
 		return false;
 	},
 	onTabClose : function(e){
@@ -155,38 +121,24 @@ var me = config.macros.tiddlersBar = {
 	},
 	onTabSave : function(e) {
 		var t = this.getAttribute("tiddler");
-		e = e || window.event;
+		if (!e) e=window.event;
 		if (t) config.commands.saveTiddler.handler(e,null,t);
 		return false;
 	},
-	onSelectedTabButtonClick : function(e,src,title) {
+	onSelectedTabButtonClick : function(event,src,title) {
 		var t = this.getAttribute("tiddler");
-		e = e || window.event;
-		if (
-			t &&
-			co.txtSelectedTiddlerTabButton &&
-			config.commands[co.txtSelectedTiddlerTabButton]
-		)
-			config.commands[co.txtSelectedTiddlerTabButton].handler(e, src, t);
+		if (!event) event=window.event;
+		if (t && config.options.txtSelectedTiddlerTabButton && config.commands[config.options.txtSelectedTiddlerTabButton])
+			config.commands[config.options.txtSelectedTiddlerTabButton].handler(event, src, t);
 		return false;
 	},
-	onTiddlersBarAction: function(e) {
-		//FF uses target and IE uses srcElement
-		var source = e.target ? e.target.id : e.srcElement.id;
-		if (source=="tiddlersBar")
-			story.displayTiddler(null,'New Tiddler',DEFAULT_EDIT_TEMPLATE,false,null,null);
+	onTiddlersBarAction: function(event) {
+		var source = event.target ? event.target.id : event.srcElement.id; // FF uses target and IE uses srcElement;
+		if (source=="tiddlersBar") story.displayTiddler(null,'New Tiddler',DEFAULT_EDIT_TEMPLATE,false,null,null);
 	},
-
 	createActiveTabButton : function(place,title) {
-		if (co.txtSelectedTiddlerTabButton &&
-			config.commands[co.txtSelectedTiddlerTabButton]
-		){
-			var btn = createTiddlyButton(
-				place,
-				title,
-				config.commands[co.txtSelectedTiddlerTabButton].tooltip,
-				me.onSelectedTabButtonClick
-			);
+		if (config.options.txtSelectedTiddlerTabButton && config.commands[config.options.txtSelectedTiddlerTabButton]) {
+			var btn = createTiddlyButton(place, title, config.commands[config.options.txtSelectedTiddlerTabButton].tooltip ,config.macros.tiddlersBar.onSelectedTabButtonClick);
 			btn.setAttribute("tiddler", title);
 		}
 		else
@@ -194,74 +146,49 @@ var me = config.macros.tiddlersBar = {
 	}
 }
 
-Story.prototype.closeTiddlerTIDDLERSBAR = Story.prototype.closeTiddler;
-Story.prototype.closeTiddler = function(title,animate,unused) {
-	if (title==me.currentTiddler)
-		me.selectNextTab();
- 	//disable animation to get it closed before calling tiddlersBar.refresh
- 	story.closeTiddlerTIDDLERSBAR.apply(this,arguments);
+story.coreCloseTiddler = story.coreCloseTiddler? story.coreCloseTiddler : story.closeTiddler;
+story.coreDisplayTiddler = story.coreDisplayTiddler ? story.coreDisplayTiddler : story.displayTiddler;
+
+story.closeTiddler = function(title,animate,unused) {
+	if (title==config.macros.tiddlersBar.currentTiddler)
+		config.macros.tiddlersBar.selectNextTab();
+	story.coreCloseTiddler(title,false,unused); //disable animation to get it closed before calling tiddlersBar.refresh
 	var e=document.getElementById("tiddlersBar");
-	if (e) me.refresh(e,null);
+	if (e) config.macros.tiddlersBar.refresh(e,null);
 }
 
-Story.prototype.displayTiddlerTIDDLERSBAR = Story.prototype.displayTiddler;
-Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,unused,customFields,toggle){
-	var result = story.displayTiddlerTIDDLERSBAR.apply(this, arguments);
-
-	var title =
-		result ?
-		result.getAttribute('tiddler') :
-		(tiddler instanceof Tiddler)? tiddler.title : tiddler;
-
-	if (me.isShown()) {
+story.displayTiddler = function(srcElement,tiddler,template,animate,unused,customFields,toggle){
+	story.coreDisplayTiddler(config.macros.tiddlersBar.tabsAnimationSource,tiddler,template,animate,unused,customFields,toggle);
+	var title = (tiddler instanceof Tiddler)? tiddler.title : tiddler;  
+	if (config.macros.tiddlersBar.isShown()) {
 		story.forEachTiddler(function(t,e){
 			if (t!=title) e.style.display="none";
 			else e.style.display="";
 		})
-		me.currentTiddler=title;
+		config.macros.tiddlersBar.currentTiddler=title;
 	}
 	var e=document.getElementById("tiddlersBar");
-	if (e) me.refresh(e,null);
-	return result;
+	if (e) config.macros.tiddlersBar.refresh(e,null);
 }
 
-config.shadowTiddlers.StyleSheetTiddlersBar = [
-	"/*{{{*/",
-	"#tiddlersBar .button {border:0}",
-	"#tiddlersBar .tab {white-space:nowrap}",
-	"#tiddlersBar {padding : 1em 0.5em 2px 0.5em}",
-	"#tiddlersBar .tabUnselected {background:[[ColorPalette::TertiaryLight]];}",
-	"#tiddlersBar .button:hover,",
-	"#tiddlersBar .tabButton:hover",
-	"{background:transparent;color:[[ColorPalette::PrimaryMid]];}",
-	".tabUnselected .tabButton,",
-	".tabSelected .tabButton {padding : 0 2px 0 2px; margin: 0 0 0 4px; color: [[ColorPalette::TertiaryMid]]}",
-	".tiddler, .tabContents {border:none;}",
-	"/*}}}*/"
-].join('\n');
+var coreRefreshPageTemplate = coreRefreshPageTemplate ? coreRefreshPageTemplate : refreshPageTemplate;
+refreshPageTemplate = function(title) {
+	coreRefreshPageTemplate(title);
+	if (config.macros.tiddlersBar) config.macros.tiddlersBar.refresh(document.getElementById("tiddlersBar"));
+}
+
+ensureVisible=function (e) {return 0} //disable bottom scrolling (not useful now)
+
+config.shadowTiddlers.StyleSheetTiddlersBar = "/*{{{*/\n";
+config.shadowTiddlers.StyleSheetTiddlersBar += "#tiddlersBar .button {border:0}\n";
+config.shadowTiddlers.StyleSheetTiddlersBar += "#tiddlersBar .tab {white-space:nowrap}\n";
+config.shadowTiddlers.StyleSheetTiddlersBar += "#tiddlersBar {padding : 1em 0.5em 2px 0.5em}\n";
+config.shadowTiddlers.StyleSheetTiddlersBar += ".tabUnselected .tabButton, .tabSelected .tabButton {padding : 0 2px 0 2px; margin: 0 0 0 4px;}\n";
+config.shadowTiddlers.StyleSheetTiddlersBar += ".tiddler, .tabContents {border:1px [[ColorPalette::TertiaryPale]] solid;}\n";
+config.shadowTiddlers.StyleSheetTiddlersBar +="/*}}}*/";
 store.addNotification("StyleSheetTiddlersBar", refreshStyles);
 
-config.shadowTiddlers.PageTemplate=
-config.shadowTiddlers.PageTemplate.replace(
-	/<div id='tiddlerDisplay'><\/div>/m,
-	[
-		"<div id='tiddlersBar'",
-		" refresh='none'",
-		" ondblclick='config.macros.tiddlersBar.onTiddlersBarAction(event)'>",
-		"</div>\n",
-		"<div id='tiddlerDisplay'></div>"
-	].join('')
-);
+config.refreshers.none = function(){return true;}
+config.shadowTiddlers.PageTemplate=config.shadowTiddlers.PageTemplate.replace(/<div id='tiddlerDisplay'><\/div>/m,"<div id='tiddlersBar' refresh='none' ondblclick='config.macros.tiddlersBar.onTiddlersBarAction(event)'></div>\n<div id='tiddlerDisplay'></div>");
 
-refreshPageTemplateTIDDLERSBAR = refreshPageTemplate;
-refreshPageTemplate = function(title) {
-	refreshPageTemplateTIDDLERSBAR(title);
-	if (me) me.refresh(document.getElementById("tiddlersBar"));
-}
-config.refreshers.none = function(){return true}
-
-//disable bottom scrolling (not useful now)
-ensureVisible = function (e) {return 0}
-
-})(jQuery);
 //}}}
