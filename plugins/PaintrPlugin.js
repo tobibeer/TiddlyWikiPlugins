@@ -4,7 +4,7 @@
 |''Documentation''|http://paintr.tiddlyspace.com|
 |''Configuration''|PaintrConfig|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version''|2.0.0 (2013-10-02)|
+|''Version''|2.0.1 (2013-10-02)|
 |''CoreVersion''|2.5.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PaintrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -22,6 +22,7 @@ config.shadowTiddlers.PaintrConfig = [
 "''titleSelector:'' div.title",
 "''allow:''",
 "''transclude:'' tiddler section",
+"''nopaint:'' .nopaint, .header",
 "!StyleSheet",
 "/* demo styles, can be safely deleted or adapted*/",
 "/*{{{*/",
@@ -38,7 +39,7 @@ config.shadowTiddlers.PaintrConfig = [
 "tiddler=PaintrConfig title:demo tiddler:beach"].join('\n');
 
 //the extension
-var me = config.extensions.paintr = {
+var me = config.macros.paint = {
 
     //the paint config tiddler
     config: 'PaintrConfig',
@@ -48,11 +49,64 @@ var me = config.extensions.paintr = {
     exclude: 'no-paint',
     defaultClass: 'paintr',
     titleSelector: 'div.title',
-    transclude: 'tiddler section',
     allow: '',
+    transclude: 'tiddler section',
+    nopaint: '.nopaint .header',
+
+    //macro handler
+    handler: function (place, macroName, params, wikifier, paramString, tiddler) {
+
+        //get macro
+        macroName = params[1];
+
+        var
+            //remember place
+            where = place,
+            //get class
+            c = params[0];
+
+        //no macro
+        if(!config.macros[macroName]){
+            //show macro error
+            createTiddlyError(
+                place,
+                config.messages.macroError.format([macroName]),
+                config.messages.macroErrorDetails.format([
+                    macroName,
+                    config.messages.missingMacro
+            ]));
+            //out
+            return;
+        }
+        //remove first two params
+        params.splice(0,2);
+        //get new paramString as rest
+        paramString = params.join(' ');
+
+        //create pseudo-place
+        place = $('<span/>')[0];
+
+        //run macro
+        config.macros[macroName].handler(place, macroName, params, wikifier, paramString, tiddler);
+        //take place as
+        place =
+            //just one child?
+            $(place).children().length == 1 ?
+            //take it
+            $(place).children(':first') :
+            //otherwise, take the wrapper
+            $(place);
+
+        //take it
+        $(place)
+            //and add it to the original place
+            .appendTo(where)
+            //either with nopaint when the class was "!" or with the given class
+            .addClass(c == '!' ? 'nopaint' : c || '');
+    },
 
     //function painting links, tags and titles
-    paint: function (el, tid, what, transclude) {
+    setStyle: function (el, tid, what, transclude) {
         var
             //init vars
             c = '', p, px = [], allow,
@@ -63,9 +117,13 @@ var me = config.extensions.paintr = {
             //get outer tiddler object
             t = store.getTiddler(ti);
 
-        //if there is an outer tiddler object to the element
-        if ( t && (
-                //and it's excluded OR
+if($(el).text()=='PaintrPlugin')console.log($(el).closest(me.nopaint));
+        if (
+            //when inside nopaint container OR
+            $(el).closest(me.nopaint).length ||
+            //when there is an outer tiddler object to the element AND
+            t && (
+                //it's excluded OR
                 ex.contains(t.title) ||
                 //has an exclude tag
                 t.tags && t.tags.containsAny(ex)
@@ -152,7 +210,7 @@ var me = config.extensions.paintr = {
         me.classes = {};
 
         //loop defaults
-        ['what', 'exclude', 'defaultClass', 'titleSelector', 'allow', 'transclude']
+        ['what', 'exclude', 'defaultClass', 'titleSelector', 'allow', 'transclude', 'nopaint']
         .map(function(def){
             //try to read slice from config tiddler
             var cfg = $.trim(store.getTiddlerText(me.config + '::' + def) || '');
@@ -240,7 +298,7 @@ me.updatePaintr();
 createTiddlyLinkPAINTR = createTiddlyLink;
 createTiddlyLink = function (place, title, includeText, className, isStatic, linkedFromTiddler, noToggle) {
     var b = createTiddlyLinkPAINTR.apply(this, arguments);
-    me.paint(b, title, 'link');
+    me.setStyle(b, title, 'link');
     return b;
 }
 
@@ -248,7 +306,7 @@ createTagButtonPAINTR = createTagButton;
 createTagButton = function (place, tag, excludeTiddler, title, tooltip) {
     var b = createTagButtonPAINTR.apply(this, arguments);
     addClass(b, store.getTaggedTiddlers(tag).length > 0 ? 'hastags' : 'hasnotags');
-    me.paint(b, tag, 'tag');
+    me.setStyle(b, tag, 'tag');
     return b;
 }
 
@@ -260,12 +318,12 @@ config.macros.allTags.handler = function (place, macroName, params) {
             title = btn.attr('tiddlyLink');
 
         if (title)
-            me.paint(this, title, 'link');
+            me.setStyle(this, title, 'link');
         else if(
             btn.hasClass('hastags') ||
             btn.hasClass('hasnotags')
         )
-            me.paint(this, btn.attr('tag'), 'tag');
+            me.setStyle(this, btn.attr('tag'), 'tag');
     });
 };
 
@@ -274,10 +332,10 @@ Story.prototype.refreshTiddler = function (title, template, force, customFields,
     var el = Story.prototype.refreshTiddlerPAINTR.apply(this, arguments);
 
     //paint the title for this tiddler
-    me.paint( $(el).find(me.titleSelector)[0], title, 'title');
+    me.setStyle( $(el).find(me.titleSelector)[0], title, 'title');
 
     //paint the tiddler
-    me.paint( $(el), title, 'tiddler');
+    me.setStyle( $(el), title, 'tiddler');
 
     //loop all transclusions
     $('[refresh="content"]', $(el)).each(function(){
@@ -313,7 +371,7 @@ Story.prototype.refreshTiddler = function (title, template, force, customFields,
             }
         }
         //color the transclusion
-        me.paint(this, tid, 'tiddler', type);
+        me.setStyle(this, tid, 'tiddler', type);
     })
     return el;
 }
