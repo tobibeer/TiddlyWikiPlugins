@@ -2,7 +2,7 @@
 |''Name:''|TiddlersBarPlugin|
 |''Description:''|Provides browser-like tabs to switch between tiddlers.|
 |''Author:''|Pascal Collin / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.3.0 (2013-10-02)|
+|''Version:''|1.3.1 (2013-10-03)|
 |''~CoreVersion:''|2.5.2|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
 |''License:''|[[BSD Open Source License|http://visualtw.ouvaton.org/VisualTW.html#License]]|
@@ -48,8 +48,8 @@ $.each({
 
 var me = config.macros.tiddlersBar = {
 	tooltip : "Show %0...",
-	tooltipClose : "Click to close tiddler...",
-	tooltipSave : "Click to save tiddler...",
+	tooltipClose : "Close tiddler...",
+	tooltipSave : "Save tiddler...",
 	promptRename : "Enter new tiddler name",
 
 	currentTiddler : "",
@@ -227,15 +227,22 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
 
 config.shadowTiddlers.StyleSheetTiddlersBar = [
 	"/*{{{*/",
-	"#tiddlersBar .button {border:0}",
-	"#tiddlersBar .tab {white-space:nowrap}",
-	"#tiddlersBar {padding : 1em 0.5em 2px 0.5em}",
-	"#tiddlersBar .tabUnselected {background:[[ColorPalette::TertiaryLight]];}",
+	"#tiddlersBar {padding : 1em 0.5em 0 0.5em; border-bottom:1px solid [[ColorPalette::TertiaryPale]];}",
+	"#tiddlersBar .button {border:0;}",
+	"#tiddlersBar .tab {border:1px solid transparent;border-bottom:0;white-space:nowrap; padding:2px 5px;",
+	"-webkit-border-top-left-radius: 3px;",
+	"-webkit-border-top-right-radius: 3px;",
+	"-moz-border-radius-topleft: 3px;",
+	"-moz-border-radius-topright: 3px;",
+	"border-top-left-radius: 3px;",
+	"border-top-right-radius: 3px;\n}",
+	"#tiddlersBar .tabSelected {background:[[ColorPalette::Background]]; border-color:[[ColorPalette::TertiaryPale]];}",
+	"#tiddlersBar .tabUnselected {background:[[ColorPalette::TertiaryPale]]}",
+	"#tiddlersBar a {color:[[ColorPalette::TertiaryDark]]}",
 	"#tiddlersBar .button:hover,",
-	"#tiddlersBar .tabButton:hover",
-	"{background:transparent;color:[[ColorPalette::PrimaryMid]];}",
+	"#tiddlersBar .tabButton:hover{background:transparent;color:[[ColorPalette::PrimaryDark]];}",
 	".tabUnselected .tabButton,",
-	".tabSelected .tabButton {padding : 0 2px 0 2px; margin: 0 0 0 4px; color: [[ColorPalette::TertiaryMid]]}",
+	".tabSelected .tabButton {padding : 0 2px 0 2px; margin: 0 0 0 4px; color: [[ColorPalette::TertiaryMid]];}",
 	".tiddler, .tabContents {border:none;}",
 	"/*}}}*/"
 ].join('\n');
