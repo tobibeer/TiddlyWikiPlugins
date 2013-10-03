@@ -18,11 +18,13 @@
 *tabs include a button to close {{{x}}} or save {{{!}}} the tiddler.
 *by default, clicking on the current tab close all others tiddlers.
 !Options 
-<<option chkDisableTabsBar>> disable the tabs bar (to print, for example)
-<<option chkHideTabsBarWhenSingleTab >> hide tabs when only one tiddler is displayed
-<<option txtSelectedTiddlerTabButton>> ''selected'' tab command button
-<<option txtPreviousTabKey>> previous tab access key
-<<option txtNextTabKey>> next tab access key
+<<option chkDisableTabsBar>> ''chkDisableTabsBar'' &nbsp; <<option chkHideTabsBarWhenSingleTab>> ''chkHideTabsBarWhenSingleTab''
+;txtSelectedTiddlerTabButton
+:<<option txtSelectedTiddlerTabButton>> (selected tab command)
+;txtPreviousTabKey
+:<<option txtPreviousTabKey>> (access key)
+;txtNextTabKey
+:<<option txtNextTabKey>> (access key)
 !Code
 ***/
 //{{{
