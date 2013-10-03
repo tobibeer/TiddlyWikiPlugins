@@ -1,10 +1,10 @@
 /***
-|''Name:''|TiddlersBarPlugin|
+|''Name:''|TiddlersBarPluginTB|
 |''Description:''|Provides browser-like tabs to switch between tiddlers.|
 |''Author:''|Pascal Collin / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Version:''|1.3.2 (2013-10-03)|
 |''~CoreVersion:''|2.5.2|
-|''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
+|''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPluginTB.js|
 |''License:''|[[BSD Open Source License|http://visualtw.ouvaton.org/VisualTW.html#License]]|
 !Installation
 #import this tiddler
@@ -262,7 +262,8 @@ refreshPageTemplate = function(title) {
 config.refreshers.none = function(){return true}
 
 //disable bottom scrolling (not useful now)
-ensureVisible = function (e) {return 0}
+// ensureVisible = function (e) {return 0}
+// Mario Pietsch: removed as it causes a scroll to top when a popup opens
 
 })(jQuery);
 //}}}
