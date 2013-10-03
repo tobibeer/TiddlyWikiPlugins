@@ -2,7 +2,7 @@
 |''Name:''|TiddlersBarPlugin|
 |''Description:''|Provides browser-like tabs to switch between tiddlers.|
 |''Author:''|Pascal Collin / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.3.1 (2013-10-03)|
+|''Version:''|1.3.2 (2013-10-03)|
 |''~CoreVersion:''|2.5.2|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
 |''License:''|[[BSD Open Source License|http://visualtw.ouvaton.org/VisualTW.html#License]]|
@@ -227,16 +227,10 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
 
 config.shadowTiddlers.StyleSheetTiddlersBar = [
 	"/*{{{*/",
-	"#tiddlersBar {padding : 1em 0.5em 0 0.5em; border-bottom:1px solid [[ColorPalette::TertiaryPale]];}",
+	"#tiddlersBar {padding : 1em 0.5em 0 0.5em;}",
 	"#tiddlersBar .button {border:0;}",
-	"#tiddlersBar .tab {border:1px solid transparent;border-bottom:0;white-space:nowrap; padding:2px 5px;",
-	"-webkit-border-top-left-radius: 3px;",
-	"-webkit-border-top-right-radius: 3px;",
-	"-moz-border-radius-topleft: 3px;",
-	"-moz-border-radius-topright: 3px;",
-	"border-top-left-radius: 3px;",
-	"border-top-right-radius: 3px;\n}",
-	"#tiddlersBar .tabSelected {background:[[ColorPalette::Background]]; border-color:[[ColorPalette::TertiaryPale]];}",
+	"#tiddlersBar .tab {border:0; border-top:2px [[ColorPalette::TertiaryPale]];border-bottom:2px solid [[ColorPalette::TertiaryPale]];white-space:nowrap; padding:2px 5px;}",
+	"#tiddlersBar .tabSelected {background:transparent;border-top-color:transparent;}",
 	"#tiddlersBar .tabUnselected {background:[[ColorPalette::TertiaryPale]]}",
 	"#tiddlersBar a {color:[[ColorPalette::TertiaryDark]]}",
 	"#tiddlersBar .button:hover,",
