@@ -27,6 +27,7 @@ config.shadowTiddlers.PaintrConfig = [
 ".viewer .paintr.tiddlyLink {padding:0 2px; margin: 0 -2px;}\n",
 ".demo, .demo.title {color:red !important;}",
 "a.demo:hover {background:red !important; color:white !important;}",
+".demo.tabUnselected {background:#ecc;}",
 ".tiddler.beach, .beach.paintr-transclude {background:lightyellow;}",
 ".beach.paintr-transclude {display:block;padding:10px;}",
 ".beach .tagInfo {background:#eef;}",
