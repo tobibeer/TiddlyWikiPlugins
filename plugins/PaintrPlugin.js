@@ -4,7 +4,7 @@
 |''Documentation''|http://paintr.tiddlyspace.com|
 |''Configuration''|PaintrConfig|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version''|2.1.0 (2013-10-04)|
+|''Version''|2.1.1 (2013-10-04)|
 |''CoreVersion''|2.5.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PaintrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -14,18 +14,15 @@
 (function($){
 
 config.shadowTiddlers.PaintrConfig = [
-"Need help with PaintrPlugin? [[Visit the documentation!|http://paintr.tiddlyspace.com]]",
 "!Defaults",
 "''what:'' links tags titles",
 "''exclude:'' no-paint",
-"''defaultClass:'' paintr",
-"''titleSelector:'' div.title",
-"''allow:''",
 "''transclude:'' tiddler section",
 "''nopaint:'' .nopaint, .header",
-"''inside:''",
+"''inside:''\n",
+"For more options and details [[read the documentation|http://paintr.tiddlyspace.com#Defaults]].",
 "!StyleSheet",
-"/* demo styles, can be safely deleted or adapted*/",
+"/* demo styles, can be safely deleted or adapted */",
 "/*{{{*/",
 ".viewer .paintr.tiddlyLink {padding:0 2px; margin: 0 -2px;}\n",
 ".demo, .demo.title {color:red !important;}",
