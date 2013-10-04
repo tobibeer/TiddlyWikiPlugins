@@ -4,7 +4,7 @@
 |''Documentation''|http://paintr.tiddlyspace.com|
 |''Configuration''|PaintrConfig|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version''|2.0.1 (2013-10-02)|
+|''Version''|2.1.0 (2013-10-04)|
 |''CoreVersion''|2.5.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PaintrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -23,6 +23,7 @@ config.shadowTiddlers.PaintrConfig = [
 "''allow:''",
 "''transclude:'' tiddler section",
 "''nopaint:'' .nopaint, .header",
+"''inside:''",
 "!StyleSheet",
 "/* demo styles, can be safely deleted or adapted*/",
 "/*{{{*/",
@@ -41,17 +42,18 @@ config.shadowTiddlers.PaintrConfig = [
 //the extension
 var me = config.macros.paint = {
 
-    //the paint config tiddler
-    config: 'PaintrConfig',
-
     //default fallbacks
-    what: 'links tags titles',
-    exclude: 'no-paint',
-    defaultClass: 'paintr',
-    titleSelector: 'div.title',
-    allow: '',
-    transclude: 'tiddler section',
-    nopaint: '.nopaint .header',
+    defaults: {
+        what: 'links tags titles',
+        exclude: 'no-paint',
+        defaultClass: 'paintr',
+        titleSelector: 'div.title',
+        allow: '',
+        transclude: 'tiddler section',
+        nopaint: '.nopaint .header',
+        inside: '',
+        when:''
+    },
 
     //macro handler
     handler: function (place, macroName, params, wikifier, paramString, tiddler) {
@@ -105,22 +107,28 @@ var me = config.macros.paint = {
             .addClass(c == '!' ? 'nopaint' : c || '');
     },
 
-    //function painting links, tags and titles
-    setStyle: function (el, tid, what, transclude) {
+    /* paints links, tags, titles, tiddlers and transclusion
+            el: dom element for which it was triggered
+            id: tag or tiddler for which it was triggered
+          what: type of the element, e.g. 'link', 'tag', 'title' or 'tiddler'
+    transclude: type of transclusion, e.g. 'tiddler', 'section' or 'slice' or undefined */
+    setStyle: function (el, id, what, transclude) {
         var
             //init vars
-            c = '', p, px = [], allow,
+            allow, c = '', p, px = [],
+            //global defaults
+            D = me.defaults,
             //get exclude as array
-            ex = me.exclude.readBracketedList(),
-            //find outer tiddler to element
-            ti = $(el).parents('[tiddler]').last().attr('tiddler') || '',
-            //get outer tiddler object
-            t = store.getTiddler(ti);
+            ex = D.exclude.readBracketedList(),
+            //get tiddler object for
+            t = store.getTiddler(
+                //tiddler within which the element is placed
+                $(el).parents('[tiddler]').last().attr('tiddler') || ''
+            );
 
-if($(el).text()=='PaintrPlugin')console.log($(el).closest(me.nopaint));
         if (
             //when inside nopaint container OR
-            $(el).closest(me.nopaint).length ||
+            $(el).closest(D.nopaint).length ||
             //when there is an outer tiddler object to the element AND
             t && (
                 //it's excluded OR
@@ -130,23 +138,24 @@ if($(el).text()=='PaintrPlugin')console.log($(el).closest(me.nopaint));
         //do nothing
         ) ) return;
 
-        //get the tiddler
-        t = store.getTiddler(tid);
+        //get the definition tiddler
+        t = store.getTiddler(id);
 
         //loop definitions
-        me.definitions.map(function(def, i){
-            var
-                //the config for the definition
-                cD = me.classes[def],
-                //whether individual tiddler to be painted
-                single = cD['single'],
-                //allowed transclusion types
-                types = cD['transclude'];
-
+        me.definitions.map(function(def){
             //when
             if(
                 (
-                    //allowed
+                    //MATCHING DEF
+
+                    //tid is the def id OR
+                    id == def.id ||
+                    //tid is thus tagged (except for single tiddler)
+                    t && t.tags && t.tags.contains(def.id) && !def.single
+
+                //AND
+                ) && (
+                    //ALLOWED
 
                     //when not empty AND
                     allow !== '' &&
@@ -156,39 +165,52 @@ if($(el).text()=='PaintrPlugin')console.log($(el).closest(me.nopaint));
                         //all allowed OR
                         allow == '*' ||
                         //in allow
-                        allow.contains(def)
+                        allow.contains(def.id)
                     )
 
-                // AND
+                //AND
                 ) && (
-                    //matching def
+                    //TRANSCLUSION
 
-                    //when this is the def tid OR
-                    tid == def ||
-                    //when tid is thus tagged (except for single tiddler 
-                    t && t.tags && t.tags.contains(def) && !single
+                    //not defined OR
+                    !transclude ||
+                    //allowed for given type
+                    def.transclude.indexOf(transclude) >= 0
     
                 //AND
                 ) && (
-                    //transclusion allowed
+                    //INSIDE CONTAINER
 
-                    //when not transcluded OR
-                    !transclude ||
-                    //transclusion allowed for type
-                    types.indexOf(transclude) >= 0
+                    //not defined OR
+                    !def.inside ||
+                    //within the given container
+                    $(el).closest(def.inside).length
+                
+                //AND
+                ) && (
+                    //WHEN CUSTOM FUNCTION SAYS SO
+                    
+                    //not defined OR
+                    !def.when ||
+                    //not a function and truthy OR
+                    typeof window[def.when] != 'function' && window[def.when] ||
+                    //a function returning a truthy value
+                    typeof window[def.when] == 'function' && window[def.when](el, id, what, transclude, def)
                 )
+
             ){
-                //init allow when not set or when all allowed (next overwrites previous)
+                //init <allow> when not set or when all allowed
+                //when '*', any further matching allow overwrites previous
                 if(allow == undefined || allow == '*') {
                     //get allowed for def
-                    allow = me.allowed[def];
-                    //when allow is list of definitions
+                    allow = def.allow;
+                    //when allow is list of definition ids
                     if(allow && allow != '*')
                         //turn into array
                         allow = allow.readBracketedList();
                 }
-                //add to classes
-                c += cD[what] + ' ';
+                //add class to final class string
+                c += def[what] + ' ';
             }
         });
 
@@ -196,33 +218,31 @@ if($(el).text()=='PaintrPlugin')console.log($(el).closest(me.nopaint));
         if(c) $(el).addClass(
             //defined classes
             c +
-            //default class
-            me.defaultClass +
-            //transpainted if applicable
+            //default paintr class
+            D.defaultClass +
+            //any applicable transclusion classes
             (transclude ? ' paintr-transclude paintr-' + transclude : '')
         );
     },
 
-    updatePaintr : function(){ 
+    updatePaintr : function(){
+        //global defaults
+        var D = me.defaults;
         //init definitions, allows and classes
         me.definitions = [];
-        me.allowed = {};
-        me.classes = {};
 
         //loop defaults
-        ['what', 'exclude', 'defaultClass', 'titleSelector', 'allow', 'transclude', 'nopaint']
-        .map(function(def){
+        $.each(D,function(def){
             //try to read slice from config tiddler
-            var cfg = $.trim(store.getTiddlerText(me.config + '::' + def) || '');
-            //if existing, set global config accordingly
-            if(cfg) me[def] = cfg;
+            var d = $.trim(store.getTiddlerText( 'PaintrConfig::' + def) || '');
+            //if existing, set global default accordingly
+            if(d) D[def] = d;
         });
-
         //get config and split by horizontal rules
         (store.getTiddlerText('PaintrConfig##Definitions') || '').split('\n----\n')
         //loop definition blocks
         .map(function(d) {
-            var a, all, cx, def, f, ftids, q=[], qi=0, t, tid;
+            var a, all, def, j=[], qi=0, t, tid;
 
             //skip blank or block starting with blanks (can be comments)
             if(!d.length || ' ' == d.substr(0,1)) return true;
@@ -230,57 +250,61 @@ if($(el).text()=='PaintrPlugin')console.log($(el).closest(me.nopaint));
             //parse params for block
             d = d.parseParams('anon', null, true);
 
+            //get simple params
             a = d[0]['anon'];
 
             //no simple params? => next
             if(!a) return true;
 
-            //while queued
-            while(a[qi+1] == '+'){
-                //add tid to queue
-                q.pushUnique(a[qi]);
+            //while joined
+            while('+' == a[qi+1]){
+                //add tid
+                j.pushUnique(a[qi]);
                 //next pair
                 qi = qi + 2;
             }
 
-            //add tid to queue
-            q.pushUnique(a[qi]);
+            //join last tid 
+            j.pushUnique(a[qi]);
 
-            //loop queue
-            q.map(function(tid){
+            //loop joined
+            j.map(function(tid){
                 //if starts with tiddler=, use single tiddler
                 t = 0 == tid.indexOf('tiddler=');
 
-                //add tiddler or tag
-                def = tid.substr(t ? 8 : 0);
-
-                //add def to index
-                me.definitions.pushUnique(def);
-                //add allow index
-                me.allowed[def] = getParam( d, 'allow', me.allow );
+                //create new definition object
+                def = {
+                    //add id as tiddler or tag
+                    id: tid.substr(t ? 8 : 0),
+                    //add allow index
+                    allow: getParam( d, 'allow', D.allow ),
+                    //remember if for single tiddler
+                    single: t,
+                    //transclusion switches from config or global defaults
+                    transclude: getParam(d, 'transclude', D.transclude),
+                    //only paint when inside this selector
+                    inside: getParam(d, 'inside', D.inside),
+                    //only paint when custom function defined and returns true
+                    when: getParam(d, 'when', D.when),
+                };
 
                 //get class for all things to be painted...
                 //either as named param or as (second) unnamed param or empty
                 all = getParam( d, 'all', a[qi + 1] || '');
 
-                //init classes
-                cx = me.classes[def] = {};
                 //loop elements
                 ['link','tag','title','tiddler'].map(function(what){
                     //set class for element
-                    cx[what] =
+                    def[what] =
                         //get from params otherwise all 
-                        getParam(
-                            d,
-                            what,
-                            //only when listed in <what>, fall back to global class(es)
-                            0 > me.what.indexOf(what) ? '' : all
+                        getParam( d, what,
+                            //only when globally allowed, fall back to global class(es)
+                            0 > D.what.indexOf(what) ? '' : all
                         )
                 });
-                //check if single tiddler
-                cx['single'] = t;
-                //take transclusion switches from config or global defaults
-                cx['transclude'] = getParam(d, 'transclude', me.transclude);
+
+                //add definition to global index
+                me.definitions.push(def);
             }); 
         });
 
@@ -288,7 +312,7 @@ if($(el).text()=='PaintrPlugin')console.log($(el).closest(me.nopaint));
         removeStyleSheet('PaintrStyles');
 
         //set new styles
-        setStylesheet(store.getTiddlerText(me.config + '##StyleSheet'), 'PaintrStyles');
+        setStylesheet(store.getTiddlerText('PaintrConfig##StyleSheet'), 'PaintrStyles');
     }
 }
 
@@ -332,7 +356,7 @@ Story.prototype.refreshTiddler = function (title, template, force, customFields,
     var el = Story.prototype.refreshTiddlerPAINTR.apply(this, arguments);
 
     //paint the title for this tiddler
-    me.setStyle( $(el).find(me.titleSelector)[0], title, 'title');
+    me.setStyle( $(el).find(me.defaults.titleSelector)[0], title, 'title');
 
     //paint the tiddler
     me.setStyle( $(el), title, 'tiddler');
@@ -382,7 +406,7 @@ TiddlyWiki.prototype.saveTiddler = function (title, newTitle, newBody, modifier,
     //invoke core and fetch result
     result = this.saveTiddlerPAINTR.apply(this, arguments);
     //changed config?
-    if(newTitle == me.config){
+    if(newTitle == 'PaintrConfig'){
         //update config
         me.updatePaintr();
         //refresh all
