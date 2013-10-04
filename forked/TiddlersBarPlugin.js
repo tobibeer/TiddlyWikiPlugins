@@ -2,7 +2,7 @@
 |''Name:''|TiddlersBarPlugin|
 |''Description:''|Provides browser-like tabs to switch between tiddlers.|
 |''Author:''|Pascal Collin / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.3.3 (2013-10-04)|
+|''Version:''|1.3.4 (2013-10-04)|
 |''~CoreVersion:''|2.5.2|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
 |''License:''|[[BSD Open Source License|http://visualtw.ouvaton.org/VisualTW.html#License]]|
@@ -52,7 +52,6 @@ var me = config.macros.tiddlersBar = {
 	tooltipSave : "Save tiddler...",
 	promptRename : "Enter new tiddler name",
 
-	currentTiddler : "",
 	previousState : false,
 	previousKey : co.txtPreviousTabKey,
 	nextKey : co.txtNextTabKey,	
@@ -66,7 +65,7 @@ var me = config.macros.tiddlersBar = {
 
 		if (me.isShown())
 			story.forEachTiddler(function(title,e){
-				if (title == me.currentTiddler){
+				if (title == me.currentTab){
 					d = createTiddlyElement(null,"span",null,"tab tabSelected");
 					me.createActiveTabButton(d,title);
 					if (previous && me.previousKey)
@@ -119,22 +118,22 @@ var me = config.macros.tiddlersBar = {
 		return (cpt>1);
 	},
 	//to select another tab when the current tab is closed
-	selectNextTab : function(){
+	selectNextTab : function(close){
 		var previous="";
 		story.forEachTiddler(function(title){
-			if (!me.currentTiddler) {
+			if (!me.currentTab) {
 				story.displayTiddler(null, title);
 				return;
 			}
-			if (title == me.currentTiddler) {
+			if (title == me.currentTab) {
 				if (previous) {
 					story.displayTiddler(null, previous);
 					return;
 				}
 				//so next tab will be selected
-				else me.currentTiddler=""; 
+				else me.currentTab = ""; 
 			}
-			else previous=title;
+			else previous = title;
 		});		
 	},
 	onSelectTab : function(e){
@@ -196,10 +195,9 @@ var me = config.macros.tiddlersBar = {
 
 Story.prototype.closeTiddlerTIDDLERSBAR = Story.prototype.closeTiddler;
 Story.prototype.closeTiddler = function(title,animate,unused) {
-	if (title==me.currentTiddler)
-		me.selectNextTab();
- 	//disable animation to get it closed before calling tiddlersBar.refresh
  	story.closeTiddlerTIDDLERSBAR.apply(this,arguments);
+ 	me.currentTab = '';
+	me.selectNextTab();
 	var e=document.getElementById("tiddlersBar");
 	if (e) me.refresh(e,null);
 }
@@ -218,7 +216,7 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
 			if (t!=title) e.style.display="none";
 			else e.style.display="";
 		})
-		me.currentTiddler=title;
+		me.currentTab = title;
 	}
 	var e=document.getElementById("tiddlersBar");
 	if (e) me.refresh(e,null);
