@@ -3,7 +3,7 @@
 |''Description''|Automatically turns text into links, optionally using aliases<br>The plugin idea is based on Clint Checketts and Paul Petterson's [[RedirectMacro|http://checkettsweb.com/styles/themes.htm#RedirectMacro]]|
 |''Documentation''|http://linkify.tiddlyspot.com|
 |''Author''|Tobias Beer|
-|''Version''|1.1.1 (2013-10-02)|
+|''Version''|1.1.2 (2013-10-04)|
 |''CoreVersion''|2.5.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/LinkifyPlugin.js|
 |''Usage''|define redirects in LinkifyConfig|
@@ -22,7 +22,7 @@
             //whether or not to autolink all tiddler titles
             linkifyAllTiddlers: true,
             //elements in which matches are NOT to be linkified
-            doNotLinkifyInside: 'h1,h2,h3,h4,h5,h6,.header,.noLinkify',
+            doNotLinkifyInside: 'h1,h2,h3,h4,h5,h6,.header,.noLinkify,th',
             //whether or not links to the current tiddler should be linkified
             doNotLinkifySameTiddler : true
         },
