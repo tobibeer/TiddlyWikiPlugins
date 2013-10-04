@@ -4,7 +4,7 @@
 |''Documentation''|http://paintr.tiddlyspace.com|
 |''Configuration''|PaintrConfig|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version''|2.1.5 (2013-10-04)|
+|''Version''|2.1.6 (2013-10-04)|
 |''CoreVersion''|2.5.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PaintrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -424,9 +424,6 @@ Story.prototype.refreshTiddler = function (title, template, force, customFields,
         //no tid? => do nothing
         if(!tid) return true;
 
-        //get tid reference
-        me.tidFromReference(tid);
-
         //determine transclusion type
         type =
             tid.indexOf('##') > 0 ?
@@ -436,7 +433,7 @@ Story.prototype.refreshTiddler = function (title, template, force, customFields,
                 'tiddler';
 
         //color the transclusion
-        me.setStyle(this, tid, 'tiddler', type);
+        me.setStyle(this, me.tidFromReference(tid), 'tiddler', type);
     })
     return el;
 }
