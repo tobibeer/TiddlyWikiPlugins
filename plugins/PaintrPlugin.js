@@ -4,7 +4,7 @@
 |''Documentation''|http://paintr.tiddlyspace.com|
 |''Configuration''|PaintrConfig|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version''|2.1.1 (2013-10-04)|
+|''Version''|2.1.5 (2013-10-04)|
 |''CoreVersion''|2.5.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PaintrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -15,7 +15,7 @@
 
 config.shadowTiddlers.PaintrConfig = [
 "!Defaults",
-"''what:'' links tags titles",
+"''what:'' links tags tabs titles",
 "''exclude:'' no-paint",
 "''transclude:'' tiddler section",
 "''nopaint:'' .nopaint, .header",
@@ -41,7 +41,7 @@ var me = config.macros.paint = {
 
     //default fallbacks
     defaults: {
-        what: 'links tags titles',
+        what: 'links tags tabs titles',
         exclude: 'no-paint',
         defaultClass: 'paintr',
         titleSelector: 'div.title',
@@ -290,7 +290,7 @@ var me = config.macros.paint = {
                 all = getParam( d, 'all', a[qi + 1] || '');
 
                 //loop elements
-                ['link','tag','title','tiddler'].map(function(what){
+                ['link','tag','title','tab','tiddler'].map(function(what){
                     //set class for element
                     def[what] =
                         //get from params otherwise all 
@@ -310,6 +310,44 @@ var me = config.macros.paint = {
 
         //set new styles
         setStylesheet(store.getTiddlerText('PaintrConfig##StyleSheet'), 'PaintrStyles');
+    },
+
+    //gets the content tiddler for a tab
+    tidFromReference : function(ref){
+        var
+            //check for section
+            p1 = ref.indexOf('##'),
+            p2 = ref.indexOf('::');
+
+        //return either tiddler, section or slice
+        return p1 + p2 <= 0 ? ref : ref.substr(0, p1>0 ? p1 : p2);
+    },
+
+    //helper to paint tabs
+    paintTabs: function(place){
+        var sel, type;
+        //loop tabs
+        $(place).find('> .tabset .tab').each(function(){
+            var
+                //the tab
+                $t = $(this),
+                //the content reference
+                ref = $t.attr('content'),
+                //the tiddler
+                tid = me.tidFromReference(ref);
+
+            //when selected tab
+            if($t.is('.tabSelected')){
+                //get content type
+                type = ref.indexOf('##') > 0 ? 'section' : 'tiddler';
+                //remember selected
+                sel = tid;
+            }
+            //set tab style
+            me.setStyle( $t, tid, 'tab');
+        });
+        //set tab contents style
+        me.setStyle( $('> .tabContents', place), sel, 'tiddler', type);
     }
 }
 
@@ -348,6 +386,22 @@ config.macros.allTags.handler = function (place, macroName, params) {
     });
 };
 
+//hijack tabs macro
+config.macros.tabs.handlerPAINTR = config.macros.tabs.handler;
+config.macros.tabs.handler = function(place, macroName, params) {
+    config.macros.tabs.handlerPAINTR.apply(this,arguments);
+    me.paintTabs( $(place).last() );
+};
+
+config.macros.tabs.switchTabPaintr = config.macros.tabs.switchTab;
+config.macros.tabs.switchTab = function(tabset,tab){
+    $t = $(tabset);
+    $t.next().attr('class','tabContents');
+    config.macros.tabs.switchTabPaintr.apply(this,arguments);
+    me.paintTabs( $t.parent() );
+}
+
+//hijack tiddler refresh
 Story.prototype.refreshTiddlerPAINTR = Story.prototype.refreshTiddler;
 Story.prototype.refreshTiddler = function (title, template, force, customFields, defaultText) {
     var el = Story.prototype.refreshTiddlerPAINTR.apply(this, arguments);
@@ -360,9 +414,7 @@ Story.prototype.refreshTiddler = function (title, template, force, customFields,
 
     //loop all transclusions
     $('[refresh="content"]', $(el)).each(function(){
-        var tid, pos,
-            //default: tiddler transclusion
-            type = 'tiddler',
+        var p1, p2, tid, type,
             //the transcluded element
             $t = $(this);
 
@@ -371,26 +423,17 @@ Story.prototype.refreshTiddler = function (title, template, force, customFields,
         //no tid? => do nothing
         if(!tid) return true;
 
-        //find section separator
-        pos = tid.indexOf('##');
-        //section?
-        if(pos >= 0) {
-            //get tid
-            tid = tid.substr(0,pos);
-            //set transclusion type
-            type ='section';
-        //when no section
-        } else {
-            //find slice separator
-            pos = tid.indexOf('::');
-            //slice?
-            if(pos >= 0) {
-                //get tid
-                tid = tid.substr(0,pos);
-                //set transclusion type
-                type ='slice';
-            }
-        }
+        //get tid reference
+        me.tidFromReference(tid);
+
+        //determine transclusion type
+        type =
+            tid.indexOf('##') > 0 ?
+                'section' :
+            tid.indexOf('::') > 0 ?
+                'sllice' :
+                'tiddler';
+
         //color the transclusion
         me.setStyle(this, tid, 'tiddler', type);
     })
