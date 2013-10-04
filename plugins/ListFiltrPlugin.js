@@ -1,5 +1,6 @@
 /***
 |Name|ListFiltrPlugin|
+|Description|Allows to easily filter simple and complex lists|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |Documentation|http://listfiltr.tiddlyspace.com|
 |Version|1.1.6 (2013-09-25)|
