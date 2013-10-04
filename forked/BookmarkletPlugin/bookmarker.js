@@ -194,7 +194,7 @@
 			bind: { text: [ '[name="text"]textarea', '[name="url"]input'] },
 			toTiddler: {
 				text: function(txt, url) {
-						return ['url: ', url, '\n', txt].join('\n');
+						return "''URL:'' " + url + "\n\n" + txt;
 				}
 			}
 		}),
