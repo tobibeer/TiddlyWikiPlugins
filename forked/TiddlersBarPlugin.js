@@ -2,7 +2,7 @@
 |''Name:''|TiddlersBarPlugin|
 |''Description:''|Provides browser-like tabs to switch between tiddlers.|
 |''Author:''|Pascal Collin / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.3.4 (2013-10-04)|
+|''Version:''|1.3.5 (2013-10-04)|
 |''~CoreVersion:''|2.5.2|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
 |''License:''|[[BSD Open Source License|http://visualtw.ouvaton.org/VisualTW.html#License]]|
@@ -99,7 +99,17 @@ var me = config.macros.tiddlersBar = {
 					place.insertBefore(d,place.firstChild); 
 				}
 				else place.appendChild(d);
-			})
+			});
+			//paintr support
+			paint = config.macros.paint;
+			if(paint)
+				$('#tiddlersBar .tab').each(function(){
+					paint.setStyle(
+						$(this),
+						$(this).find('.button').attr('tiddler'),
+						'tab'
+					);
+				});
 	}, 
 	refresh: function(place,params){
 		removeChildren(place);
@@ -195,6 +205,8 @@ var me = config.macros.tiddlersBar = {
 
 Story.prototype.closeTiddlerTIDDLERSBAR = Story.prototype.closeTiddler;
 Story.prototype.closeTiddler = function(title,animate,unused) {
+	//no animation
+	animate = false;
  	story.closeTiddlerTIDDLERSBAR.apply(this,arguments);
  	me.currentTab = '';
 	me.selectNextTab();
@@ -204,6 +216,10 @@ Story.prototype.closeTiddler = function(title,animate,unused) {
 
 Story.prototype.displayTiddlerTIDDLERSBAR = Story.prototype.displayTiddler;
 Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,unused,customFields,toggle){
+	//no source, no nasty animations
+	srcElement = null;
+	//always open top
+	var e=document.getElementById("tiddlersBar");
 	var result = story.displayTiddlerTIDDLERSBAR.apply(this, arguments);
 
 	var title =
@@ -218,7 +234,6 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
 		})
 		me.currentTab = title;
 	}
-	var e=document.getElementById("tiddlersBar");
 	if (e) me.refresh(e,null);
 	window.scrollTo(0,0);
 
