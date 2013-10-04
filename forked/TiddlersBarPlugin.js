@@ -2,7 +2,7 @@
 |''Name:''|TiddlersBarPlugin|
 |''Description:''|Provides browser-like tabs to switch between tiddlers.|
 |''Author:''|Pascal Collin / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.3.2 (2013-10-03)|
+|''Version:''|1.3.3 (2013-10-04)|
 |''~CoreVersion:''|2.5.2|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
 |''License:''|[[BSD Open Source License|http://visualtw.ouvaton.org/VisualTW.html#License]]|
@@ -222,6 +222,8 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
 	}
 	var e=document.getElementById("tiddlersBar");
 	if (e) me.refresh(e,null);
+	window.scrollTo(0,0);
+
 	return result;
 }
 
