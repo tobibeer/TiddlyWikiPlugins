@@ -2,7 +2,7 @@
 |''Name:''|TiddlersBarPlugin|
 |''Description:''|Provides browser-like tabs to switch between tiddlers.|
 |''Author:''|Pascal Collin / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.3.5 (2013-10-04)|
+|''Version:''|1.3.6 (2013-10-04)|
 |''~CoreVersion:''|2.5.2|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
 |''License:''|[[BSD Open Source License|http://visualtw.ouvaton.org/VisualTW.html#License]]|
@@ -63,7 +63,7 @@ var me = config.macros.tiddlersBar = {
 		var btn, c, d, isDirty,
 			previous = null;
 
-		if (me.isShown())
+		if (me.isShown()){
 			story.forEachTiddler(function(title,e){
 				if (title == me.currentTab){
 					d = createTiddlyElement(null,"span",null,"tab tabSelected");
@@ -100,16 +100,8 @@ var me = config.macros.tiddlersBar = {
 				}
 				else place.appendChild(d);
 			});
-			//paintr support
-			paint = config.macros.paint;
-			if(paint)
-				$('#tiddlersBar .tab').each(function(){
-					paint.setStyle(
-						$(this),
-						$(this).find('.button').attr('tiddler'),
-						'tab'
-					);
-				});
+			me.paint();
+		}
 	}, 
 	refresh: function(place,params){
 		removeChildren(place);
@@ -200,6 +192,19 @@ var me = config.macros.tiddlersBar = {
 		}
 		else
 			createTiddlyText(place,title);
+	},
+
+	//paintr support
+	paint: function(){
+		paint = config.macros.paint;
+		if(paint)
+			$('#tiddlersBar .tab').each(function(){
+				paint.setStyle(
+					$(this),
+					$(this).find('.button').attr('tiddler'),
+					'tab'
+				);
+			});
 	}
 }
 
