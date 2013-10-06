@@ -4,7 +4,7 @@
 |''Documentation:''|[[SlideShowPlugin Documentation|SlideShowPluginDoc]]|
 |''Author:''|Paulo Soares / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Contributors:''|John P. Rouillard|
-|''Version:''|2.4.1 (2013-10-07)|
+|''Version:''|2.4.2 (2013-10-07)|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
 |''Master:''|http://www.math.ist.utl.pt/~psoares/addons.html|
 |''License:''|[[Creative Commons Attribution-Share Alike 3.0 License|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -245,9 +245,13 @@ buildNavigator: function() {
   createTiddlyElement(slidefooter,"SPAN","slideCounter")
     .onclick = me.toggleTOC;
 
-  toc = createTiddlyElement(document.body, "SPAN", "toc", me.mobile ? ' mobile' : '');
+  toc = createTiddlyElement(
+    createTiddlyElement(document.body, 'div','toc', me.mobile ? ' mobile' : ''),
+    'div'
+  );
 
-  createTiddlyButton(toc, me.text.quit.button, '', me.endSlideShow, "button quit");
+  if(me.mobile)
+    createTiddlyButton(toc, me.text.quit.button, '', me.endSlideShow, "button quit");
 
   for(i=0; i<me.slideTOC.length; i++){
     $(toc).append(me.slideTOC[i][2]);
@@ -528,6 +532,7 @@ clicker: function(e) {
   if(
     me.blocked == 1 ||
     $(e.target).attr('href') ||
+    $(e.target).is('input') ||
     $(e.target).parents().andSelf().hasClass('noClicks')
   ) return true;
 
@@ -652,22 +657,34 @@ config.shadowTiddlers.SlideShowStyleSheet = [
 "}\n",
 "#toc{",
 " display: none;",
-" position: absolute;",
-" padding: 5px;",
-" font-size: 2em;",
+" position: fixed;",
+" top: 1em;",
 " bottom: 3em;",
 " right: 0.5em;",
-" background: #fff;",
-" border: 1px solid [[ColorPalette::TertiaryMid]];",
+" font-size: 2em;",
 " text-align: left;",
+"}\n",
+"#toc > div {",
+" position:absolute;",
+" right:0;",
+" bottom:0;",
+" padding: 5px;",
 " overflow: auto;",
-" max-height:90%;",
+" max-height: 95%;",
+" min-width: 300px;",
+" background: [[ColorPalette::Background]];",
+" border: 1px solid [[ColorPalette::TertiaryMid]];",
+"}\n",
+"#toc .quit{",
+" display:block;",
+" margin-bottom:7px;",
 "}\n",
 "#toc.mobile{",
 " font-size: 4em;",
 "}\n",
 "#jumpItem{",
-" padding-left:0.25em",
+" padding-left:0.25em;",
+" margin-top:7px;",
 "}\n",
 "#jumpInput{",
 " margin-left: 0.25em;",
