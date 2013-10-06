@@ -203,7 +203,7 @@ var me = config.macros.tiddlersBar = {
 			$('#tiddlersBar .tab').each(function(){
 				paint.setStyle(
 					$(this),
-					$(this).find('.tabButton').attr('tiddler'),
+					$('[tiddler]',this).attr('tiddler'),
 					'tab'
 				);
 			});
