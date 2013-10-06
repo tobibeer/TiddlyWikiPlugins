@@ -246,6 +246,9 @@ buildNavigator: function() {
     .onclick = me.toggleTOC;
 
   toc = createTiddlyElement(document.body, "SPAN", "toc", me.mobile ? ' mobile' : '');
+
+  createTiddlyButton(toc, me.text.quit.button, '', me.endSlideShow, "button quit");
+
   for(i=0; i<me.slideTOC.length; i++){
     $(toc).append(me.slideTOC[i][2]);
       $(toc.lastChild)
@@ -258,7 +261,6 @@ buildNavigator: function() {
       .attr("slide",me.slideTOC[i][0])
       .click(me.showSlideFromTOC);
   }
-  createTiddlyButton(toc, me.text.quit.button, '', me.endSlideShow, "button quit");
 
   //input box to jump to specific slide
   $(
