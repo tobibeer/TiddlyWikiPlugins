@@ -4,13 +4,15 @@
 |''Documentation:''|[[SlideShowPlugin Documentation|SlideShowPluginDoc]]|
 |''Author:''|Paulo Soares / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Contributors:''|John P. Rouillard|
-|''Version:''|2.3.0|
-|''Date:''|2013-10-05|
+|''Version:''|2.4.0 (2013-10-06)|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
 |''Master:''|http://www.math.ist.utl.pt/~psoares/addons.html|
 |''License:''|[[Creative Commons Attribution-Share Alike 3.0 License|http://creativecommons.org/licenses/by-sa/3.0/]]|
 |''~CoreVersion:''|2.5.0|
 This fork introduces the {{{controls}}} parameter that allows to show the controls by default.
+
+Provides mobile touch support: install touchwipe as a plugin...
+http://www.netcu.de/jquery-touchwipe-iphone-ipad-library
 ***/
 //{{{
 (function($) {
@@ -177,7 +179,8 @@ onClick: function(place, paramString) {
   me.toggleSlideStyles();
   if(!me.showAll){
     //Attach the key and mouse listeners
-    if(me.keyboard && !$("#tiddlerDisplay").hasClass("noKeyboard")) $(document).keyup(me.keys);
+    if(me.keyboard && !$("#tiddlerDisplay").hasClass("noKeyboard"))
+      $(document).keyup(me.keys);
     if(me.clicks){
       $(document).mouseup(me.clicker);
       document.oncontextmenu = function(){return false;}
@@ -190,16 +193,17 @@ onClick: function(place, paramString) {
   } else {
     story.closeAllTiddlers();
     story.displayTiddlers(null,me.slides);
-    $(".tiddler").attr("ondblclick",null);
     $(document).keyup(me.endSlideShow);
   }
+
   return false;
 },
 
 buildNavigator: function() {
   //create the navigation bar
   var btns, i, nav, toc,
-      slidefooter = $("#controlBar")[0];
+      slidefooter = $("#controlBar")[0],
+      mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   if(!slidefooter) return;
   $(slidefooter).addClass("slideFooterOff noClicks");
@@ -240,7 +244,7 @@ buildNavigator: function() {
   createTiddlyElement(slidefooter,"SPAN","slideCounter")
     .onclick = me.toggleTOC;
 
-  toc = createTiddlyElement(slidefooter,"SPAN","toc");
+  toc = createTiddlyElement(document.body, "SPAN", "toc", mobile ? ' mobile' : '');
   for(i=0; i<me.slideTOC.length; i++){
     $(toc).append(me.slideTOC[i][2]);
       $(toc.lastChild)
@@ -266,6 +270,8 @@ buildNavigator: function() {
       {type:'text'}
     )
   ).keyup(me.jumpToSlide);
+
+  me.wipe('#slideHeader, #slideFooter, #controlBar');
 },
 
 //Used to shorten the TOC fields
@@ -325,8 +331,10 @@ showSlideFromTOC: function(e) {
 },
 
 toggleTOC: function(){
+  var $j = $("#jumpInput");
   $("#toc").toggle();
-  $("#jumpInput").focus().val('');
+  $j.val('');
+  if(!$j.closest('.mobile').length) $j.focus();
   return false;
 },
 
@@ -353,7 +361,7 @@ toggleSlideStyles: function(){
       '<div id="slideBlanker" style="display:none"></div>'+
       '<div id="slideHeader">' + me.header + '</div>'+
       '<div id="slideFooter">' + me.footer + '</div>'+
-      '<div id="controlBar"></div>' );
+      '<div id="controlBar"></div>');
     setStylesheet(
       store.getRecursiveTiddlerText("SlideShowStyleSheet"),"SlideShowStyleSheet");
     if(me.theme && store.tiddlerExists(me.theme)){
@@ -377,11 +385,12 @@ showSlide: function(n){
   }
   story.closeAllTiddlers();
   if(me.clock=='-'){me.resetClock();}
-  story.displayTiddler(null,String(me.slides[n-1]));
-  $(".tiddler").attr("ondblclick",null);
+  story.displayTiddler(null,String(me.slides[n-1]))
+    .setAttribute('ondblclick', null);
+  me.wipe('.tiddler');
   $("body").removeClass("slide" + me.curSlide);
   me.curSlide = n;
-  $("body").addClass("slide"+me.curSlide);
+  $("body").addClass("slide slide"+me.curSlide);
   $("#slideCounter").text(me.curSlide+"/"+me.nSlides);
   if(me.overlays){
     var contents = $(".viewer *");
@@ -451,9 +460,10 @@ endSlideShow: function(){
   story.closeAllTiddlers();
   me.toggleSlideStyles();
   story.displayTiddlers(null,me.openTiddlers);
-  $(document).unbind();
+  $('body').removeClass('slide slide' + me.curSlide);
   document.oncontextmenu =  function(){};
-  $("body").removeClass("slide" + me.curSlide);
+  $(document).unbind();
+
   return false;
 },
 
@@ -553,6 +563,17 @@ resetClock: function(){
     me.clockStartTime = s.getTime();
   }
   return false;
+},
+
+wipe : function(el){
+  if( $.fn.touchwipe ) {
+    $(el).touchwipe({
+      wipeLeft: me.next,
+      wipeRight: me.previous,
+      wipeUp: me.firstSlide,
+      wipeDown: me.lastSlide
+    });
+  }
 }
 }
 
@@ -597,7 +618,7 @@ config.shadowTiddlers.SlideShowStyleSheet = [
 "#controlBar{",
 " position: fixed;",
 " bottom: 2px;",
-" right: 2px;",
+" right: 0.5em;",
 " width: 100%;",
 " text-align: right",
 "}\n",
@@ -627,12 +648,18 @@ config.shadowTiddlers.SlideShowStyleSheet = [
 "#toc{",
 " display: none;",
 " position: absolute;",
-" font-size: .75em;",
-" bottom: 2em;",
-" right: 0;",
+" padding: 5px;",
+" font-size: 2em;",
+" bottom: 3em;",
+" right: 0.5em;",
 " background: #fff;",
-" border: 1px solid #000;",
-" text-align: left",
+" border: 1px solid [[ColorPalette::TertiaryMid]];",
+" text-align: left;",
+" overflow: auto;",
+" max-height:90%;",
+"}\n",
+"#toc.mobile{",
+" font-size: 4em;",
 "}\n",
 "#jumpItem{",
 " padding-left:0.25em",
@@ -663,6 +690,9 @@ config.shadowTiddlers.SlideShowStyleSheet = [
 ".tocLevel6{",
 " margin-left: 5em;",
 " font-size: .55em",
+"}\n",
+".slide .tiddler{",
+" height:100%;",
 "}\n",
 "/*}}}*/"].join('\n');
 
