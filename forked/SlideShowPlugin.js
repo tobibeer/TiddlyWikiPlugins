@@ -4,7 +4,7 @@
 |''Documentation:''|[[SlideShowPlugin Documentation|SlideShowPluginDoc]]|
 |''Author:''|Paulo Soares / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Contributors:''|John P. Rouillard|
-|''Version:''|2.4.0 (2013-10-06)|
+|''Version:''|2.4.1 (2013-10-07)|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
 |''Master:''|http://www.math.ist.utl.pt/~psoares/addons.html|
 |''License:''|[[Creative Commons Attribution-Share Alike 3.0 License|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -33,7 +33,8 @@ text: {
   tooltip: "Start the slide show",
   quit: {
     label: "x",
-    tooltip: "quit"
+    tooltip: "quit",
+    button: 'quit slideshow'
   },
   firstSlide: {
     label: "<<",
@@ -85,6 +86,7 @@ onClick: function(place, paramString) {
   title = title ? title.getAttribute("tiddler") : null;
   title =  getParam(px,"tiddler", title);
 
+  me.mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   me.blocked = 0;
   me.slides = [];
   me.slideTOC = [];
@@ -202,8 +204,7 @@ onClick: function(place, paramString) {
 buildNavigator: function() {
   //create the navigation bar
   var btns, i, nav, toc,
-      slidefooter = $("#controlBar")[0],
-      mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      slidefooter = $("#controlBar")[0]
 
   if(!slidefooter) return;
   $(slidefooter).addClass("slideFooterOff noClicks");
@@ -222,7 +223,7 @@ buildNavigator: function() {
     id = id.split('|');
     var click = id[1] ? id[1] : id[0],
         id= id[0];
-    createTiddlyButton(btns, me.text[id].label, me.text[id].tooltip, me[click], "button" );  
+    createTiddlyButton(btns, me.text[id].label, me.text[id].tooltip, me[click], "button " + id );  
   });
 
   if(me.clock){
@@ -244,7 +245,7 @@ buildNavigator: function() {
   createTiddlyElement(slidefooter,"SPAN","slideCounter")
     .onclick = me.toggleTOC;
 
-  toc = createTiddlyElement(document.body, "SPAN", "toc", mobile ? ' mobile' : '');
+  toc = createTiddlyElement(document.body, "SPAN", "toc", me.mobile ? ' mobile' : '');
   for(i=0; i<me.slideTOC.length; i++){
     $(toc).append(me.slideTOC[i][2]);
       $(toc.lastChild)
@@ -257,6 +258,7 @@ buildNavigator: function() {
       .attr("slide",me.slideTOC[i][0])
       .click(me.showSlideFromTOC);
   }
+  createTiddlyButton(toc, me.text.quit.button, '', me.endSlideShow, "button quit");
 
   //input box to jump to specific slide
   $(
@@ -457,6 +459,7 @@ previous: function(){
 endSlideShow: function(){
   if(me.autoAdvance) {clearInterval(me.autoAdvance);}
   if(me.clock) clearInterval(me.slideClock);
+  $('#toc').remove();
   story.closeAllTiddlers();
   me.toggleSlideStyles();
   story.displayTiddlers(null,me.openTiddlers);
