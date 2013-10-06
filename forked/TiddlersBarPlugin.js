@@ -2,7 +2,7 @@
 |''Name:''|TiddlersBarPlugin|
 |''Description:''|Provides browser-like tabs to switch between tiddlers.|
 |''Author:''|Pascal Collin / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.3.6 (2013-10-05)|
+|''Version:''|1.3.7 (2013-10-06)|
 |''~CoreVersion:''|2.5.2|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
 |''License:''|[[BSD Open Source License|http://visualtw.ouvaton.org/VisualTW.html#License]]|
@@ -190,8 +190,10 @@ var me = config.macros.tiddlersBar = {
 			);
 			btn.setAttribute("tiddler", title);
 		}
-		else
+		else {
 			createTiddlyText(place,title);
+			$('place').attr('title','');
+		}
 	},
 
 	//paintr support
@@ -201,7 +203,7 @@ var me = config.macros.tiddlersBar = {
 			$('#tiddlersBar .tab').each(function(){
 				paint.setStyle(
 					$(this),
-					$(this).find('.button').attr('tiddler'),
+					$(this).find('.tabButton').attr('tiddler'),
 					'tab'
 				);
 			});
