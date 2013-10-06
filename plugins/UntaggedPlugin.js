@@ -4,7 +4,7 @@
 |''Description''|provides an """<<untagged>>""" macro<br>adds an untagged button to the tags tab<br>allows to hide (empty) tags / tagging|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/UntaggedPlugin.js|
 |''Documentation''|http://untagged.tiddlyspace.com|
-|''Version''|1.0.4 (2013-09-26)|
+|''Version''|1.0.5 (2013-10-06)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 !Options
@@ -61,7 +61,7 @@ var me = config.macros.untagged = {
     noTagsWhenTagged:'no-tags',
     noTaggingWhenTagged:'no-tagging',
     untaggedTiddler: 'untagged',
-    hideTags:'excludeLists excludeMissing excludePublisher excludeSearch',
+    hideTags:'excludeLists excludeMissing excludePublisher excludeSearch no-tags no-tagging noLinkify',
     hideTagsReadOnly: 'systemConfig',
 
     //the macro handler
