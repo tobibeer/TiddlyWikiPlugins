@@ -3,7 +3,7 @@
 |''Description:''|provides interactive tiddler filtering by date range, tags or modifers|
 |''Documentation:''|http://filtr.tiddlyspace.com|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.4.2 (2013-09-25)|
+|''Version:''|1.4.3 (2013-10-06)|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/FiltrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 |''~CoreVersion:''|2.5|
@@ -45,15 +45,13 @@ config.macros.filtr = $.extend(me, {
     fmtHeaderCount: '%0',
     fmtHeaderField: '%0',
     fmtHeader: '',
-    fmtItem: '\n*%modified: @@padding-left:5px;%hastags@@ %tags',
+    fmtItem: '\n*{{filtrDate{%modified}}}%hastags %tags',
     fmtCount: '',
     fmtField: '%0',
     fmtDate: 'YYYY-0MM-0DD',
     fmtYear: 'YYYY',
     fmtMonth: 'mmm',
-    fmtTags: '@@padding-left:20px;color:#666; ...tags: %0@@',
-    fmtTag: '<<tag [[%0]]>>',
-    fmtTagSeparator: '',
+    fmtTags: '{{filtrTags{<<tags "%0">>}}}',
     fmtLabel: '%0:',
 
     //LOCALISATION
@@ -96,10 +94,10 @@ config.macros.filtr = $.extend(me, {
             .split('\n')
             //loop all lines
             .map(function(v){
-                //split line by colon
-                var l = v.split(':');
+                var i = v.indexOf(':'),
+                    key = i<0 ? v : v.substr(0,i);
                 //store into template vars
-                tx[l[0]] = undefined != l[1] ? l[1] : true;
+                tx[key] = i < 0 ? true : v.substr(i + 1);
             });
 
         //all code vars as 'prettyName|short'
@@ -132,9 +130,7 @@ config.macros.filtr = $.extend(me, {
             'fmtHeaderField|ffh',
             'fmtYear|fy',
             'fmtMonth|fm',
-            'fmtTag|ft',
             'fmtTags|fts',
-            'fmtTagSeparator|sep',
             'fmtLabel|fl',
 
             'spaces',
@@ -329,6 +325,18 @@ config.macros.filtr = $.extend(me, {
                 }
                 //loop tags
                 tid.tags.map(function(tag){
+
+                    if(
+                        config.macros.untagged &&
+                        (
+                            config.macros.untagged.hideTags +
+                            (
+                                readOnly ? 
+                                ' ' + config.macros.untagged.hideTagsReadOnly :
+                                ''
+                            )
+                        ).readBracketedList().contains(tag)
+                    )return true;
 
                     //not in tags yet
                     if (!p.tags.contains(tag)){
@@ -758,34 +766,33 @@ config.macros.filtr = $.extend(me, {
                 //nothing
                 '' :
                 //otherwise, format tags
-                p.fts.format([
-                	//one tag?
-                    tid.tags.length == 1 ?
-                    //format one
-                    p.ft.format([tid.tags[0]]) :
-                    //or loop multiple tags
-                    tid.tags.map(
-                        //and format individually
-                        function (t, n) { return p.ft.format([t]); }
-                    //and join them up using the separator
-                    ).join(p.sep)
-                ]);
+                p.fts.format([tid.title]);
 
             //count up
             n++;
 
             //output
-            out += p.f1.replace(/%nl/mg, '\n'
-                ).replace(/%title/mg, '[[' + tid.title + ']]'
-                ).replace(/%modifier/mg, tid.modifier
-                ).replace(/%modified/mg, tid.modified.formatString(p.fd)
-                ).replace(/%created/mg, tid.created.formatString(p.fd)
-                ).replace(/%sortfield/mg, p.bD || me.isDate(d) ? d.formatString(p.fd) : d
-                ).replace(/%space/mg, space
-                ).replace(/%tags/mg, stgs
-                ).replace(/%hastags/mg, store.getTaggedTiddlers(tid.title).length > 0 ? '<<tag [[' + tid.title + ']]>>' : '[[' + tid.title + ']]'
-                ).replace(/%field/mg, p.fi ? p.ff.format([me.isDate(val) ? (new Date(val).formatString(p.fd)) : val]) : ''
-                ).replace(/%count/mg, p.bC ? p.fc.format([n]) : '');
+            out += p.f1
+                .replace(/(%nl)|\\n/mg, '\n')
+                .replace(/%title/mg, '[[' + tid.title + ']]')
+                .replace(/%modifier/mg, tid.modifier)
+                .replace(/%modified/mg, tid.modified.formatString(p.fd))
+                .replace(/%created/mg, tid.created.formatString(p.fd))
+                .replace(/%sortfield/mg, p.bD || me.isDate(d) ? d.formatString(p.fd) : d)
+                .replace(/%space/mg, space)
+                .replace(/%tags/mg, stgs)
+                .replace(/%hastags/mg,
+                    store.getTaggedTiddlers(tid.title).length > 0 ?
+                    '<<tag [[' + tid.title + ']]>>' :
+                    '[[' + tid.title + ']]')
+                .replace(/%field/mg,
+                    p.fi ?
+                    p.ff.format([
+                        me.isDate(val) ?
+                        (new Date(val).formatString(p.fd)) :
+                        val
+                    ]) : '')
+                .replace(/%count/mg, p.bC ? p.fc.format([n]) : '');
         }
 
         //all filter groups 
@@ -926,18 +933,26 @@ if(!Array.prototype.sortCaseInsensitive)
     });
 }
 
-config.shadowTiddlers.StyleSheetFiltr = '/*{{{*/\n' +
-    '.filtr {display:block;}\n' +
-    '.filtr .button{display:block;float:left;margin:3px 3px 0 0;padding:0.2em 0.4em;-moz-border-radius:7px;border-radius:7px;}\n' +
-    '.filtr .filtr_active{background:#FE8 !important;}\n' +
-    '.filtrGroup {display:block;padding:5px 0 0 0;clear:left;vertical-align:middle;}\n' +
-    '.filtrGroup div {display:block; float:left; width:85%;}\n' +
-    '.filtrGroup strong{display:block;float:left;min-width:80px;width:14%;text-align:right;padding-top:0.2em;margin:3px 1% 0 0;}\n' +
-    '.filtrList {clear:left;padding-top:1px;}\n' +
-    '.filtrList ul {list-style-type:none;}\n' +
-    '.filtrList ul,.filtrList ol {margin-left:0;padding-left:0em;list-style-position:inside;}\n' +
-    '.filtrList ul li,.filtrList ol li {border-bottom:1px solid #eee;margin-bottom:3px;padding-left:0.5em;}\n' +
-    '/*}}}*/';
+config.shadowTiddlers.StyleSheetFiltr = [
+    '/*{{{*/',
+    '.filtr {display:block;}',
+    '.filtr .button{display:block;float:left;margin:3px 3px 0 0;padding:0.2em 0.4em;-moz-border-radius:7px;border-radius:7px;}',
+    '.filtr .filtr_active{background:#FE8 !important;}',
+    '.filtrGroup {display:block;padding:5px 0 0 0;clear:left;vertical-align:middle;}',
+    '.filtrGroup div {display:block; float:left; width:85%;}',
+    '.filtrGroup strong{display:block;float:left;min-width:80px;width:14%;text-align:right;padding-top:0.2em;margin:3px 1% 0 0;}',
+    '.filtrList {clear:left;padding-top:1px;}',
+    '.filtrList ul {list-style-type:none;}',
+    '.filtrList ul,.filtrList ol {margin-left:0;padding-left:0em;list-style-position:inside;}',
+    '.filtrList ul li,.filtrList ol li {padding:2px 0 2px 0.5em;border-bottom:1px solid [[ColorPalette::TertiaryPale]];}',
+    '.filtrList ul li:hover,.filtrList ol li:hover {background:[[ColorPalette::TertiaryPale]];}',
+    '.filtrDate {color:[[ColorPalette::TertiaryMid]];margin-right:5px;}',
+    '.filtrTags {max-width:50%;float:right;text-align:right;display:inline-block;margin-right:0.5em;}',
+    '.filtrTags .button {margin:0 0 0 3px;}',
+    '.filtrTags .listTitle {display:none}',
+    '.filtrTags ul, .filtrTags li {margin:0 !important;padding:0 !important;list-style-type:none;display:inline;}',
+    '/*}}}*/'].join('\n');
+
 store.addNotification("StyleSheetFiltr", refreshStyles);
 
 })(jQuery);
