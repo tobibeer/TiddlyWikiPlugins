@@ -4,7 +4,7 @@
 |''Description''|provides an """<<untagged>>""" macro<br>adds an untagged button to the tags tab<br>allows to hide (empty) tags / tagging|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/UntaggedPlugin.js|
 |''Documentation''|http://untagged.tiddlyspace.com|
-|''Version''|1.0.5 (2013-10-06)|
+|''Version''|1.0.6 (2013-10-06)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 !Options
@@ -325,8 +325,13 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
         //tid has tags and tag to hide tagged OR
         (tid && tid.tags && tid.tags.containsAny(me.noTagsWhenTagged.readBracketedList()))
         ||
-        //empty tags to be hidden and this tid has no tags
-        (config.options.chkHideEmptyTags && (!tid || !tid.tags || !tid.tags.length))
+        (
+            //empty tags to be hidden AND
+            config.options.chkHideEmptyTags &&
+            //tid shows no tags
+            $(me.selectorTags,el).find('a:visible').length == 0
+        )
+
     ){
         //hide tags
         $(me.selectorTags, el).hide();
@@ -337,8 +342,12 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
         //tid has tags and has tag to hide tagging OR
         (tid && tid.tags && tid.tags.containsAny(me.noTaggingWhenTagged.readBracketedList()))
         ||
-        //empty tagging to be hidden and this tid has no tids tagging to it
-        (config.options.chkHideEmptyTagging && (!store.getTaggedTiddlers(title).length))
+        (
+            //empty tagging to be hidden AND
+            config.options.chkHideEmptyTagging &&
+            //tid shows no tids tagging to it
+            $(me.selectorTagging,el).find('a:visible').length == 0
+        )
     ){
         //hide tagging
         $(me.selectorTagging, el).hide();
