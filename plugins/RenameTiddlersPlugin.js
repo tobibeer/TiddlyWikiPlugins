@@ -259,7 +259,7 @@ createTiddlyLink = function(place,title,includeText,className,isStatic,linkedFro
     var renamed = findRenamedTiddler(jQuery.trim(title));
     title = renamed[0];
     return jQuery(createTiddlyLinkRENAME.apply(this,arguments))
-        .addClass(renamed[1] ? '.tiddlyLinkRenamed' : '')[0];
+        .addClass(renamed[1] ? 'tiddlyLinkRenamed' : '')[0];
 
 }
 
