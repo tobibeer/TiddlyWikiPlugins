@@ -1,17 +1,16 @@
 ﻿/***
-/***
 |''Name''|RenameTiddlersPlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Description''|Allows you to easily rename or delete tiddlers and have tags updated across multiple tiddlers|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/RenameTiddlersPlugin.js|
 |''Documentation''|http://renametiddlers.tiddlyspace.com|
-|''Version''|0.9.0 BETA 2013-08-27|
+|''Version''|0.9.9 BETA (2013-10-07)|
 |''~CoreVersion''|2.5.2|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 When you rename a tiddler that serves as a tag you will be asked whether you want to update the tagged tiddlers as well.
 ***/
 //{{{
-config.renameTiddler = {
+var me = config.renameTiddler = {
     //localization
     lang: {
         rename: "Rename tag '%0' to '%1' in %2 tidder(s)?",
@@ -105,6 +104,13 @@ config.renameTiddler = {
             var num, pos;
             //title changed?
             if (title != newTitle) {
+                var names = (this.getValue(title,'renamed')||'').readBracketedList();
+                names.pushUnique(title);
+                this.setValue(
+                    title,
+                    'renamed',
+                    '[[' + (names.length ? names.join(']][[') : title ) + ']]'
+                );
                 //get tiddlers tagged with old name
                 var tagged = this.getTaggedTiddlersWritable(title, newTitle);
                 num = tagged.length;
@@ -112,14 +118,14 @@ config.renameTiddler = {
                 if (tagged.length) {
                     //want to update tags?
                     if (confirm(
-                            config.renameTiddler.lang.rename.format([
+                            me.lang.rename.format([
                                 title,
                                 newTitle,
                                 num
                             ])
                         ))
                         //update tags
-                        config.renameTiddler.updateTagged(title, newTitle, tagged);
+                        me.updateTagged(title, newTitle, tagged);
 
                     //tiddler doesn't even exist and is empty
                     if (!this.tiddlerExists(title) && newBody == "")
@@ -154,17 +160,65 @@ config.renameTiddler = {
             if (tagged.length)
                 //confirmation to remove tag from tagged?
                 if (confirm(
-                        config.renameTiddler.lang.remove.format([
+                        me.lang.remove.format([
                             title,
                             tagged.length
                         ])
                     ))
                     //remove tags
-                    config.renameTiddler.updateTagged(title, '', tagged);
+                    me.updateTagged(title, '', tagged);
             //call core function
             return this.removeTiddlerRENAMETIDDLER(title);
-        }
+        },
 
+        // Return an array of the tiddlers that link to a given tiddler
+        getReferringTiddlers: function(title,unusedParameter,sortField)
+        {
+            var names = (store.getValue(title,'renamed')||'').readBracketedList();
+            if(!this.tiddlersUpdated)
+                this.updateTiddlers();
+            return this.reverseLookup(
+                "links",
+                names.push(title),
+                true,
+                sortField
+            );
+        },
+
+        // Return an array of the tiddlers that do or do not have a specified entry in the specified storage array (ie, "links" or "tags")
+        // lookupMatch == true to match tiddlers, false to exclude tiddlers
+        reverseLookup: function(lookupField,lookupValue,lookupMatch,sortField)
+        {
+            var results = [];
+            this.forEachTiddler(function(title,tiddler) {
+                var f = !lookupMatch;
+                var values;
+                if(["links", "tags"].contains(lookupField)) {
+                    values = tiddler[lookupField];
+                } else {
+                    var accessor = TiddlyWiki.standardFieldAccess[lookupField];
+                    if(accessor) {
+                        values = [ accessor.get(tiddler) ];
+                    } else {
+                        values = tiddler.fields[lookupField] ? [tiddler.fields[lookupField]] : [];
+                    }
+                }
+                if(
+                    values.containsAny(
+                        typeof lookupValue == 'object' ?
+                        lookupValue :
+                        [lookupValue]
+                    )
+                ){
+                    f = lookupMatch;
+                }
+                if(f)
+                    results.push(tiddler);
+            });
+            if(!sortField)
+                sortField = "title";
+            return this.sortTiddlers(results,sortField);
+        }
     },
 
     //initialize plugin
@@ -174,6 +228,53 @@ config.renameTiddler = {
     }
 }
 
+findRenamedTiddler = function(title){
+    var found = false;
+    if(!store.tiddlerExists(title)){
+        store.forEachTiddler(function(tid){
+            var renamed = (store.getValue(tid,'renamed')||'').readBracketedList();
+            if(renamed.contains(title)){
+                title = tid;
+                found = true;
+                return false;
+            }
+        });
+    }
+    return [title, found];
+}
+
+Story.prototype.displayTiddlerRENAME = Story.prototype.displayTiddler;
+Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,unused,customFields,toggle,animationSrc)
+{
+    tiddler = findRenamedTiddler(
+        (tiddler instanceof Tiddler) ? tiddler.title : tiddler
+    )[0];
+    return Story.prototype.displayTiddlerRENAME.apply(this, arguments);
+};
+
+createTiddlyLinkRENAME =  createTiddlyLink;
+createTiddlyLink = function(place,title,includeText,className,isStatic,linkedFromTiddler,noToggle)
+{
+    var renamed = findRenamedTiddler(jQuery.trim(title));
+    title = renamed[0];
+    return jQuery(createTiddlyLinkRENAME.apply(this,arguments))
+        .addClass(renamed[1] ? '.tiddlyLinkRenamed' : '')[0];
+
+}
+
+getTiddlyLinkInfoRENAME = getTiddlyLinkInfo
+getTiddlyLinkInfo = function(title,currClasses)
+{
+    title = findRenamedTiddler(title)[0];
+    return getTiddlyLinkInfoRENAME.apply(this,arguments);
+}
+
+config.paramifiers.open.onstart = function(v) {
+    v = findRenamedTiddler(v)[0];
+    if(!readOnly || store.tiddlerExists(v) || store.isShadowTiddler(v))
+        story.displayTiddler("bottom",v,null,false,null);
+};
+
 //run init
-config.renameTiddler.init();
+me.init();
 //}}}
