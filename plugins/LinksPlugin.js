@@ -3,7 +3,7 @@
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Description''|outputs links in tiddlers|
 |''Documentation''|http://links.tiddlyspace.com|
-|''Version''|0.5.2 (2013-10-01)|
+|''Version''|0.6.0 (2013-10-07)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/LinksPlugin.js|
@@ -27,6 +27,7 @@ var me = config.macros.links = {
 		external: true,
 		internal: true,
 		listfiltr: true,
+		renamed: false,
 
 		sort: 'title',
 		exclude: 'excludeLists excludeSearch systemConfig',
@@ -76,6 +77,7 @@ var me = config.macros.links = {
 		[
 			'external',
 			'internal',
+			'renamed',
 			'listfiltr'
 		//loop params
 		].map(function (b) {
@@ -97,6 +99,19 @@ var me = config.macros.links = {
 				store.filterTiddlers(p.filter) :
 				//otherwise all tids
 				store.getTiddlers(p.sort);
+		}
+
+		if(p.renamed) {
+			p.external = false;
+			p.renamed = [];
+			//loop all tids
+			tids.map(function(tid){
+			    (store.getValue(tid.title, 'renamed')||'')
+					.readBracketedList()
+					.map(function(tid){
+					    p.renamed.pushUnique(tid)
+					})
+			})
 		}
 
 		//turn exclude into array
@@ -205,10 +220,16 @@ var me = config.macros.links = {
 				//check if external link
 				isExternal = config.formatterHelpers.isExternalLink(target);
 				if(
+					//when not matching title text lookup
 					p.title && title.toLowerCase().indexOf(p.title.toLowerCase()) < 0 ||
+					//when not matching link text lookup
 					p.link && target.toLowerCase().indexOf(p.link.toLowerCase()) < 0 ||
+					//when internal deactivated and is internal
 					!p.internal && !isExternal ||
-					!p.external && isExternal
+					//when external deactivated and is external
+					!p.external && isExternal ||
+					//when renamed and is renamed
+					p.renamed && !isExternal && !p.renamed.contains(target)
 				) return;
 				var tidTargets,
 					tidIndex = p.tids[tiddler];
