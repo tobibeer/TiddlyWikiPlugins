@@ -3,7 +3,7 @@
 |''Description:''|provides interactive tiddler filtering by date range, tags or modifers|
 |''Documentation:''|http://filtr.tiddlyspace.com|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.4.4 (2013-10-07)|
+|''Version:''|1.4.5 (2013-10-07)|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/FiltrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 |''~CoreVersion:''|2.5|
@@ -42,7 +42,6 @@ config.macros.filtr = $.extend(me, {
     listfiltr: true,
 
     //OUTPUT FORMAT
-    fmtHeaderCount: '%0',
     fmtHeaderField: '%0',
     fmtHeader: '',
     fmtItem: '\n*{{filtrDate{%modified}}}%hastags %tags',
@@ -124,7 +123,6 @@ config.macros.filtr = $.extend(me, {
             'fmtHeader|f0',
             'fmtItem|f1',
             'fmtCount|fc',
-            'fmtHeaderCount|fch',
             'fmtDate|fd',
             'fmtField|ff',
             'fmtHeaderField|ffh',
@@ -866,7 +864,6 @@ config.macros.filtr = $.extend(me, {
                     p.f0
                         //replacing field, count and sortfield placeholders
                         .replace(/%field/mg, p.fi ? p.ffh.format([p.filbl]) : '')
-                        .replace(/%count/mg, p.bC ? p.fch : '')
                         .replace(/%sortfield/mg, p.sf)
                         .replace(/(%nl)|\\n/mg, '\n')
                     //and the output
@@ -948,8 +945,10 @@ config.shadowTiddlers.StyleSheetFiltr = [
     '.filtrList ul,.filtrList ol {margin-left:0;padding-left:0em;list-style-position:inside;}',
     '.filtrList ul li,.filtrList ol li {padding:2px 0 2px 0.5em;border-bottom:1px solid [[ColorPalette::TertiaryPale]];}',
     '.filtrList ul li:hover,.filtrList ol li:hover {background:[[ColorPalette::TertiaryPale]];}',
+    '.filtrList table ul li:hover,.filtrList table ol li:hover {background:transparent;}',
+    '.filtrList table ul li,.filtrList table ul li {padding:0;margin:0;}',
     '.filtrDate {color:[[ColorPalette::TertiaryMid]];margin-right:5px;}',
-    '.filtrTags {max-width:50%;float:right;text-align:right;display:inline-block;margin-right:0.5em;}',
+    '.filtrTags {max-width:50;float:right;text-align:right;display:inline-block;margin-right:0.5em;}',
     '.filtrTags .button {margin:0 0 0 3px;}',
     '.filtrTags .listTitle {display:none}',
     '.filtrTags ul, .filtrTags li {margin:0 !important;padding:0 !important;list-style-type:none;display:inline;}',
