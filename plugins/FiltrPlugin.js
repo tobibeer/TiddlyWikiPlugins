@@ -3,7 +3,7 @@
 |''Description:''|provides interactive tiddler filtering by date range, tags or modifers|
 |''Documentation:''|http://filtr.tiddlyspace.com|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.4.3 (2013-10-06)|
+|''Version:''|1.4.4 (2013-10-07)|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/FiltrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 |''~CoreVersion:''|2.5|
@@ -773,7 +773,6 @@ config.macros.filtr = $.extend(me, {
 
             //output
             out += p.f1
-                .replace(/(%nl)|\\n/mg, '\n')
                 .replace(/%title/mg, '[[' + tid.title + ']]')
                 .replace(/%modifier/mg, tid.modifier)
                 .replace(/%modified/mg, tid.modified.formatString(p.fd))
@@ -792,7 +791,8 @@ config.macros.filtr = $.extend(me, {
                         (new Date(val).formatString(p.fd)) :
                         val
                     ]) : '')
-                .replace(/%count/mg, p.bC ? p.fc.format([n]) : '');
+                .replace(/%count/mg, p.bC ? p.fc.format([n]) : '')
+                .replace(/(%nl)|\\n/mg, '\n');
         }
 
         //all filter groups 
@@ -868,6 +868,7 @@ config.macros.filtr = $.extend(me, {
                         .replace(/%field/mg, p.fi ? p.ffh.format([p.filbl]) : '')
                         .replace(/%count/mg, p.bC ? p.fch : '')
                         .replace(/%sortfield/mg, p.sf)
+                        .replace(/(%nl)|\\n/mg, '\n')
                     //and the output
                     + out
                 ]),
@@ -921,7 +922,8 @@ config.macros.filtr = $.extend(me, {
     //check if date
     isDate: function (d) {
         return (new Date(d)).getMonth();
-    }
+    },
+
 });
 
 //when not defined yet, allow to sort case insensitively
