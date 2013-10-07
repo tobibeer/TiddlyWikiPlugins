@@ -175,11 +175,12 @@ var me = config.renameTiddler = {
         getReferringTiddlers: function(title,unusedParameter,sortField)
         {
             var names = (store.getValue(title,'renamed')||'').readBracketedList();
+            names.push(title);
             if(!this.tiddlersUpdated)
                 this.updateTiddlers();
             return this.reverseLookup(
                 "links",
-                names.push(title),
+                names,
                 true,
                 sortField
             );
