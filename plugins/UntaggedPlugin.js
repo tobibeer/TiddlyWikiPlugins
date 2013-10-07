@@ -4,7 +4,7 @@
 |''Description''|provides an """<<untagged>>""" macro<br>adds an untagged button to the tags tab<br>allows to hide (empty) tags / tagging|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/UntaggedPlugin.js|
 |''Documentation''|http://untagged.tiddlyspace.com|
-|''Version''|1.0.6 (2013-10-06)|
+|''Version''|1.0.7 (2013-10-07)|
 |''~CoreVersion''|2.5.2|
 |''License''|Creative Commons 3.0|
 !Options
@@ -28,27 +28,25 @@
 //{{{
 (function ($) {
 
-//optionfor sidebar tags
-if(!config.options.chkShowUntagged){
-    config.options.chkShowUntagged = true;
-}
-if(!config.options.chkShowUntaggedShadows){
-    config.options.chkShowUntaggedShadows = false;
-}
-if(!config.options.chkHideEmptyTags){
-    config.options.chkHideEmptyTags = true;
-}
-if(!config.options.chkHideEmptyTagging){
-    config.options.chkHideEmptyTagging = true;
-}
+var co = config.options;
+
+[
+    'chkShowUntagged',
+    'chkShowUntaggedShadows-',
+    'chkHideEmptyTags',
+    'chkHideEmptyTagging'
+].map(function(o){
+    o = o.split('-');
+    if(undefined == co[o[0]]) co[o[0]] = !o[1];
+})
 
 //localisation
 merge(config.views.wikified.tag,{
-        untaggedButton: "untagged (%0)",
-        untaggedTooltip: "Show untagged tiddlers...",  
-        untaggedListTitle: "Untagged tiddlers:",
-        untaggedNone: "There are no untagged tiddlers...",
-        openUntagged: "Open '%0'"
+    untaggedButton: "untagged (%0)",
+    untaggedTooltip: "Show untagged tiddlers...",  
+    untaggedListTitle: "Untagged tiddlers:",
+    untaggedNone: "There are no untagged tiddlers...",
+    openUntagged: "Open '%0'"
 });
 
 //shortcut
@@ -91,7 +89,7 @@ var me = config.macros.untagged = {
         //get all tids
         store.getTiddlers('title').map(function(t){
             //skip shadows and has shadow?
-            if(!config.options.chkShowUntaggedShadows &&
+            if(!co.chkShowUntaggedShadows &&
                 config.shadowTiddlers[t.title])
                 //skip
                 return true;
@@ -169,7 +167,7 @@ var me = config.macros.untagged = {
                 //add the list title
                 createTiddlyElement(out,'li',null,'listTitle',lingo.untaggedListTitle);
             //in the popup
-            } else if (!config.options.chkSinglePageMode) {
+            } else if (!co.chkSinglePageMode) {
                 //add the open all link
                 createTiddlyButton(
                     createTiddlyElement(out,"li"),
@@ -265,7 +263,7 @@ var me = config.macros.untagged = {
             //when
             if(
                 //this list to be hidden on empty
-                config.options['chkHideEmpty' + what] && 
+                co['chkHideEmpty' + what] && 
                 //and there is no more button
                 !$('.button, .tiddlyLink',place).filter(':visible').length
             ){
@@ -292,7 +290,7 @@ config.macros.allTags.handler = function(place, macroName, params) {
     //hide readonly tags
     me.hide($(place).last());
     //show untagged?
-    if(config.options.chkShowUntagged){
+    if(co.chkShowUntagged){
         //render it
         wikify('<<untagged alltags>>',place);
     }
@@ -327,7 +325,7 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
         ||
         (
             //empty tags to be hidden AND
-            config.options.chkHideEmptyTags &&
+            co.chkHideEmptyTags &&
             //tid shows no tags
             $(me.selectorTags,el).find('a:visible').length == 0
         )
@@ -344,7 +342,7 @@ Story.prototype.displayTiddler = function(srcElement,tiddler,template,animate,un
         ||
         (
             //empty tagging to be hidden AND
-            config.options.chkHideEmptyTagging &&
+            co.chkHideEmptyTagging &&
             //tid shows no tids tagging to it
             $(me.selectorTagging,el).find('a:visible').length == 0
         )
