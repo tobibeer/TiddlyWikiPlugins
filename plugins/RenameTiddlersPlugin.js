@@ -106,6 +106,7 @@ var me = config.renameTiddler = {
             if (title != newTitle) {
                 var names = (this.getValue(title,'renamed')||'').readBracketedList();
                 names.pushUnique(title);
+                if(names.contains(newTitle))names.splice(names.indexOf(newTitle),1);
                 this.setValue(
                     title,
                     'renamed',
