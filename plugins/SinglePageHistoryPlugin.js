@@ -2,7 +2,7 @@
 |''Name:''|SinglePageHistoryPlugin|
 |''Description:''|Limits to only one tiddler open. Manages an history stack and provides macro to navigate in this history (<<history>><<history back>><<history forward>>).|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|0.7.3 (2013-09-05)|
+|''Version:''|0.7.5 (2013-10-08)|
 |''~CoreVersion:''|2.5.2|
 |''Documentation:''|http://singlepagehistory.tiddlyspace.com|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SinglePageHistoryPlugin.js|
@@ -230,7 +230,7 @@ sp.button = false;
 sp.displayTiddlerSINGLEPAGEHISTORY = sp.displayTiddler;
 sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
     var
-        i, a = [],
+        el, i, a = [],
         //whether or not single page mode is enabled
         single = config.options['chkSinglePageMode'],
         //reference to history macro
@@ -284,7 +284,7 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
         }
 
         //tiddler open && single page mode and not overruled?
-        if (current && single && !story.reallyDoOpenAll){
+        if (current && single && !story.reallyDoOpenAll && template != 2){
             // => close
             story.closeTiddler(current,false,'OPENING');
         }
@@ -305,7 +305,7 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
     }
 
     //display tiddler
-    story.displayTiddlerSINGLEPAGEHISTORY('top',next,template,animate,slowly);
+    el = story.displayTiddlerSINGLEPAGEHISTORY('top',next,template,animate,slowly);
 
     //and scroll to it
     var container = $(document.body),
@@ -318,6 +318,8 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
             container.offset().top -
             cmh.headerHeight
     });
+
+    return el;
 }
 
 
@@ -349,8 +351,8 @@ Story.prototype.closeTiddler = function(title,animate,unused) {
 
 onClickTagSINGLEPAGEHISTORY = onClickTag;
 onClickTag = function(ev){
-    onClickTagSINGLEPAGEHISTORY.apply(this,arguments);
     var e = ev || window.event,
+        ret = onClickTagSINGLEPAGEHISTORY.apply(this,arguments)
         $pop = $('#popup');
     if(e.ctrlKey){
         $pop.attr('doOpenAll','true');
@@ -368,6 +370,7 @@ onClickTag = function(ev){
             }
         }
     }
+    return ret;
 }
 
 onClickTagOpenAllSINGLEPAGEHISTORY =  onClickTagOpenAll;
