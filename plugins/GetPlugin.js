@@ -327,6 +327,8 @@ var me = config.macros.get = {
                         val = val.replace(new RegExp('\\$' + $, 'mg'), $vals[$]);
                     }
 
+                    //replace wannabe newline characters
+                    fmt = fmt.replace(/\\n/mg,'\n');
                     //add to output
                     out += (
                       //item prefix
