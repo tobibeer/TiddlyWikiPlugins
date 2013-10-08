@@ -3,7 +3,7 @@
 |Description|Allows to easily filter simple and complex lists|
 |Documentation|http://listfiltr.tiddlyspace.com|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|Version|1.2.0 (2013-10-08)|
+|Version|1.2.1 (2013-10-08)|
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
@@ -231,7 +231,7 @@ var me = config.macros.listfiltr = {
                 .removeClass('lf-h');
             //except when in preserved, hide all of class lf-h 
             $('.lf-h', list)
-                .not('.lf-preserve.lf-h, .lf-preserve .lf-h').addClass('lf-hide');
+                .not('.lf-preserve .lf-h').addClass('lf-hide');
 
             return true;
         });
