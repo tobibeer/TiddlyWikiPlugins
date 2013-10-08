@@ -3,7 +3,7 @@
 |Description|Allows to easily filter simple and complex lists|
 |Documentation|http://listfiltr.tiddlyspace.com|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|Version|1.1.8 (2013-10-07)|
+|Version|1.2.0 (2013-10-08)|
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
@@ -30,7 +30,7 @@ function placeholderIsSupported() {
 
 (function ($) {
 
-me = config.macros.listfiltr = {
+var me = config.macros.listfiltr = {
 
     //localisation
     InputPlaceholder: 'filter list',
@@ -38,7 +38,7 @@ me = config.macros.listfiltr = {
     InputTooltip: 'enter a search term to filter the list',
 
     //any items to preserve by default
-    defaultPreserve: '',
+    defaultPreserve: '.st-bullet',
 
     //macro handler
     handler: function (place, macroName, params, wikifier, paramString, tiddler) {
@@ -109,11 +109,23 @@ me = config.macros.listfiltr = {
             var els, found, text, until,
             box = $(this),
             term = box.val(),
-            list = box.closest('.lf-search').next();
+            list = box.closest('.lf-search').next(),
+            tree = box.closest('.st-tree'),
+            cms = config.macros.simpletree;
 
-            term.length > 1 ?
-                list.addClass('lf-filtered') :
+            if(term.length > 1){
+                list.addClass('lf-filtered');
+                if(cms && tree.length && !tree.is('.st-all')){
+                    cms.toggleAll(tree);
+                    tree.addClass('lf-tree');
+                }
+            } else {
                 list.removeClass('lf-filtered');
+                if(cms && tree.length && tree.is('.st-all.lf-tree')){
+                    cms.toggleAll(tree);
+                }
+                tree.removeClass('lf-tree');
+            }
             
             $('li,dd,dt,span,div', list
             ).removeClass('lf-h lf-hide lf-found lf-not'
@@ -218,7 +230,8 @@ me = config.macros.listfiltr = {
                 .find('.lf-h')
                 .removeClass('lf-h');
             //except when in preserved, hide all of class lf-h 
-            $('.lf-h', list).addClass('lf-hide');
+            $('.lf-h', list)
+                .not('.lf-preserve.lf-h, .lf-preserve .lf-h').addClass('lf-hide');
 
             return true;
         });
