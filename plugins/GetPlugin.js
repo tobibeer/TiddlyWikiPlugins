@@ -4,7 +4,7 @@
 |''Description''|fetch and output a (list of) tiddler, section, slice or field using a predefined or custom format|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/GetPlugin.js|
 |''Documentation''|http://get.tiddlyspace.com|
-|''Version''|1.0.4 2013-08-28|
+|''Version''|1.0.5 2013-10-08|
 |''~CoreVersion''|2.6.2|
 |''License''|Creative Commons 3.0|
 !Code
@@ -13,7 +13,7 @@
 (function ($j) {
     
     //define get macro
-    config.macros.get = {
+var me = config.macros.get = {
 
         config: "GetPluginConfig",
 
@@ -71,11 +71,13 @@
                 cfg = getParam(p, 'config', false),
                 //filter to be used
                 filter = getParam(p, 'filter'),
+                //listfiltr
+                listfiltr = params.contains('listfiltr'),
                 //get first param
                 p0= params[0];
 
             //when fuzzy
-            if (this.identifiers.fuzzy == p0) {
+            if (me.identifiers.fuzzy == p0) {
                 //remember
                 var fuzzy = true;
                 //remove first param
@@ -86,7 +88,7 @@
             title = tiddler  && !fuzzy ? tiddler.title : (t ? t.getAttribute('tiddler') : '');
 
             //when full tiddler
-            if (this.identifiers.tiddler == p0) {
+            if (me.identifiers.tiddler == p0) {
                 //remember
                 var full = true;
                 //remove first param
@@ -94,7 +96,7 @@
             }
 
             //when getting value from filter match
-            if(this.identifiers.filter == p0){
+            if(me.identifiers.filter == p0){
                 //get reference for def filters and loop each line
                 $j(store.getTiddlerText(params[1]).split('\n')).each(function(){
                     //split line by pipe
@@ -117,18 +119,18 @@
             //otherwise, when using config...
             } else if (cfg) {
                 //get text reference for item
-                refItem = getParam(p, 'refItem', this.identifiers.tiddler);
+                refItem = getParam(p, 'refItem', me.identifiers.tiddler);
                 //...and tag
-                refTag = getParam(p, 'refTag', this.identifiers.tiddler);
+                refTag = getParam(p, 'refTag', me.identifiers.tiddler);
                 //take specified config tiddler or default config
-                cfg = (cfg == 'true' ? this.config : cfg);
+                cfg = (cfg == 'true' ? me.config : cfg);
                 //get tags from config
                 tags = store.getTiddlerText(cfg + '##Tags');
 
                 //no tags config not found?
                 if (!tags) {
                     //render error
-                    createTiddlyError(place, this.dict.errConfig, this.dict.errConfigInfo.format([cfg]));
+                    createTiddlyError(place, me.dict.errConfig, me.dict.errConfigInfo.format([cfg]));
                 //tags config found?
                 } else {
                     //split into array
@@ -199,7 +201,7 @@
                 //refresh status
                 refresh = $el.attr('macroName') == 'get',
                 //get exec function from params or use getValues as default
-                exec = this[getParam(p, 'exec', 'getValues')],
+                exec = me[getParam(p, 'exec', 'getValues')],
                 //format
                 format = getParam(p, 'format', ''),
                 //output template
@@ -233,18 +235,18 @@
                 //what to use as a suffix
                 suffix = getParam(p, 'suffix', ''),
                 //name of the category to get
-                cat = getParam(p, 'category', this.dict.defaultCategory),
+                cat = getParam(p, 'category', me.dict.defaultCategory),
                 //what header to use depending on query
                 header = getParam(p, 'header',
                     //empty when not table
                     as != 'table' ? '' :
                         // otherwise the first table row with the generic css classes
                         '|' +
-                        this.template.tableClass + ' ' +
-                        this.template.tableClass + type.toUpperCase() +
+                        me.template.tableClass + ' ' +
+                        me.template.tableClass + type.toUpperCase() +
                         '|k\n' +
                         //and the corresponding (custom) table header
-                        this.template[type + 'TableHead'].format([cat, element])
+                        me.template[type + 'TableHead'].format([cat, element])
                     ),
                 //what footer to use
                 footer = getParam(p, 'footer', ''),
@@ -261,7 +263,7 @@
                     //when format defined use that otherwise use
                     format ? format : (
                         //when template defined use that otherwise get template
-                        template ? template : this.template[
+                        template ? template : me.template[
                             //for fuzzy 
                             (fuzzy ? 'fuzzy' :
                                 //for section or
@@ -283,7 +285,7 @@
                 if (exec) {
                     //execute to get values
                     vals = exec.call(
-                      this,
+                      me,
                       paramString,
                       fuzzy ? what : ((as ? '' : title) + sep + element),
                       title,
@@ -295,7 +297,7 @@
                 //exec function defined that doesn't exist
                 } else {
                     //render error
-                    createTiddlyError(place, this.dict.errFunction, this.dict.errFunctionInfo.format([get]));
+                    createTiddlyError(place, me.dict.errFunction, me.dict.errFunctionInfo.format([get]));
                     return false;
                 }
 
@@ -372,7 +374,11 @@
             }
 
             //wikify trimmed output into the wrapper
-            wikify($j.trim(out), place);
+            wikify(
+                (listfiltr ? '{{lf_get{\n%0\n}}}<<listfiltr>>' : '%0')
+                    .format([$j.trim(out)]),
+                place
+            );
         },
 
         //refresh function for tiddler updates
@@ -380,7 +386,7 @@
             //clean output
             $j(el).empty();
             //invoke again
-            this.handler(
+            me.handler(
               el,
               'get',
               paramString.readMacroParams(),
@@ -498,7 +504,7 @@
                     //check if date
                     d = v && v.length == 12 ? Date.convertFromYYYYMMDDHHMM(v) : undefined;
                     //if it is a date, format it
-                    if (d && !isNaN(d.getMonth)) v = d.formatString(this.template.dateFormat);
+                    if (d && !isNaN(d.getMonth)) v = d.formatString(me.template.dateFormat);
 
                     //add to values
                     if (v) vals.push([tid, v]);
