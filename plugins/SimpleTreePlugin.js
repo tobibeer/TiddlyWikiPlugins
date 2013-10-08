@@ -2,7 +2,7 @@
 |''Name''|SimpleTreePlugin|
 |''Description''|Creates a simple expandable / collapsible tree|
 |''Documentation''|http://simpletree.tiddlyspace.com|
-|''Version''|0.9.0 BETA|
+|''Version''|1.0.0 (2013-10-08)|
 |''Core''|2.5.2|
 |''Author''|Tobias Beer|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SimpleTreePlugin.js|
@@ -13,7 +13,7 @@ Append the {{{<<simpletree>>}}} to any list.
 //{{{
 (function ($) {
 
-    config.macros.simpletree = {
+var me = config.macros.simpletree = {
 
         //
         //PARAMETER DEFAULTS
@@ -33,7 +33,6 @@ Append the {{{<<simpletree>>}}} to any list.
 
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
             var closed, list, none, open, styles = '',
-                cms = this,
                 //get params
                 p = paramString.parseParams('st', null, true),
                 //custom class
@@ -78,7 +77,6 @@ Append the {{{<<simpletree>>}}} to any list.
             //add custom class to list
             if (css) list.addClass(css);
 
-            console.log(list.html());
             //add bullet to all li
             $('li', list).filter(function () {
                 return $(this).parent().is('ul');
@@ -86,7 +84,7 @@ Append the {{{<<simpletree>>}}} to any list.
 
             //expand list on double clicking
             $('.st-bullet', list).dblclick(function () {
-                cms.expandAll(list);
+                me.toggleAll(list);
             });
 
             //all list items are closed first
@@ -105,8 +103,7 @@ Append the {{{<<simpletree>>}}} to any list.
 
             //clicking a list item
             $('li', list).click(function (e) {
-                var had = false,
-                    el = $(this),
+                var el = $(this),
                     e = e || window.event,
                     t = $(e.target),
                     list = $(this).closest('.st-tree'),
@@ -125,8 +122,12 @@ Append the {{{<<simpletree>>}}} to any list.
                     }
                 }
 
+                if (e.altKey) {
+                    me.toggleAll(list);
+                    return me.show(el);
+                }
+
                 if (list.hasClass('st-all')) {
-                    had = true;
                     list.removeClass('st-all');
                     $('ul, ol', list).css('display', '');
                     $('.st-bullet', list).each(function () {
@@ -143,12 +144,7 @@ Append the {{{<<simpletree>>}}} to any list.
                             el.siblings('.st-open').removeClass('st-open').addClass('st-closed').find('.st-bullet:first').html(closed);
                         }
                     });
-                    return cms.show(el);
-                }
-
-                if (e.altKey) {
-                    if (!had) cms.expandAll(list);
-                    return cms.show(el);
+                    return me.show(el);
                 }
 
                 //no childs no click
@@ -179,7 +175,7 @@ Append the {{{<<simpletree>>}}} to any list.
                         $(this).css('display', '');
                     });
                 }
-                return cms.show(el);
+                return me.show(el);
             });
 
             css = '';
@@ -201,13 +197,35 @@ Append the {{{<<simpletree>>}}} to any list.
             return false;
         },
 
-        expandAll: function (list) {
+        toggleAll: function (list) {
             list.each(function () {
-                l = $(this);
-                l.addClass('st-all');
-                $('.st-closed', l).find('.st-bullet:first').empty().append(l.find('.st-bullet-open').clone());
-                $('ul, ol', l).css('display', '');
-            });
+                var l = $(this);
+                //open all
+                if(!l.hasClass('st-all')){
+                    l.addClass('st-all');
+                    $('.st-closed', l)
+                        .removeClass('st-closed')
+                        .addClass('st-open')
+                        .find('.st-bullet:first')
+                        .empty()
+                        .append(
+                            l.find('.st-bullet-open').first().clone()
+                        );
+                    $('ul, ol', l).css('display', '');
+                //close all
+                } else {
+                    l.removeClass('st-all');
+                    var x =$('.st-open', l)
+                        .removeClass('st-open')
+                        .addClass('st-closed')
+                        .find('.st-bullet:first')
+                        .empty()
+                        .append(
+                            l.find('.st-bullet-closed').first().clone()
+                        );
+                    $('li ul, li ol', l).css('display', 'none');
+                }
+            })
         }
     }
 
