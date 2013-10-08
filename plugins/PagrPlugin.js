@@ -4,7 +4,7 @@
 |''Documentation''|http://pagr.tiddlyspace.com|
 |''Author''|Tobias Beer|
 |''~CoreVersion''|2.5.3|
-|''Version''|1.0.0 (2013-09-24)|
+|''Version''|1.0.1 (2013-10-08)|
 |''Readable source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PagrPlugin.js|
 |''License''|[[Creative Commons Attribution-ShareAlike 2.5 License|http://creativecommons.org/licenses/by-sa/2.5/]]|
 ***/
@@ -125,8 +125,7 @@ var me = config.macros.pagr = {
 			//clear crumbs container
 			$(cx).empty();
 			//find tid in toc
-			$tid = temp.find('[tiddlyLink="' + p.crumbs + '"]').first();
-
+			$tid = temp.find('[tiddlyLink="' + (p.bC ? p.bC : p.crumbs)  + '"]').first();
 			//create list of ols and uls
 			oul = tid == p.home ? [] :
 				//first add any chapter list
