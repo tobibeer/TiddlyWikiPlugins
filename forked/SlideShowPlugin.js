@@ -4,7 +4,7 @@
 |''Documentation:''|[[SlideShowPlugin Documentation|SlideShowPluginDoc]]|
 |''Author:''|Paulo Soares / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Contributors:''|John P. Rouillard|
-|''Version:''|2.4.3 (2013-10-08)|
+|''Version:''|2.4.4 (2013-10-08)|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
 |''Master:''|http://www.math.ist.utl.pt/~psoares/addons.html|
 |''License:''|[[Creative Commons Attribution-Share Alike 3.0 License|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -395,7 +395,8 @@ showSlide: function(n){
   story.closeAllTiddlers();
   if(me.clock=='-'){me.resetClock();}
   s = story.displayTiddler(null,String(me.slides[n-1]));
-  if(s)s.setAttribute('ondblclick', null);
+  if(!s) s = story.getTiddler(me.slides[n-1]); //fixes bug for improperly hijacked displayTiddlers
+  s.setAttribute('ondblclick', null);
   me.wipe('.tiddler');
   $("body").removeClass("slide" + me.curSlide);
   me.curSlide = n;
