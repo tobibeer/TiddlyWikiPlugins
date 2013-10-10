@@ -4,7 +4,7 @@
 |''Documentation''|http://pagr.tiddlyspace.com|
 |''Author''|Tobias Beer|
 |''~CoreVersion''|2.5.3|
-|''Version''|1.0.1 (2013-10-08)|
+|''Version''|1.1.0 (2013-10-10)|
 |''Readable source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PagrPlugin.js|
 |''License''|[[Creative Commons Attribution-ShareAlike 2.5 License|http://creativecommons.org/licenses/by-sa/2.5/]]|
 ***/
@@ -17,11 +17,15 @@ var me = config.macros.pagr = {
 	//localisation
 	crumbsSeparator: '»',
 	tipSeparator: 'Show other chapter items for "%0"',
+	homeText: '%0',
 
 	//link formats
 	fmtNext: '[[%0]]',
 	fmtHome: '[[\u25B2|%0]]',
 	fmtPrev: '[[%0]]',
+
+	fmtTocLink: '[[○|%0]] ',
+	fmtNotInToc: '[[○|%0]] ',
 
 	//no default toc or home tiddler
 	toc:'',
@@ -31,8 +35,8 @@ var me = config.macros.pagr = {
 	handler: function(place, macroName, params, wikifier, paramString, theTiddler){
 
 		//init vars
-		var $tid, cx, l, link, links, n, next = [], out='', oul,
-			p={}, prev, pos, pg, tid, tidEl, tids, temp, tocTid,
+		var $tid, cx, el, home, l, link, links, n, next = [], out='', oul,
+			p={}, prev, pos, pg, self, tid, tidEl, tids, temp, tocTid,
 			//parse params
 			px = paramString.parseParams('anon', null, true);
 
@@ -41,13 +45,16 @@ var me = config.macros.pagr = {
 			'fmtPrev|p',
 			'fmtHome|h',
 			'fmtNext|n',
+			'fmtTocLink',
+			'fmtNotInToc',
 			'toc',
 			'home',
 			'chapter',
 			'crumbs',
 			'crumbsOnly|bC',
 			'crumbsSeparator|cs',
-			'tocClass|tc'
+			'homeText',
+			'tocClass|tc',
 
 		//loop them
 		].map(function(x){
@@ -123,9 +130,14 @@ var me = config.macros.pagr = {
 				cx = $('<div class="crumbs"/>').appendTo(place);
 			}
 			//clear crumbs container
-			$(cx).empty();
+			cx.empty();
+
+			//add another container
+			cx = $('<span class="pagr_crumbs"/>').appendTo(cx);
+
 			//find tid in toc
 			$tid = temp.find('[tiddlyLink="' + (p.bC ? p.bC : p.crumbs)  + '"]').first();
+
 			//create list of ols and uls
 			oul = tid == p.home ? [] :
 				//first add any chapter list
@@ -134,7 +146,7 @@ var me = config.macros.pagr = {
 				.add($tid.parents('ol, ul'));
 
 			//add home first ...if this tid is in the toc
-			if(p.home && tid != p.home && $tid.length){
+			if(p.home && $tid.length){
 				//initiate others
 				next = [];
 				//get all first level list items
@@ -144,8 +156,17 @@ var me = config.macros.pagr = {
 					//if it is one, push it
 					if(tL && tL != tid)next.push(tL);
 				});
-				//output  tiddlyLink to home
-				createTiddlyLink(cx[0],p.home,true);
+
+				//text to display for home
+				home = p.homeText.format([p.home]);
+				//don't link homw when we're there already
+				if(tid != p.home){
+					//output  tiddlyLink to home
+					el = createTiddlyLink(cx[0],p.home,false);
+					createTiddlyText(el, home);
+				} else {
+					createTiddlyText(cx[0],home);
+				}
 				//append separator as button
 				$(createTiddlyButton(
 					cx[0],
@@ -157,17 +178,20 @@ var me = config.macros.pagr = {
 					'crumbs_separator tiddlyLink'
 				)).data('tids',next.slice());
 			}
-
 			//loop parents
-			for (l = 0; l < oul.length; l++){
+			$.each(oul, function(i,l){
 				//get the list parent
-				link = $(oul[l]).prev();
+				link = $(l).parent().children('.tiddlyLink').first();
+				//same as current tid?
+				if(tid == link.attr('tiddlyLink'))
+					//handle only once
+					if(self) return true; else self = 1;
 				//when there's one
 				if(link.length){
 					//initiate others
 					next = [];
 					//loop nextings
-					link.next().children().each(function(){
+					link.nextAll('ol, ul').children().each(function(){
 						//get tiddlyLink
 						var tL = $(this).find('.tiddlyLink').first().attr('tiddlyLink');
 						//if it is one, push it
@@ -195,7 +219,7 @@ var me = config.macros.pagr = {
 						'crumbs_separator tiddlyLink'
 					)).data('tids',next.slice());						
 				}
-			}
+			});
 			//last empty?
 			if(!next.length)
 				//remove
@@ -223,6 +247,20 @@ var me = config.macros.pagr = {
 					$b.remove();
 				}
 			})
+
+			//when toclink active
+			if(p.fmtTocLink){
+				//empty container
+				el = $('<span class="pagr_toclink"/>');
+				//render link
+				wikify(
+					//tid in toc => toclink otherwise empty message
+					p[ $tid.length ? 'fmtTocLink' : 'fmtNotInToc'].format(p.toc),
+					el[0]
+				);
+				//prepend to crumbs
+				el.insertBefore(cx);
+			}
 
 			//done when only crumbs
 			if(p.bC)return;
