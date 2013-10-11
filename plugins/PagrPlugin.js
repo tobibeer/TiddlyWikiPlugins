@@ -1,6 +1,6 @@
 /***
 |''Name''|PagrPlugin|
-|''Description''|powerful navigation based on a toc with...<br>» sitemap style breadcrumbs with popup navigation<br>» prev next home buttons<br>» chapter tocs for chapters|
+|''Description''|powerful navigation based on a toc with... <br>» sitemap style breadcrumbs with popup navigation <br>» prev next home buttons <br>» chapter tocs for chapters <br>» menu highlight|
 |''Documentation''|http://pagr.tiddlyspace.com|
 |''Author''|Tobias Beer|
 |''~CoreVersion''|2.5.3|
