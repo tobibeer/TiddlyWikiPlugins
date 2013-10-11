@@ -20,7 +20,7 @@ var me = config.macros.pagr = {
 	tiddler:'', //when you don't want to use the containing tiddler
 
 	//menu selector
-	menu:'#mainMenu',
+	menuSelector:'#mainMenu',
 	//toc class, to make chapter tocs look like the toc
 	tocClass:'toc',
 
@@ -39,13 +39,37 @@ var me = config.macros.pagr = {
 
 	handler: function(place, macroName, params, wikifier, paramString, theTiddler){
 
+       	//create refresh wrapper
+        $el = $('<span class="pagr_refresh"/>')
+        	//append to place
+        	.appendTo(place)
+        	//set wrapper attributes for refresh
+        	.attr({
+            	'refresh': 'macro',
+            	'macroName': 'pagr',
+            	'params': paramString })
+        	.data({
+        		params: params
+        	});
+
+        //run refresher
+        me.refresh($el[0],paramString);
+	},
+
+    //the refresh handler
+    refresh: function(el, paramString){
 		//init vars
-		var $tid, cx, el, home, l, link, links, n, next = [], out='', oul,
+		var $tid, cx, elem, home, l, link, links, n, next = [], out='', oul,
 			p={}, prev, pos, pg, self, tid, tids, temp, tocTid,
+			//get params and place
+			params = $(el).data('params'),
 			//find the outer tid element
-			tidEl = story.findContainingTiddler(place),
+			tidEl = story.findContainingTiddler(el),
 			//parse params
 			px = paramString.parseParams('anon', null, true);
+
+		//empty any previous output
+		$(el).empty();
 
 		//all params
 		[
@@ -57,6 +81,7 @@ var me = config.macros.pagr = {
 			'toc',
 			'home',
 			'menu',
+			'menuSelector',
 			'chapter',
 			'crumbs',
 			'crumbsOnly|bC',
@@ -119,8 +144,8 @@ var me = config.macros.pagr = {
 		// MENU UPDATE //
 
 		//get menu links
-		links = $('.tiddlyLinkExisting', p.menu);
-		//if a menu is defined and there are any links
+		links = $('.tiddlyLinkExisting', p.menuSelector);
+		//if a menu update is wanted and there are any links
 		if(p.menu && links.length){
 
 			//find specified tiddler in toc
@@ -176,7 +201,7 @@ var me = config.macros.pagr = {
 			//add toc class;
 			oul.addClass(p.tc);
 			//output
-			oul.appendTo(place);
+			oul.appendTo(el);
 			//done
 			return;
 		}
@@ -195,7 +220,7 @@ var me = config.macros.pagr = {
 			//if none
 			if(!cx.length) {
 				//create one right here
-				cx = $('<div class="crumbs"/>').appendTo(place);
+				cx = $('<div class="crumbs"/>').appendTo(el);
 			}
 			//clear crumbs container
 			cx.empty();
@@ -230,8 +255,8 @@ var me = config.macros.pagr = {
 				//don't link homw when we're there already
 				if(tid != p.home){
 					//output  tiddlyLink to home
-					el = createTiddlyLink(cx[0],p.home,false);
-					createTiddlyText(el, home);
+					elem = createTiddlyLink(cx[0],p.home,false);
+					createTiddlyText(elem, home);
 				} else {
 					createTiddlyText(cx[0],home);
 				}
@@ -319,15 +344,15 @@ var me = config.macros.pagr = {
 			//when toclink active
 			if(p.fmtTocLink){
 				//empty container
-				el = $('<span class="pagr_toclink"/>');
+				elem = $('<span class="pagr_toclink"/>');
 				//render link
 				wikify(
 					//tid in toc => toclink otherwise empty message
 					p[ $tid.length ? 'fmtTocLink' : 'fmtNotInToc'].format(p.toc),
-					el[0]
+					elem[0]
 				);
 				//prepend to crumbs
-				el.insertBefore(cx);
+				elem.insertBefore(cx);
 			}
 
 			//done when only crumbs
@@ -356,7 +381,7 @@ var me = config.macros.pagr = {
 		next = pos + 1 >= tids.length ? 0 : pos + 1;
 
 		//create pagr
-		pg = createTiddlyElement(place,'div',null,'pagr');
+		pg = createTiddlyElement(el,'div',null,'pagr');
 
 		//when applicable, output...
 		if (p.p && prev >=0 )
