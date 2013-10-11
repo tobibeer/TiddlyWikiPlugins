@@ -4,7 +4,7 @@
 |''Documentation''|http://pagr.tiddlyspace.com|
 |''Author''|Tobias Beer|
 |''~CoreVersion''|2.5.3|
-|''Version''|1.1.0 (2013-10-10)|
+|''Version''|1.2.0 (2013-10-11)|
 |''Readable source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PagrPlugin.js|
 |''License''|[[Creative Commons Attribution-ShareAlike 2.5 License|http://creativecommons.org/licenses/by-sa/2.5/]]|
 ***/
@@ -13,6 +13,16 @@
 (function($){
 
 var me = config.macros.pagr = {
+
+	//default tiddler for toc and home
+	toc:'',
+	home:'',
+	tiddler:'', //when you don't want to use the containing tiddler
+
+	//menu selector
+	menu:'#mainMenu',
+	//toc class, to make chapter tocs look like the toc
+	tocClass:'toc',
 
 	//localisation
 	crumbsSeparator: '»',
@@ -27,16 +37,13 @@ var me = config.macros.pagr = {
 	fmtTocLink: '[[○|%0]] ',
 	fmtNotInToc: '[[○|%0]] ',
 
-	//no default toc or home tiddler
-	toc:'',
-	home:'',
-	tocClass:'toc',
-
 	handler: function(place, macroName, params, wikifier, paramString, theTiddler){
 
 		//init vars
 		var $tid, cx, el, home, l, link, links, n, next = [], out='', oul,
-			p={}, prev, pos, pg, self, tid, tidEl, tids, temp, tocTid,
+			p={}, prev, pos, pg, self, tid, tids, temp, tocTid,
+			//find the outer tid element
+			tidEl = story.findContainingTiddler(place),
 			//parse params
 			px = paramString.parseParams('anon', null, true);
 
@@ -49,10 +56,12 @@ var me = config.macros.pagr = {
 			'fmtNotInToc',
 			'toc',
 			'home',
+			'menu',
 			'chapter',
 			'crumbs',
 			'crumbsOnly|bC',
 			'crumbsSeparator|cs',
+			'tiddler|tid',
 			'homeText',
 			'tocClass|tc',
 
@@ -74,9 +83,15 @@ var me = config.macros.pagr = {
 		//get toc tiddler or section
 		links = store.getTiddlerText(p.toc);
 
-		//find the tid
-		tidEl = story.findContainingTiddler(place);
-		tid = tidEl ? tidEl.getAttribute('tiddler'):'';
+		//when specified and existing
+		if(p.tid && store.getTiddler(p.tid)){
+			//take it
+			tid = p.tid;
+		//otherwise
+		} else {
+			//get tiddler name
+			tid = tidEl ? tidEl.getAttribute('tiddler'):'';
+		}
 
 		//neither tid (new or inexisting shadow) nor toc?
 		if(!tid || !links)
@@ -94,15 +109,68 @@ var me = config.macros.pagr = {
 		//render toc in temporary container
 		wikify(links, temp[0]);
 
-		//try to get toc tiddler as either named variable or this tiddler when unnamed
-		p.chapter = true === p.chapter ? tid : p.chapter;
+		//try to get the chapter or crumbs tiddler as either...
+		//a named variable or this tiddler when unnamed
+		['chapter','crumbs','bC'].map(function(v){
+			p[v] = true == p[v] ? tid : p[v];
+		});
+
+
+		// MENU UPDATE //
+
+		//get menu links
+		links = $('.tiddlyLinkExisting', p.menu);
+		//if a menu is defined and there are any links
+		if(p.menu && links.length){
+
+			//find specified tiddler in toc
+			$tid = temp.find('[tiddlyLink="' + tid + '"]').first();
+
+			//first, remove selected class
+			links.removeClass('pagr_selected');
+
+			//each menu link
+			$.each(links, function(){
+				var found,
+					//get link element
+					l = $(this),
+					//get tiddler
+					t = l.attr('tiddlyLink');
+				//when direct menu item
+				if(t == tid){
+					//set selected class
+					l.addClass('pagr_selected');
+					//stop looping
+					return false;					
+				}
+				//loop parents
+				$.each($tid.parents('ol, ul'), function(){
+					//the link
+					var pL = $(this).parent().children('.tiddlyLink').first();
+					//when matching
+					if(t == pL.attr('tiddlyLink')){
+						//set found
+						found = 1;
+						//set selected class
+						l.addClass('pagr_selected');
+						//stop looping
+						return false;
+					}
+				});
+				//stop when when found
+				return !found;
+			})
+		}
+
+
+		// CHAPTERS //
+
 		//if generic toc
 		if(p.chapter){
-			//find tid in toc
-			oul = temp.find('[tiddlyLink="' + p.chapter + '"]')
-				.first()
-				//get next ol or ul
-				.next('ol,ul');
+			//find tiddler in toc
+			$tid = temp.find('[tiddlyLink="' + p.chapter + '"]').first();
+			//get next ol or ul for tocLink
+			oul = $tid.next('ol,ul');
 			//make pseudo-ol
 			if(oul.closest('.pseudo-ol').length)oul.addClass('pseudo-ol');
 			//add toc class;
@@ -113,9 +181,9 @@ var me = config.macros.pagr = {
 			return;
 		}
 
-		//get crumbs / crumbsOnly as either tid or named param value
-		p.crumbs = true === p.crumbs ? tid : p.crumbs;
-		p.bC = true == p.bC ? tid : p.bC;
+		
+		// CRUMBS //
+
 		//if crumbs to be displayed
 		if(p.crumbs || p.bC){
 			//get global crumbs container
@@ -147,7 +215,7 @@ var me = config.macros.pagr = {
 
 			//add home first ...if this tid is in the toc
 			if(p.home && $tid.length){
-				//initiate others
+				//initiate other first level subitems
 				next = [];
 				//get all first level list items
 				$('ol > li, ul > li', temp).not('li li').each(function(){
@@ -265,6 +333,10 @@ var me = config.macros.pagr = {
 			//done when only crumbs
 			if(p.bC)return;
 		}
+
+
+		// PAGING //
+
 		//initialise toc-tids
 		tids = [];
 		//loop all tiddlylinks from rendered toc
