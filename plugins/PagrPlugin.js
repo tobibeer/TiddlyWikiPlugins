@@ -4,7 +4,7 @@
 |''Documentation''|http://pagr.tiddlyspace.com|
 |''Author''|Tobias Beer|
 |''~CoreVersion''|2.5.3|
-|''Version''|1.2.0 (2013-10-11)|
+|''Version''|1.3.0 (2013-10-11)|
 |''Readable source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PagrPlugin.js|
 |''License''|[[Creative Commons Attribution-ShareAlike 2.5 License|http://creativecommons.org/licenses/by-sa/2.5/]]|
 ***/
@@ -21,6 +21,8 @@ var me = config.macros.pagr = {
 
 	//menu selector
 	menuSelector:'#mainMenu',
+	//default submenu selector
+	sub: '#subMenu',
 	//toc class, to make chapter tocs look like the toc
 	tocClass:'toc',
 
@@ -59,14 +61,17 @@ var me = config.macros.pagr = {
     //the refresh handler
     refresh: function(el, paramString){
 		//init vars
-		var $tid, cx, elem, home, l, link, links, n, next = [], out='', oul,
-			p={}, prev, pos, pg, self, tid, tids, temp, tocTid,
+		var $tid, tocLinks, cx, elem, home, l, links, n, next = [],
+			out='', oul, p={}, prev, pos, pg, sub, self,
+			tid, tids, toc, tocTid, where,
 			//get params and place
 			params = $(el).data('params'),
 			//find the outer tid element
 			tidEl = story.findContainingTiddler(el),
 			//parse params
-			px = paramString.parseParams('anon', null, true);
+			px = paramString.parseParams('anon', null, true),
+			//get submenu value
+			sub = getParam(px,'sub', params.contains('sub'));
 
 		//empty any previous output
 		$(el).empty();
@@ -82,6 +87,8 @@ var me = config.macros.pagr = {
 			'home',
 			'menu',
 			'menuSelector',
+			'controls',
+			'paging',
 			'chapter',
 			'crumbs',
 			'crumbsOnly|bC',
@@ -128,11 +135,10 @@ var me = config.macros.pagr = {
 		//get toc tiddler
 		p.toc = p.toc.substr(0, pos > 0 ? pos : p.toc.length );
 
-		//create temporary container
-		temp = $('<div/>');
-
-		//render toc in temporary container
-		wikify(links, temp[0]);
+		//render toc 
+		toc = me.renderToc(links);
+		//create shallow clone that won't get sliced (doesn't need event handlers)
+		tocLinks = toc.clone();
 
 		//try to get the chapter or crumbs tiddler as either...
 		//a named variable or this tiddler when unnamed
@@ -143,85 +149,73 @@ var me = config.macros.pagr = {
 
 		// MENU UPDATE //
 
-		//get menu links
-		links = $('.tiddlyLinkExisting', p.menuSelector);
-		//if a menu update is wanted and there are any links
-		if(p.menu && links.length){
+		//if a menu update is wanted
+		if(p.menu){
+			//highlight menu for tid
+			me.highlightMenu(p.menuSelector, tid, tocLinks);
+		}
 
-			//find specified tiddler in toc
-			$tid = temp.find('[tiddlyLink="' + tid + '"]').first();
+		// CHAPTER TOC or SUBMENU //
+		// moves elements from rendered toc to elsewhere //
 
-			//first, remove selected class
-			links.removeClass('pagr_selected');
+		//chapter or sub defined
+		if(p.chapter || sub){
+			//determine if submenu to be rendered
+			sub = true === sub ? me.sub : sub;
+			//determine where
+			where = sub ? $(sub) : el;
+			//when chapter or submenu container found
+			if(p.chapter || where.length){
+				//find tiddler or chapter tiddler in toc
+				$tid = toc.find('[tiddlyLink="' + (
+					sub ?
+					$('.pagr_selected',p.menuSelector).first().attr('tiddlyLink') :
+					p.chapter
+				) + '"]').first();
+				//get next ol or ul for tocLink
+				oul = $tid.next('ol,ul');
+				//make pseudo-ol
+				if(oul.closest('.pseudo-ol').length)
+					oul.addClass('pseudo-ol');
+				//empty submenu
+				if(sub) where.empty();
+				//otherwise add toc class
+				else oul.addClass(p.tc);
 
-			//each menu link
-			$.each(links, function(){
-				var found,
-					//get link element
-					l = $(this),
-					//get tiddler
-					t = l.attr('tiddlyLink');
-				//when direct menu item
-				if(t == tid){
-					//set selected class
-					l.addClass('pagr_selected');
-					//stop looping
-					return false;					
+				//output chapters
+				oul.appendTo(where);
+				//highlight submenu
+				me.highlightMenu(sub, tid, tocLinks);
+				//done when chapter only
+				if(p.chapter){
+					return;
 				}
-				//loop parents
-				$.each($tid.parents('ol, ul'), function(){
-					//the link
-					var pL = $(this).parent().children('.tiddlyLink').first();
-					//when matching
-					if(t == pL.attr('tiddlyLink')){
-						//set found
-						found = 1;
-						//set selected class
-						l.addClass('pagr_selected');
-						//stop looping
-						return false;
-					}
-				});
-				//stop when when found
-				return !found;
-			})
+			}
 		}
 
-
-		// CHAPTERS //
-
-		//if generic toc
-		if(p.chapter){
-			//find tiddler in toc
-			$tid = temp.find('[tiddlyLink="' + p.chapter + '"]').first();
-			//get next ol or ul for tocLink
-			oul = $tid.next('ol,ul');
-			//make pseudo-ol
-			if(oul.closest('.pseudo-ol').length)oul.addClass('pseudo-ol');
-			//add toc class;
-			oul.addClass(p.tc);
-			//output
-			oul.appendTo(el);
-			//done
-			return;
-		}
-
-		
 		// CRUMBS //
 
 		//if crumbs to be displayed
 		if(p.crumbs || p.bC){
-			//get global crumbs container
-			cx = $('#crumbs');
+			//crumbs only
+			if(p.bC){
+				//create container
+				cx = $('<div class="crumbs"/>');
+				cx.appendTo(el);
+			}
+			//not created yet?
+			if(!cx){
+				//get global crumbs container
+				cx = $('#crumbs');}
 			//if no global area
 			if(!cx.length)
 				//find crumbs container in tid
 				cx = $(tidEl).find('.crumbs').first();
-			//if none
-			if(!cx.length) {
+			//still none
+			if(!cx.length)
 				//create one right here
 				cx = $('<div class="crumbs"/>').appendTo(el);
-			}
+
 			//clear crumbs container
 			cx.empty();
 
@@ -229,7 +223,7 @@ var me = config.macros.pagr = {
 			cx = $('<span class="pagr_crumbs"/>').appendTo(cx);
 
 			//find tid in toc
-			$tid = temp.find('[tiddlyLink="' + (p.bC ? p.bC : p.crumbs)  + '"]').first();
+			$tid = tocLinks.find('[tiddlyLink="' + (p.bC ? p.bC : p.crumbs)  + '"]').first();
 
 			//create list of ols and uls
 			oul = tid == p.home ? [] :
@@ -243,7 +237,7 @@ var me = config.macros.pagr = {
 				//initiate other first level subitems
 				next = [];
 				//get all first level list items
-				$('ol > li, ul > li', temp).not('li li').each(function(){
+				$('ol > li, ul > li', toc).not('li li').each(function(){
 					//get tiddlyLink
 					var tL = $(this).find('.tiddlyLink').first().attr('tiddlyLink');
 					//if it is one, push it
@@ -271,16 +265,20 @@ var me = config.macros.pagr = {
 					'crumbs_separator tiddlyLink'
 				)).data('tids',next.slice());
 			}
+
 			//loop parents
 			$.each(oul, function(i,l){
-				//get the list parent
-				link = $(l).parent().children('.tiddlyLink').first();
+				var
+					//get the list parent
+					link = $(l).parent().children('.tiddlyLink').first(),
+					//get the tiddler
+					ti = link.attr('tiddlyLink');
 				//same as current tid?
-				if(tid == link.attr('tiddlyLink'))
+				if(ti == tid)
 					//handle only once
 					if(self) return true; else self = 1;
 				//when there's one
-				if(link.length){
+				if(ti){
 					//initiate others
 					next = [];
 					//loop nextings
@@ -288,25 +286,24 @@ var me = config.macros.pagr = {
 						//get tiddlyLink
 						var tL = $(this).find('.tiddlyLink').first().attr('tiddlyLink');
 						//if it is one, push it
-						if(tL && tL != tid)next.push(tL);
+						if(tL && tL != tid) next.push(tL);
 					});
 
-					(
-						//same as current tiddler?
-						tid == link.attr('tiddlyLink') ?
+					//same as current tiddler?
+					if(ti == tid)
 						//just the text
-						$('<span class="crumbs_current"/>').text(tid) :
-						//otherwise the link
-						link
-					//append to crumbs
-					).appendTo(cx);
+						createTiddlyElement(cx[0],'span',null,'crumbs_current', ti);
+					//otherwise
+					else
+						//the link
+						createTiddlyLink(cx[0], ti, true);
 
 					//append separator as button
 					$(createTiddlyButton(
 						cx[0],
 						p.cs,
 						//tooltip
-						me.tipSeparator.format([link.attr('tiddlyLink')]),
+						me.tipSeparator.format([ ti ]),
 						//show popup on click
 						me.crumbsPopup,
 						'crumbs_separator tiddlyLink'
@@ -360,41 +357,105 @@ var me = config.macros.pagr = {
 		}
 
 
+
 		// PAGING //
 
-		//initialise toc-tids
-		tids = [];
-		//loop all tiddlylinks from rendered toc
-		$('.tiddlyLink', temp).each(function(){
-			//add to toc-tids
-			tids.push( $(this).attr('tiddlyLink') );
-		});
+		//when explicitly enabled
+		if(p.paging || p.controls){
+			//initialise toc-tids
+			tids = [];
+			//loop all tiddlylinks from rendered toc
+			$('.tiddlyLink', tocLinks).each(function(){
+				//add to toc-tids
+				tids.push( $(this).attr('tiddlyLink') );
+			});
 
-		//find current tid in toc
-		pos = tids.indexOf(tid);
+			//find current tid in toc
+			pos = tids.indexOf(tid);
 
-		//tid not in toc? => nothing to do
-		if(pos < 0) return;
+			//tid not in toc? => nothing to do
+			if(pos < 0) return;
 
-		//determine previous and next tid
-		prev = pos - 1 < 0 ? -1 : pos-1;
-		next = pos + 1 >= tids.length ? 0 : pos + 1;
+			//determine previous and next tid
+			prev = pos - 1 < 0 ? -1 : pos-1;
+			next = pos + 1 >= tids.length ? 0 : pos + 1;
 
-		//create pagr
-		pg = createTiddlyElement(el,'div',null,'pagr');
+			//create pagr
+			pg = createTiddlyElement(el,'div',null,'pagr');
 
-		//when applicable, output...
-		if (p.p && prev >=0 )
-			out += '{{pagr_prev{' + p.p.format([ tids[prev] ]) + '}}}';
+			//when applicable, output...
+			if (p.p && prev >=0 )
+				out += '{{pagr_prev{' + p.p.format([ tids[prev] ]) + '}}}';
 
-		if (p.h)
-			out += p.h.format([ p.toc      ]);
+			if (p.h)
+				out += p.h.format([ p.toc      ]);
 
-		if (p.n && next)
-			out += '{{pagr_next{' + p.n.format([ tids[next] ]) + '}}}';
+			if (p.n && next)
+				out += '{{pagr_next{' + p.n.format([ tids[next] ]) + '}}}';
 
-		//render output
-		wikify(out, pg);
+			//render output
+			wikify(out, pg);
+		}
+
+		//dispose of garbage
+		toc.add(tocLinks).remove();
+	},
+
+	//creates a temporary container for inspecting the rendered toc
+	renderToc: function(what){
+		//create wrapper
+		var el = $('<div/>');
+		//render toc in temporary container
+		wikify(what, el[0]);
+		//return
+		return el;
+	},
+
+	//highlights items in the menu(s)
+	highlightMenu: function(selector, tid, toc){
+		//loop all menu selectors
+		$(selector).each(function(){
+			var 
+				//get menu links
+				links = $('.tiddlyLinkExisting', this),
+				//find specified tiddler in toc
+				$tid = toc.find('[tiddlyLink="' + tid + '"]').first();
+
+			//first, remove selected class
+			links.removeClass('pagr_selected');
+
+			//each menu link
+			$.each(links, function(){
+				var found,
+					//get link element
+					l = $(this),
+					//get tiddler
+					t = l.attr('tiddlyLink');
+				//when direct menu item
+				if(t == tid){
+					//set selected class
+					l.addClass('pagr_selected');
+					//stop looping
+					return false;					
+				}
+				//loop parents
+				$.each($tid.parents('ol, ul'), function(){
+					//the link
+					var pL = $(this).parent().children('.tiddlyLink').first();
+					//when matching
+					if(t == pL.attr('tiddlyLink')){
+						//set found
+						found = 1;
+						//set selected class
+						l.addClass('pagr_selected');
+						//stop looping
+						return false;
+					}
+				});
+				//stop when when found
+				return !found;
+			})
+		})
 	},
 
 	//renders the crumbs popup
@@ -432,18 +493,19 @@ var me = config.macros.pagr = {
 	}
 }
 
-config.shadowTiddlers.StyleSheetPagr =
-'/*{{{*/\n'+
-'.pagr {margin: 0 0 0.5em 1em;}\n'+
-'.pagr a {padding:5px;}\n'+
-'.pagr_prev a:before {content:"« ";}\n'+
-'.pagr_next a:after {content:" »";}\n'+
-'.crumbs {position:absolute;float:left;font-size:0.8em;top:-1.15em;color:[[ColorPalette::TertiaryLight]]}\n'+
-'.crumbs a.tiddlyLink {color:[[ColorPalette::PrimaryLight]];font-weight:normal;}\n'+
-'.tiddler:hover .crumbs a.tiddlyLink {color:[[ColorPalette::PrimaryMid]]}\n'+
-'.tiddler:hover .crumbs a.tiddlyLink:hover {background:none;color:[[ColorPalette::PrimaryDark]];}\n'+
-'.crumbs_separator {padding:0 3px;margin: 0 2px;}\n'+
-'/*}}}*/';
+config.shadowTiddlers.StyleSheetPagr = [
+'/*{{{*/',
+'.pagr {margin: 0 0 0.5em 1em;}',
+'.pagr a {padding:5px;}',
+'.pagr_prev a:before {content:"« ";}',
+'.pagr_next a:after {content:" »";}',
+'.crumbsHeader {position:absolute;float:left;font-size:0.8em;top:-1.15em;color:[[ColorPalette::TertiaryLight]];}',
+'.crumbsHeader a.tiddlyLink {color:[[ColorPalette::PrimaryLight]];font-weight:normal;}',
+'.tiddler:hover .crumbsHeader a.tiddlyLink {color:[[ColorPalette::PrimaryMid]]}',
+'.tiddler:hover .crumbsHeader a.tiddlyLink:hover {background:none;color:[[ColorPalette::PrimaryDark]];}',
+'.crumbs_separator {padding:0 3px;margin: 0 2px;}',
+'/*}}}*/'
+].join('\n');
 
 store.addNotification("StyleSheetPagr", refreshStyles);
 
