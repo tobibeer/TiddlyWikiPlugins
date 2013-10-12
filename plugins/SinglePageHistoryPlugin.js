@@ -1,8 +1,8 @@
 ﻿/***
 |''Name:''|SinglePageHistoryPlugin|
-|''Description:''|Limits to only one tiddler open. Manages an history stack and provides macro to navigate in this history (<<history>><<history back>><<history forward>>).|
+|''Description:''|Limits to only one tiddler open (mostly). Manages an history stack and provides macro to navigate in this history (<<history>><<history back>><<history forward>>).|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|0.7.5 (2013-10-08)|
+|''Version:''|1.0.0 (2013-10-12)|
 |''~CoreVersion:''|2.5.2|
 |''Documentation:''|http://singlepagehistory.tiddlyspace.com|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SinglePageHistoryPlugin.js|
@@ -14,46 +14,70 @@
 
 (function($){
 
+var co=config.options;
+
 //default options
-var defaults = {
+$.each({
     //whether or not to display the first default tiddler when the last one is closed
     chkOpenDefaultOnEmpty: true,
     //whether to enable SinglePageMode
     chkSinglePageMode: true
-};
-
-//loop defaults
-for (var id in defaults)
+//loop and create
+}, function(option, value){
     //doesn't exist?
-    if (config.options[id] === undefined)
+    if (co[option] === undefined)
         //initialize
-        config.options[id] = defaults[id];
+        co[option] = value;
+});
 
 //the macro
-config.macros.history = {
+var me = config.macros.history = {
 
-    //localisation
+    //SETTINGS
+
+    //how many entries you want to allow to go back
+    maxHistory : 30,
+    //milliseconds for checking URL changes    
+    intervalUpdateURL: 500,
+
+    //LOCALISATION
     lingo :{
         historyLbl : 'History',
         historyTip : 'Click to show history...',
         forwardLbl : '>',
-        forwardTip : 'Forward to previous tiddler...',
+        forwardTip : 'Forward to previous in history...',
         backLbl    : '<',
-        backTip    : 'Back to last tiddler...',
+        backTip    : 'Back to last in history...',
         cancelEdit : '\'%0\' is being edited.\n\n' + 
-                     'OK saves and closes the tiddler,\n' + 
-                     'cancel leaves it open.'
+                     'OK saves and closes it.\n' + 
+                     'CANCEL leaves it open.'
     },
 
-    maxHistory : 30,    //how many entries you want to allow to go back
-    headerHeight : 150, //pixels
 
+    //DO NOT CHANGE! (functional helper properties)
+
+    //history array of tiddler titles
+    history: [],
+    //current position in history
+    historyIndex: -1,
+    //a reference to the currently open tiddler
+    currentTiddler: null,
+    //a flag whether button clicked or not
+    button: false,
+    //the refresh handler handler
+    timeoutChangedURL: 0,
+    //the last visited url
+    lastURL: window.location.href,
+    //set when a tag button asks to open all
+    openAll: false,
+
+    //macro handler
     handler: function(place, macroName, params){
         var btn,
             //what type?
             what = params[0],
             //get current position in history
-            index = story.historyIndex
+            index = me.historyIndex,
             //default classes
             cls = 'button btn-history btn-history-';
         
@@ -64,9 +88,9 @@ config.macros.history = {
             //create button
             btn = createTiddlyButton(
                 place,
-                this.lingo[type + 'Lbl'],
-                this.lingo[type + 'Tip'],
-                config.macros.history.go,
+                me.lingo[type + 'Lbl'],
+                me.lingo[type + 'Tip'],
+                me.go,
                 cls + type
             )
             //when
@@ -74,7 +98,7 @@ config.macros.history = {
                 //back button and first
                 what=='back' && index == 0 ||
                 //or forward button and last
-                index == story.tiddlerHistory.length - 1
+                what!='back' && index == me.history.length - 1
             )
                 //disable button
                 $(btn).addClass('btn-history-none');
@@ -84,9 +108,9 @@ config.macros.history = {
             //create history popup button
             createTiddlyButton(
                 place,
-                this.lingo.historyLbl,
-                this.lingo.historyTip,
-                config.macros.history.showPopup,
+                me.lingo.historyLbl,
+                me.lingo.historyTip,
+                me.showPopup,
                 'button btn-history btn-history-popup'
             )
         }
@@ -101,9 +125,9 @@ config.macros.history = {
             popup = Popup.create(this);
 
         //loop history
-        for (i=0; i<story.tiddlerHistory.length; i++ ){
+        for (i=0; i<me.history.length; i++ ){
             //get history tid
-            tid = story.tiddlerHistory[i];
+            tid = me.history[i];
             //create button for tid
             btn = createTiddlyButton(
                 //in new li
@@ -113,12 +137,12 @@ config.macros.history = {
                 //and tip = tiddler name
                 tid,
                 //set click handler
-                config.macros.history.go
+                me.go
             );
             //set history position for item
             $(btn).attr("historyIndex",i);
             //when this is the currently displayed tiddler
-            if(tid == story.currentTiddler)
+            if(tid == me.currentTiddler)
                 //set item class
                 $(btn).addClass('btn-history-current');
         }
@@ -134,42 +158,43 @@ config.macros.history = {
     //click handler for any actual history action
     go: function() {
 
-        var 
-            //reference to namespace
-            cmh = config.macros.history;
+        var tid, btn = $(this),
             //length of history
-            len = story.tiddlerHistory.length,
+            len = me.history.length,
             //whether forward button
-            forward = $(this).hasClass('btn-history-forward'),
-            //or history button  was clicked
-            history = $(this).attr('historyIndex') != undefined,
-            //get current position,
-            p0 = story.historyIndex,
-            //get next position in history
-            index = history ?
-                // either from button
-                parseInt(this.getAttribute("historyIndex")) :
-                //or from global position
-                (forward ? p0 + 1 : p0 - 1),
-            current = story.currentTiddler,
-            //get next tiddler
-            next = story.tiddlerHistory[index];
+            forward = btn.hasClass('btn-history-forward'),
+            //get index in hostory
+            index = btn.attr("historyIndex"),
+            //current tiddler
+            current = me.currentTiddler,
+
+        //get next position in history
+        index =
+            //history button clicked?
+            undefined != index ?
+            //from button
+            parseInt(index):
+            //or from global position
+            (me.historyIndex + (forward ? 1 : -1));
+
+        //get next tiddler
+        tid = me.history[index];
 
         //current tiddler or aborted?
-        if (!next || next == current || cmh.checkDirty()) {
+        if (!tid || tid == current || me.checkDirty()) {
             //abort
             return false;
         }
 
         //set new history position
-        story.historyIndex = index;
+        me.historyIndex = index;
 
         //flag as button click
-        story.button = true;
+        me.button = true;
         //show the tiddler from history
-        story.displayTiddler(null, next);
+        story.displayTiddler(null, tid);
         //remove flag
-        story.button = false;
+        me.button = false;
 
         //disable both buttons
         $('.btn-history-back, .btn-history-forward')
@@ -197,9 +222,7 @@ config.macros.history = {
             //when dirty => edit mode
             if ('true' == elem.getAttribute('dirty')) {
                 //when permission given to save and close edit mode
-                if (confirm(
-                    config.macros.history.lingo.cancelEdit.format([tid])
-                    ))
+                if ( confirm( me.lingo.cancelEdit.format([tid]) ) )
                     //save it
                     story.saveTiddler(tid)
                 //if not confirmed
@@ -211,36 +234,90 @@ config.macros.history = {
             }
         });
         return dirty;
+    },
+
+    //check whether we're at the start url
+    startURL: function(returnURL){
+        var hashes = window.location.href.split('#');
+        return returnURL ? hashes[0] : (!hashes[1] ||hashes.length == 1);
+    },
+
+    //opens default tiddlers
+    openTiddlers: function(tids){
+        //enable open all
+        me.openAll = true;
+
+        //show defaults
+        story.displayTiddlers(
+            null,
+            tids ? tids : store.getTiddlerText("DefaultTiddlers").readBracketedList()
+        );
+        //set permaview
+        story.permaView();
+        //disable open all
+        me.openAll = false;
+    }
+}
+
+checkChangedURL = function() {
+    if (!co.chkSinglePageMode){
+        window.clearInterval( me.timeoutChangedURL );
+        me.timeoutChangedURL=0; return;
+    }
+    var inStory, tids,
+        //the url
+        href = window.location.href,
+        //find hashes
+        pos = href.indexOf('#');
+
+    //no change in location => out
+    if(href == me.lastURL) return;
+
+    //get tids
+    tids = decodeURIComponent(href.substr(pos+1)).readBracketedList();
+
+    // permalink for single tiddler and tiddler not open yet
+    if (tids.length == 1 && !story.getTiddler(tids[0]))
+        //display tiddler
+        story.displayTiddler(null,tids[0]);
+
+    //restore permaview for default tiddlers
+    else {
+        //remember url
+        me.lastURL = href;
+        //when tids in story
+        inStory = tids.length;
+        //check if any of them not in story yet
+        tids.map(function(tid){
+            inStory = inStory && story.getTiddler(tid);
+            return inStory;
+        });
+        //if tids 
+        if(!inStory){
+            //tids in hashes? => open
+            if (tids.length) me.openTiddlers(tids);
+            //otherwise default
+            else me.openTiddlers();
+        }
     }
 }
 
 //get story prototype
-var sp=Story.prototype;
-//set new global properties
-//history array of tiddler titles
-sp.tiddlerHistory = [];
-//current position in history
-sp.historyIndex = -1;
-//a reference to the currently open tiddler
-sp.currentTiddler = null;
-//a flag whether button clicked or not
-sp.button = false;
+var sp = Story.prototype;
 
 //hijack displayTiddler
 sp.displayTiddlerSINGLEPAGEHISTORY = sp.displayTiddler;
 sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
     var
-        el, i, a = [],
+        a = [], enc, el, i, t =0,
         //whether or not single page mode is enabled
-        single = config.options['chkSinglePageMode'],
-        //reference to history macro
-        cmh = config.macros.history;
+        single = co.chkSinglePageMode,
         //get current position
-        index = this.historyIndex,
+        index = me.historyIndex,
         //get history length
-        len = this.tiddlerHistory.length,
+        len = me.history.length,
         //get current
-        current = this.currentTiddler,
+        current = me.currentTiddler,
         //get title of next tiddler  as either string or from tiddler
         next = ((typeof title === "string") ? title : title.title);
 
@@ -248,30 +325,30 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
     if (current != next && template != 2) {
 
         //no history button clicked
-        if (!this.button) {
+        if (!me.button) {
             //when dirty, do nothing
-            if (cmh.checkDirty() && single) {
+            if (me.checkDirty() && single) {
                 return false;
             }
             //when middle of stack
             if (len > 0 && index < len - 1) {
                 //loop current entries
                 for (i = 0; i <= index;i++)
-                    a.push(this.tiddlerHistory[i]);
+                    a.push(me.history[i]);
                 //add last
                 a.push(next);
                 //increment counter
-                this.historyIndex += 1;
+                me.historyIndex += 1;
                 //cut rest from history
-                this.tiddlerHistory = a;
+                me.history = a;
             //end of stack    
             } else {
                 //add to history
-                this.tiddlerHistory.push(next);
+                me.history.push(next);
                 //max reached? => remove first
-                if (len > cmh.maxHistory) this.tiddlerHistory.shift();
+                if (len > me.maxHistory) me.history.shift();
                 //otherwise add increment
-                else this.historyIndex += 1;
+                else me.historyIndex += 1;
             }
 
             //disable forward button
@@ -284,101 +361,116 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
         }
 
         //tiddler open && single page mode and not overruled?
-        if (current && single && !story.reallyDoOpenAll && template != 2){
-            // => close
-            story.closeTiddler(current,false,'OPENING');
+        if (current && !me.openAll && single && template != 2){
+            //make it really close
+            me.openAll = true;
+            //close ALL
+            story.closeAllTiddlers();
+            //make it really close
+            me.openAll = false;
         }
         
         //save current tiddler
-        this.currentTiddler = next;
+        me.currentTiddler = next;
 
-        //encode tiddler name as url slug
-        var encoded = encodeURIComponent(String.encodeTiddlyLink(next));
-        //set location as url + # + tid
-        window.location.href =
-            location.protocol + '//' + 
-            location.host +
-            location.pathname + "#" +
-            encoded;
+        //set location to permalink
+        if(!me.openAll){
+            //construct permalink as base url + # and...
+            href = me.startURL(true) + '#' +
+                //encode tiddler name as url slug
+                encodeURIComponent( String.encodeTiddlyLink(next) );
+            //set it
+            window.location.href = href;
+        }
+
+        //remember url
+        me.lastURL = window.location.href;
+
         //set document title
         document.title = wikifyPlain("SiteTitle") + " - " + next;
     }
 
     //display tiddler
-    el = story.displayTiddlerSINGLEPAGEHISTORY('top',next,template,animate,slowly);
+    el = story.displayTiddlerSINGLEPAGEHISTORY('top',next,template,false);
 
-    //and scroll to it
-    var container = $(document.body),
-        whereTo = $(story.getTiddler(next));
+    //find open tiddlers
+    this.forEachTiddler(
+        function(title,element){t++; return t<2;}
+    );
 
-    //smoothly
-    container.animate({
-        scrollTop:
-            whereTo.offset().top -
-            container.offset().top -
-            cmh.headerHeight
-    });
+    //no scrolling in edit mode
+    if(template!=2 && t < 2){
+        //anim
+        if(co.chkAnimate)
+            $(document.body).animate({scrollTop: 0});
+        //no anim
+        else
+            window.scrollTo(0,0);
+    }
 
+    //activate timer for browser back forth
+    if (!me.timeoutChangedURL)
+        //set timeout handler
+        me.timeoutChangedURL =
+            window.setInterval(function() { checkChangedURL();},
+            me.intervalUpdateURL
+        );
+
+    //return the tiddler
     return el;
 }
 
-
-Story.prototype.closeTiddlerSINGLEPAGEHISTORY = Story.prototype.closeTiddler;
-Story.prototype.closeTiddler = function(title,animate,unused) {
+sp.closeTiddlerSINGLEPAGEHISTORY = sp.closeTiddler;
+sp.closeTiddler = function(title,animate,unused) {
     //invoke core
-    Story.prototype.closeTiddlerSINGLEPAGEHISTORY.apply(this,arguments);
+    sp.closeTiddlerSINGLEPAGEHISTORY.apply(this,arguments);
+
     //when single page mode enabled and there's no tiddler left
-    if(
-        unused != 'OPENING' &&
-        config.options.chkOpenDefaultOnEmpty
-    ){
+    if( unused != 'OPENING' && co.chkOpenDefaultOnEmpty && !me.openAll){
         var t=0;
         //find open tiddlers
-        this.forEachTiddler(function(title,element){
-            t++;
-            return t<2;
-        });
-        //none open?
-        if(t < 2){
-            //show first default tiddler when tiddler is closed
-            this.displayTiddler(
-                'top',
-                store.getTiddlerText('DefaultTiddlers').readBracketedList()[0]
-            )
-        }
+        this.forEachTiddler(
+            function(title,element){t++; return t<2;}
+        );
+        //none open
+        if(t == 0) me.openTiddlers();
     }
 }
 
-onClickTagSINGLEPAGEHISTORY = onClickTag;
-onClickTag = function(ev){
-    var e = ev || window.event,
-        ret = onClickTagSINGLEPAGEHISTORY.apply(this,arguments)
-        $pop = $('#popup');
-    if(e.ctrlKey){
-        $pop.attr('doOpenAll','true');
-    } else {
-        if(config.options.chkSinglePageMode){
-            var $a = $('a',$pop),
-                $all = $a.first(),
-                $tag = $.last(),
-                $li = $tag.parent();
-            //only when not empty
-            if($a.length > 1){
-                $tag.insertAfter($all);
-                $all.remove();
-                $li.add($li.prev('.listBreak')).remove();
-            }
-        }
-    }
-    return ret;
-}
-
+//hijack tag click to allow opening multiple tiddlers
 onClickTagOpenAllSINGLEPAGEHISTORY =  onClickTagOpenAll;
 onClickTagOpenAll = function(ev){
-    story.reallyDoOpenAll = $(this).closest('#popup').attr('doOpenAll');
+    //enable open all
+    me.openAll = true;
+    //close tiddlers
+    story.closeAllTiddlers();
+    //open tagged
     onClickTagOpenAllSINGLEPAGEHISTORY.apply(this, arguments);
-    story.reallyDoOpenAll = false;
+    //update permaview
+    story.permaView();
+    //disable openall
+    me.openAll = false;
 }
+
+//hijack saveTiddler to prevent closing other tiddlers
+config.commands.saveTiddler.handlerSINGLEPAGEHISTORY = config.commands.saveTiddler.handler;
+config.commands.saveTiddler.handler = function(event,src,title){
+    me.openAll = true;
+    var result = config.commands.saveTiddler.handlerSINGLEPAGEHISTORY.apply(this,arguments);
+    me.openAll = false;
+    return result;
+};
+
+//hijack and fix ALL paramifiers
+var cp = config.paramifiers;
+$.each(config.paramifiers, function(key, p){
+    p.onstartSINGEPAGEHISTORY = p.onstart;
+    p.onstart = function(v){
+        me.openAll = true;
+        p.onstartSINGEPAGEHISTORY.apply(this,arguments);
+        me.openAll = false;
+    }
+});
 
 })(jQuery);
 //}}}
