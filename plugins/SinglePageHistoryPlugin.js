@@ -2,7 +2,7 @@
 |''Name:''|SinglePageHistoryPlugin|
 |''Description:''|Limits to only one tiddler open (mostly). Manages an history stack and provides macro to navigate in this history (<<history>><<history back>><<history forward>>).|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.0.0 (2013-10-12)|
+|''Version:''|1.0.5 (2013-10-14)|
 |''~CoreVersion:''|2.5.2|
 |''Documentation:''|http://singlepagehistory.tiddlyspace.com|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SinglePageHistoryPlugin.js|
@@ -21,7 +21,9 @@ $.each({
     //whether or not to display the first default tiddler when the last one is closed
     chkOpenDefaultOnEmpty: true,
     //whether to enable SinglePageMode
-    chkSinglePageMode: true
+    chkSinglePageMode: true,
+    //whether to always open tiddlers at the top when not in singlepage mode
+    chkOpenTop: true
 //loop and create
 }, function(option, value){
     //doesn't exist?
@@ -260,15 +262,13 @@ var me = config.macros.history = {
 }
 
 checkChangedURL = function() {
-    if (!co.chkSinglePageMode){
-        window.clearInterval( me.timeoutChangedURL );
-        me.timeoutChangedURL=0; return;
-    }
     var inStory, tids,
         //the url
         href = window.location.href,
         //find hashes
-        pos = href.indexOf('#');
+        pos = href.indexOf('#'),
+        //single-page mode
+        single = co.chkSinglePageMode;
 
     //no change in location => out
     if(href == me.lastURL) return;
@@ -276,13 +276,18 @@ checkChangedURL = function() {
     //get tids
     tids = decodeURIComponent(href.substr(pos+1)).readBracketedList();
 
-    // permalink for single tiddler and tiddler not open yet
-    if (tids.length == 1 && !story.getTiddler(tids[0]))
+    // permalink for
+    if (
+        //single tiddler and tiddler not open yet
+        single && tids.length == 1 && !story.getTiddler(tids[0]) ||
+        //or no single page mode but open top and already open (make top)
+        !single && co.chkOpenTop && story.getTiddler(tids[0])
+    )
         //display tiddler
         story.displayTiddler(null,tids[0]);
 
-    //restore permaview for default tiddlers
-    else {
+    //restore permaview for default tiddlers only in singlepagemode 
+    else if (single){
         //remember url
         me.lastURL = href;
         //when tids in story
@@ -309,7 +314,7 @@ var sp = Story.prototype;
 sp.displayTiddlerSINGLEPAGEHISTORY = sp.displayTiddler;
 sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
     var
-        a = [], enc, el, i, t =0,
+        $next, a = [], enc, el, i, t =0, top,
         //whether or not single page mode is enabled
         single = co.chkSinglePageMode,
         //get current position
@@ -326,6 +331,7 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
 
         //no history button clicked
         if (!me.button) {
+
             //when dirty, do nothing
             if (me.checkDirty() && single) {
                 return false;
@@ -391,21 +397,27 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
     }
 
     //display tiddler
-    el = story.displayTiddlerSINGLEPAGEHISTORY('top',next,template,false);
+    el = story.displayTiddlerSINGLEPAGEHISTORY('top',next,template,single?false:animate);
 
     //find open tiddlers
-    this.forEachTiddler(
-        function(title,element){t++; return t<2;}
-    );
+    this.forEachTiddler(function(){t++;return t < 3;});
 
-    //no scrolling in edit mode
-    if(template!=2 && t < 2){
+    //only when not opening edit mode and single tiddler
+    if(template!=2 && t < 2 || !single){
+        //get tiddler to open
+        open = story.getTiddler(next);
+        //put first if desired
+        if(co.chkOpenTop)$('#tiddlerDisplay').prepend($(open));
+
+        //determine new top position
+        top = single || !open || co.chkOpenTop ? 0 : ensureVisible(open);
+
         //anim
         if(co.chkAnimate)
-            $(document.body).animate({scrollTop: 0});
+            $(document.body).animate({scrollTop: top});
         //no anim
         else
-            window.scrollTo(0,0);
+            window.scrollTo(0,top);
     }
 
     //activate timer for browser back forth
