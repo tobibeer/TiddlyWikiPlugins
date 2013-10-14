@@ -3,7 +3,7 @@
 |Description|Allows to easily filter simple and complex lists|
 |Documentation|http://listfiltr.tiddlyspace.com|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|Version|1.2.2 (2013-10-13)|
+|Version|1.2.4 (2013-10-14)|
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
@@ -221,7 +221,7 @@ var me = config.macros.listfiltr = {
             }
 
             //do not hide (links) inside definition terms or timeline list items related to match 
-            $('dt.lf-not .lf-h, li.lf-not.lf-h', list).removeClass('lf-h');
+            $('dt.lf-not .lf-h, dd.lf-not .lf-h, li.lf-not.lf-h', list).removeClass('lf-h');
 
             //do not hide stuff under list items except further ul ol
             $('.lf-not', list)
