@@ -2,7 +2,7 @@
 |''Name:''|SinglePageHistoryPlugin|
 |''Description:''|Limits to only one tiddler open (mostly). Manages an history stack and provides macro to navigate in this history (<<history>><<history back>><<history forward>>).|
 |''Author:''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version:''|1.0.5 (2013-10-14)|
+|''Version:''|1.0.6 (2013-10-14)|
 |''~CoreVersion:''|2.5.2|
 |''Documentation:''|http://singlepagehistory.tiddlyspace.com|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/SinglePageHistoryPlugin.js|
@@ -404,13 +404,25 @@ sp.displayTiddler = function(srcElement,title,template,animate,slowly) {
 
     //only when not opening edit mode and single tiddler
     if(template!=2 && t < 2 || !single){
-        //get tiddler to open
-        open = story.getTiddler(next);
         //put first if desired
-        if(co.chkOpenTop)$('#tiddlerDisplay').prepend($(open));
+        if(co.chkOpenTop)$('#tiddlerDisplay').prepend($(el));
 
         //determine new top position
-        top = single || !open || co.chkOpenTop ? 0 : ensureVisible(open);
+        top =
+            //is 0 when
+            (
+                //single page mode
+                single ||
+                //or open top
+                co.chkOpenTop
+            //but not when
+            ) && ! (
+                //search results are open
+                $('#displayArea #searchResults').length
+            ) ?
+            0 :
+            //otherwise go to open tiddler
+            ensureVisible(el);
 
         //anim
         if(co.chkAnimate)
