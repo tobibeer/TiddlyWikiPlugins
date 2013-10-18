@@ -3,7 +3,7 @@
 |Description|Allows to easily filter simple and complex lists|
 |Documentation|http://listfiltr.tiddlyspace.com|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|Version|1.5.0 (2013-10-17)|
+|Version|1.6.0 (2013-10-17)|
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
@@ -49,17 +49,27 @@ h:      'h1,h2,h3,h4,h5,h6',
 index:  'li,dd,dt,td,th,div',
 
 remove: 'lf-h lf-hide lf-found lf-keep lf-section',
-ignore: 'br,.pseudo-ol-li,.lf-found,.linkified',
+ignore: '.lf-found,br,.pseudo-ol-li,.linkified',
 
 keepOuter: 'b,em,strong,blockquote',
 keep: [
     '.lf-keep.lf-h',
     '.lf-found.lf-h',
+    '.lf-found .lf-h:not('+
+        'tr.lf-h,'+
+        'div.lf-found li.lf-h:not(div.lf-found li.lf-found li.lf-h),'+
+        'td.lf-found tr.lf-h,'+
+        'td.lf-found li.lf-h,'+
+        'td.lf-found dt.lf-h,'+
+        'td.lf-found dd.lf-h)',
     '.lf-section.lf-h',
     '.lf-section .lf-h',
     'thead:not(.lf-h) .lf-h',
     'tr.lf-keep td.lf-h',
     'tr.lf-keep th.lf-h',
+    'dt.lf-keep .lf-h',
+    'dd.lf-keep .lf-h',
+
 ].join(','),
 
 timer:0,
@@ -125,8 +135,10 @@ timer:0,
         //filter events
         box.bind('keyup search', function () {
             var box = $(this);
+
             //stop timer if still typing
             clearTimeout(me.timer);
+
             //set new timer to run
             me.timer = setTimeout(
                 //the filter
@@ -138,7 +150,7 @@ timer:0,
     },
 
     //does the actual filtering
-    filter:function(box){
+    filter: function(box){
         var els, found, h, text, what,
             index = me.index + ',span,' + me.h,
             term = box.val(),
@@ -165,42 +177,58 @@ timer:0,
         $('*', list).removeClass(me.remove);
 
         //remove highlights
-        $('.highlight', list).contents().unwrap();
+        $('.highlight', list).each(function(){
+            var x = $(this),
+                p = x.parent();
+            //remove highlight span
+            x.contents().unwrap();
+            //normalize parent to remove superfluous textnodes
+            p[0].normalize();
+        });
 
-        //at least two characters?
+        //at least required number of mininum characters?
         if (term.length >= me.minInput) {
 
             //highlight matches
             me.highlight(term, list);
 
-            //loop all indexed elements
-            $(index,list).not(me.ignore).each(function(){
-                var col0 = 1, cols, cs, head, max, next, prev, rs, ta, tr, x,
+            //loop all indexed elements, except ignored ones
+            $(index, list).not(me.ignore).each(function(){
+                var col0 = 1, cols, cs, head, max,
+                    next, prev, rs, ta, tr, x,
                     //the element
                     el = $(this),
-                    //something found inside
-                    found = el.is('.highlight') || $('.highlight', el).length;
+                    //found when highlight
+                    found = el.is('.highlight');
 
-                //when match inside not ignored element
-                if(found && el.not(me.ignore).length){
+                //when not highlight itself
+                if(!found)
+                    //get gound from...
+                    found = 
+                        //when list element
+                        el.is('li, dt, dd') ?
+                        //check it
+                        me.checkLi(el) :
+                        //othwise when containing a highlight
+                        $('.highlight', el).length;
 
-                    //when not highlight itself
-                    if(!el.is('.highlight'))
-                        //mark found
-                        me.mark(el,true);
+                //highlight found
+                if(found){
 
-                    //get the outer parent as child of filtered list
+                    //mark element as found
+                    me.mark(el, true);
+
+                    //get outer most parent as child of list
                     x = el.parentsUntil('.lf-list').last();
-
                     //when outer to be kept (rest indexed below)
                     if(x.is(me.keepOuter)){
-                        //mark found
-                        me.mark(x,true);
-                        //keep heading
-                        h = me.keepHeading(el);
+                        //also mark outer as found
+                        me.mark(x, true);
+                        //keep any heading
+                        h = me.keepHeading(x, true);
                     }
 
-                    //outer heading
+                    //find outer heading
                     x = el.closest(me.h);
                     //when inside one
                     if(x.length)
@@ -208,14 +236,14 @@ timer:0,
                         x.nextUntil(me.h).addClass('lf-keep lf-section')
                     //otherwise when not inside a heading
                     else
-                        //keep heading
+                        //see if there's any heading to keep
                         me.keepHeading(el);
 
-                    //get outer definition term
+                    //any outer definition term
                     x = el.closest('dt');
                     //when in one
                     if(x.length){
-                        //mark found or for keeps
+                        //also mark for keeps
                         me.mark(x);
                         //also keep next dd siblings up until dt
                         me.mark(x.nextUntil('dt','dd'));
@@ -225,7 +253,7 @@ timer:0,
                     x = el.closest('dd');
                     //when in one
                     if (x.length){
-                        //mark dt for keeps
+                        //also mark corresponding dt for keeps
                         me.mark( x.prevAll('dt:first') );
                     }
 
@@ -259,7 +287,7 @@ timer:0,
                                 me.mark(prev, head);
                                 //get another previous row
                                 prev =
-                                    //when previous has same number of or less cols
+                                    //when previous has same number or less cols
                                     me.numCols(prev) <= cols ?
                                     //get it
                                     prev.prev('tr') :
@@ -281,9 +309,9 @@ timer:0,
                             ){
                                 //mark row
                                 me.mark(next, head);
-                                //get next
+                                //get yet another
                                 next = next.next('tr');
-                            //more columns                            
+                            //otherwise                           
                             } else {
                                 //stop
                                 next = 0;
@@ -351,18 +379,24 @@ timer:0,
 
             //CLEANUP//
 
-            //any lists or tables
-            $('ol, ul, dl, table', list).each(function(){
+            //whenever something is highlighted
+            $('.highlight',list)
+                //its parents
+                .parentsUntil(list)
+                //must not be hidden
+                .removeClass('lf-h');
+
+            //any lists or tables or preserves
+            $('ol, ul, dl, table, .lf-preserve', list).each(function(){
                 var x = $(this);
                 //any matches
-                if($('.lf-found, .lf-keep, .highlight', x).length){
+                if($('.highlight', x).length)
                     //keep
-                    x.addClass('lf-keep');
+                    me.mark(x);
                 //no matches
-                } else {
+                else
                     //hide
                     x.addClass('lf-h');
-                }
             });
 
             //loop all non-found sections
@@ -375,11 +409,12 @@ timer:0,
 
                 //loop next siblings
                 els.each(function(){
+                    //the sibling
                     el = $(this);
                     //when kept or found and not to be hidden
-                    if(el.is('.lf-keep, .lf-found') && !el.is('.lf-h')
+                    if(el.is('.lf-keep, .lf-found, .lf-section')
                     ){
-                        //ok, there is one
+                        //ok, found one
                         none = false;
                         //out
                         return none;
@@ -394,17 +429,8 @@ timer:0,
             //keep what's to be kept
             $(me.keep, list).removeClass('lf-h');
 
-            //do not hide stuff under list items except further ul ol
-            $('.lf-keep', list)
-                .children()
-                .not('ol, ul')
-                .find('.lf-h')
-                .not('tr.lf-h')
-                .removeClass('lf-h');
-
             //except when in preserved, hide all of class lf-h 
-            $('.lf-h', list)
-                .not('.lf-preserve .lf-h')
+            $('.lf-h:not(.lf-preserve .lf-h)', list)
                 .addClass('lf-hide');
         }
 
@@ -439,9 +465,9 @@ timer:0,
     },
 
     //keeps a heading for a found element
-    keepHeading: function(el, list){
+    keepHeading: function(el, o){
         //outer element in filter list
-        var o = el.parentsUntil('.lf-list').last();
+        o = o ? el : el.parentsUntil('.lf-list').last();
 
         //get heading as previous sibling to outer
         h = o.prev();
@@ -453,8 +479,8 @@ timer:0,
 
         //when heading
         if(h.is(me.h)){
-            //no more hiding
-            h.removeClass('lf-h').addClass('lf-keep');
+            //keep it
+            me.mark(h);
         }
     },
 
@@ -465,6 +491,8 @@ timer:0,
         el.not(me.ignore)
             //remove hidden or keeps
             .removeClass('lf-keep lf-h')
+            //do not mark highlight as found
+            .not('.highlight')
             //add found or keeps
             .addClass(found ? 'lf-found' : 'lf-keep');
 
@@ -486,9 +514,9 @@ timer:0,
                 //has previous OR next node
                 ( el.next().length || el.prev().length ) &&
                 //not inside preserve
-                0 == el.closest('.lf-preserve').length &&
+                !el.closest('.lf-preserve').length &&
                 //not after a pseudo order list item
-                0 == el.prevAll('.pseudo-ol-li').length
+                !el.prevAll('.pseudo-ol-li').length
             )
         //wrap in text wrapper
         }).wrap('<span class="lf-text"/>')
@@ -514,8 +542,10 @@ timer:0,
                 //stop when found
                 return !nextToBlock;
             });
+
             //when collection sits next to (rather than just inside) a block level element
-            if(nextToBlock)
+            //and there is more than just the original bit of text
+            if(nextToBlock && p.length > 1)
                 //wrap in pseudo paragraph and preserve it
                 p.wrapAll('<span class="lf-p lf-preserve"/>');
         })
@@ -545,6 +575,33 @@ timer:0,
         });
         //return
         return num;
+    },
+
+    //checks a list element for any keepables, e.g. children that are spans
+    checkLi: function(el, keep){
+        //init match
+        var found = false;
+        //get any non-list children, e.g. a span or other
+        el.children(':not(ol, ul, dl)').each(function(){
+            var
+                //in this element
+                x = $(this),
+                //find highlight
+                f = x.is('.highlight') || $('.highlight', x).length;
+            //when contents in parent li to be kept => mark for keeps
+            if(keep) me.mark( x );
+            //set global match
+            found = found || f;
+        });
+        //when found or already keeping
+        if(found || keep){
+            //get parent li in next outer nested list
+            x = el.parent('ol, ul, dl').parent('li, dd, dt');
+            //when there is any => mark keepables for this one as well
+            if(x.length) me.checkLi(x, true);
+        }
+        //return match
+        return found;
     }
 }
 
@@ -578,6 +635,7 @@ config.shadowTiddlers['StyleSheetListFiltr'] =
 '.lf-label {margin-right:5px;font-weight:bold;}\n' +
 '.lf-filtered .lf-p {display:block;}\n' +
 '.lf-filtered br {display: none;}\n' +
+'.lf-filtered .lf-preserve br {display: block;}\n' +
 '.lf-preserve.lf-found br {display: block;}\n' +
 '/*}}}*/';
 store.addNotification('StyleSheetListFiltr', refreshStyles);
