@@ -634,6 +634,7 @@ config.shadowTiddlers['StyleSheetListFiltr'] =
 '.lf-list + br {display:none;}\n' +
 '.lf-label {margin-right:5px;font-weight:bold;}\n' +
 '.lf-filtered .lf-p {display:block;}\n' +
+'.lf-filtered dd .lf-p {display:inline-block;}\n' +
 '.lf-filtered br {display: none;}\n' +
 '.lf-filtered .lf-preserve br {display: block;}\n' +
 '.lf-preserve.lf-found br {display: block;}\n' +
