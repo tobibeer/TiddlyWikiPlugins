@@ -3,7 +3,7 @@
 |Description|Allows to easily filter simple and complex lists|
 |Documentation|http://listfiltr.tiddlyspace.com|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|Version|1.6.0 (2013-10-17)|
+|Version|1.7.1 (2013-11-06)|
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
@@ -43,6 +43,8 @@ defaultPreserve: '.st-bullet, .annotation',
 wait: 500,
 //the minimum number of search characters
 minInput: 2,
+//filtering by multiple terms using OR logic
+or: ' ',
 
 //DO NOT OVERRIDE (unless you understand what's going on)
 h:      'h1,h2,h3,h4,h5,h6',
@@ -55,13 +57,7 @@ keepOuter: 'b,em,strong,blockquote',
 keep: [
     '.lf-keep.lf-h',
     '.lf-found.lf-h',
-    '.lf-found .lf-h:not('+
-        'tr.lf-h,'+
-        'div.lf-found li.lf-h:not(div.lf-found li.lf-found li.lf-h),'+
-        'td.lf-found tr.lf-h,'+
-        'td.lf-found li.lf-h,'+
-        'td.lf-found dt.lf-h,'+
-        'td.lf-found dd.lf-h)',
+    '.lf-found .lf-h:not(%0)',
     '.lf-section.lf-h',
     '.lf-section .lf-h',
     'thead:not(.lf-h) .lf-h',
@@ -70,6 +66,25 @@ keep: [
     'dt.lf-keep .lf-h',
     'dd.lf-keep .lf-h',
 
+].join(','),
+
+dontKeepInsideFound: [
+    'tr.lf-h',
+    'div.lf-found li.lf-h:not(div.lf-found li.lf-found li.lf-h)',
+    'td.lf-found tr.lf-h',
+    'td.lf-found li.lf-h',
+    'td.lf-found dt.lf-h',
+    'td.lf-found dd.lf-h',
+    '.sliderPanel.lf-found li.lf-h',
+    '.sliderPanel.lf-found ul.lf-h'
+].join(','),
+
+showOnFilter: [
+    '.sliderPanel'
+].join(','),
+
+hideOnEmpty: [
+    '.sliderPanel'
 ].join(','),
 
 timer:0,
@@ -108,10 +123,13 @@ timer:0,
             //outline any inner ordered lists to preserve original numbering
             $("ol:not(ol li > ol)", list).outline();
 
+        me.finalKeep = me.keep;
+
         //preserve all outer elements
         me.keepOuter.split(',').map(function(what){
             //add to list
             outer.push('> ' + what);
+            me.finalKeep += ', > ' + what + '.lf-preserve.lf-h';
         });
 
         //add preservation class
@@ -186,11 +204,19 @@ timer:0,
             p[0].normalize();
         });
 
-        //at least required number of mininum characters?
-        if (term.length >= me.minInput) {
+        //not mininum number of characters
+        if (term.length < me.minInput){
+            //hide elements to be hidden
+            $(me.hideOnEmpty,list).hide();
+
+        //required number entered
+        } else {
+
+            //show stuff
+            $(me.showOnFilter, list).show();
 
             //highlight matches
-            me.highlight(term, list);
+            me.highlight($.trim(term.toLowerCase()), list);
 
             //loop all indexed elements, except ignored ones
             $(index, list).not(me.ignore).each(function(){
@@ -423,11 +449,11 @@ timer:0,
                 //no visible indexed element?
                 if(none)
                     //then hide them all
-                    els.removeClass('lf-keep').addClass('lf-h');
+                    els.removeClass('lf-keep lf-preserve').addClass('lf-h');
             });
 
             //keep what's to be kept
-            $(me.keep, list).removeClass('lf-h');
+            $(me.finalKeep.format(me.dontKeepInsideFound), list).removeClass('lf-h');
 
             //except when in preserved, hide all of class lf-h 
             $('.lf-h:not(.lf-preserve .lf-h)', list)
@@ -451,17 +477,20 @@ timer:0,
                     l.attr('href')
                 ).replace(/\/\/\:/mg,'_').toLowerCase();
 
-            //when
-            if (
-                    //found
-                    link.indexOf(term.toLowerCase()) > -1 &&
-                    //and not yet highlighted
-                    !$('.highlight',l).length
-            ){
-                //wrap link text
-                l.contents().wrap('<span class="highlight"/>');
-            }
-        });
+            term.split(me.or).map(function(t){
+                //when
+                if (
+                        t &&
+                        //found
+                        link.indexOf(t) > -1 &&
+                        //and not yet highlighted
+                        !$('.highlight',l).length
+                ){
+                    //wrap link text
+                    l.contents().wrap('<span class="highlight"/>');
+                }
+            })
+        })
     },
 
     //keeps a heading for a found element
@@ -610,13 +639,33 @@ me.block = me.h + ',' + me.index + ',br,blockquote,ol,ul,dt,p,pre,form';
 
 //helper function to highlight matches
 $.fn.highlight = function (term) {
-    var pattern = new RegExp('(\\b\\w*' + term + '\\w*\\b)', 'gi'),
-         repl = '<span class="highlight">$1</span>';
+    var pattern = [],
+        fmt = '<span class="highlight">%0</span>',
+        terms = term.split(me.or);
+
+    //loop all terms
+    terms.map(function(t){
+        if(t)pattern.push('(\\b\\w*' + t + '\\w*\\b)');
+    });
+
+    //create regexp for term(s)
+    pattern = new RegExp(pattern.join('|'), 'gi');
 
     this.each(function () {
         $(this).contents().each(function () {
             if (this.nodeType === 3 && pattern.test(this.nodeValue)) {
-                $(this).replaceWith(this.nodeValue.replace(pattern, repl));
+                $(this).replaceWith(
+                    this.nodeValue.replace(pattern, function(matched, foo){
+                        var result;
+                        terms.map(function(term){
+                            if(matched.toLowerCase().indexOf(term) >= 0){
+                                result = fmt.format(matched);
+                            }
+                            return !result;
+                        });
+                        return result;
+                    })
+                );
             }
             else if (!$(this).hasClass('highlight')) {
                 $(this).highlight(term);
