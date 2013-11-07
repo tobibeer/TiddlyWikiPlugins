@@ -4,7 +4,7 @@
 |''Description''|fetch and output a (list of) tiddler, section, slice or field using a predefined or custom format|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/GetPlugin.js|
 |''Documentation''|http://get.tiddlyspace.com|
-|''Version''|1.2.1 2013-11-07|
+|''Version''|1.2.2 2013-11-07|
 |''~CoreVersion''|2.6.2|
 |''License''|Creative Commons 3.0|
 !Code
@@ -379,7 +379,7 @@ var me = config.macros.get = {
                                 '' :
                                 //otherwise render slider format
                                 fmt.format([
-                                    'chk' + ('string' == typeof sliders ? sliders : random) + tid.replace(/W/mg, '_'),
+                                    'chk' + ('string' == typeof sliders ? sliders : random) + tid.replace(/(?!\w)[\x00-\xC0]/mg, '_'),
                                     w,
                                     tid,
                                     me.dict.tipSlider.format([ w ])
