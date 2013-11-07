@@ -4,7 +4,7 @@
 |''Description''|fetch and output a (list of) tiddler, section, slice or field using a predefined or custom format|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/GetPlugin.js|
 |''Documentation''|http://get.tiddlyspace.com|
-|''Version''|1.2.0 2013-11-07|
+|''Version''|1.2.1 2013-11-07|
 |''~CoreVersion''|2.6.2|
 |''License''|Creative Commons 3.0|
 !Code
@@ -53,8 +53,8 @@ var me = config.macros.get = {
             sectionTableHead: '| !%0 | !%1 |h\n',
             sliceTableHead: '| !%0 | !%1 |h\n',
             fieldTableHead: '| !%0 | !%1 |h\n',
-            fmtSliders: '<<slider "chk%0" "%1" "%2" "%3">>',
-            fmtTabs: '<<tabs "txt%0" %1>>',
+            fmtSliders: '<<slider "%0" "%1" "%2" "%3">>',
+            fmtTabs: '<<tabs "%0" %1>>',
             tableClass: 'getTable',
             dateFormat: '0DD.0MM.YYYY'
         },
@@ -410,7 +410,7 @@ var me = config.macros.get = {
                 out = (
                     prefix +
                     fmt.format([
-                        ('string' == typeof tabs ? tabs : random),
+                        'txt' + ('string' == typeof tabs ? tabs : random),
                         tx
                     ]) +
                     suffix
