@@ -4,7 +4,7 @@
 |''Documentation''|http://paintr.tiddlyspace.com|
 |''Configuration''|PaintrConfig|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|''Version''|2.1.6 (2013-10-04)|
+|''Version''|2.1.7 (2013-10-19)|
 |''CoreVersion''|2.5.2|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/PaintrPlugin.js|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
@@ -81,7 +81,7 @@ var me = config.macros.paint = {
         //remove first two params
         params.splice(0,2);
         //get new paramString as rest
-        paramString = params.join(' ');
+        paramString = '[[' + params.join(']][[') + ']]';
 
         //create pseudo-place
         place = $('<span/>')[0];
