@@ -3,7 +3,7 @@
 |Description|Allows to easily filter simple and complex lists|
 |Documentation|http://listfiltr.tiddlyspace.com|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|Version|1.7.1 (2013-11-06)|
+|Version|1.7.2 (2013-11-07)|
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
@@ -63,6 +63,8 @@ keep: [
     'thead:not(.lf-h) .lf-h',
     'tr.lf-keep td.lf-h',
     'tr.lf-keep th.lf-h',
+    'tr.lf-keep td > .lf-h',
+    'tr.lf-keep th > .lf-h',
     'dt.lf-keep .lf-h',
     'dd.lf-keep .lf-h',
 
@@ -573,8 +575,7 @@ timer:0,
             });
 
             //when collection sits next to (rather than just inside) a block level element
-            //and there is more than just the original bit of text
-            if(nextToBlock && p.length > 1)
+            if(nextToBlock)
                 //wrap in pseudo paragraph and preserve it
                 p.wrapAll('<span class="lf-p lf-preserve"/>');
         })
@@ -652,20 +653,31 @@ $.fn.highlight = function (term) {
     pattern = new RegExp(pattern.join('|'), 'gi');
 
     this.each(function () {
+        var $el = $(this);
         $(this).contents().each(function () {
             if (this.nodeType === 3 && pattern.test(this.nodeValue)) {
-                $(this).replaceWith(
-                    this.nodeValue.replace(pattern, function(matched, foo){
-                        var result;
-                        terms.map(function(term){
-                            if(matched.toLowerCase().indexOf(term) >= 0){
-                                result = fmt.format(matched);
-                            }
-                            return !result;
-                        });
-                        return result;
-                    })
-                );
+                //find outer pre
+                var pre = $el.closest('pre, code');
+                //when inside a pre
+                if(pre.length){
+                    //highlight pre instead
+                    pre.addClass('highlight');
+                //otherwise
+                } else {
+                    //wrap into highlighted span
+                    $(this).replaceWith(
+                        this.nodeValue.replace(pattern, function(matched, foo){
+                            var result;
+                            terms.map(function(term){
+                                if(matched.toLowerCase().indexOf(term) >= 0){
+                                    result = fmt.format(matched);
+                                }
+                                return !result;
+                            });
+                            return result;
+                        })
+                    );
+                }
             }
             else if (!$(this).hasClass('highlight')) {
                 $(this).highlight(term);
