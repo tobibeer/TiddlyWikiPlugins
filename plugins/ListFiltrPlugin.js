@@ -3,7 +3,7 @@
 |Description|Allows to easily filter simple and complex lists|
 |Documentation|http://listfiltr.tiddlyspace.com|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|Version|1.7.2 (2013-11-07)|
+|Version|1.7.3 (2013-11-07)|
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
@@ -200,10 +200,17 @@ timer:0,
         $('.highlight', list).each(function(){
             var x = $(this),
                 p = x.parent();
-            //remove highlight span
-            x.contents().unwrap();
-            //normalize parent to remove superfluous textnodes
-            p[0].normalize();
+            //when pre or code block
+            if(x.is('pre, code')){
+                //just remove highlight class
+                x.removeClass('highlight');
+            //otherwise
+            } else {
+                //remove highlight span
+                x.contents().unwrap();
+                //normalize parent to remove superfluous textnodes
+                p[0].normalize();
+            }
         });
 
         //not mininum number of characters
