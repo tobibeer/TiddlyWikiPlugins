@@ -4,7 +4,7 @@
 |''Description''|fetch and output a (list of) tiddler, section, slice or field using a predefined or custom format|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/GetPlugin.js|
 |''Documentation''|http://get.tiddlyspace.com|
-|''Version''|1.0.5 2013-10-08|
+|''Version''|1.2.0 2013-11-07|
 |''~CoreVersion''|2.6.2|
 |''License''|Creative Commons 3.0|
 !Code
@@ -23,7 +23,9 @@ var me = config.macros.get = {
             errFunctionInfo: "config.macros.get.get%0 is not a valid function!",
             errConfig: "Config not found!",
             errConfigInfo: "Config '%0' either does not exist or does not have a 'Tags' section!",
-            defaultCategory: "Tiddler"
+            defaultCategory: "Tiddler",
+            tipSlider: "toggle '%0'",
+            tipTab: "show '%0'"
         },
 
         identifiers: {
@@ -37,12 +39,12 @@ var me = config.macros.get = {
             fuzzy: '%0',
             tiddler: '![[%1]]\n%0',
             section: '!%3 / [[%1]]\n%0',
-            slice: ';%3\n:&raquo; %0',
-            field: ';%3\n:&raquo; %0',
+            slice: ';%3\n:%0',
+            field: ';%3\n:%0',
             tiddlerList: '!![[%1]]\n%0',
             sectionList: '!![[%1]]\n%0',
-            sliceList: ';[[%1]]\n:&raquo; %0',
-            fieldList: ';[[%1]]\n:&raquo; %0',
+            sliceList: ';[[%1]]\n:%0',
+            fieldList: ';[[%1]]\n:%0',
             tiddlerTable: '|[[%1]]|<<tiddler [[%4]]>>|',
             sectionTable: '|[[%1]]|<<tiddler [[%4]]>>|',
             sliceTable: '|[[%1]]|<<tiddler [[%4]]>>|',
@@ -51,15 +53,16 @@ var me = config.macros.get = {
             sectionTableHead: '| !%0 | !%1 |h\n',
             sliceTableHead: '| !%0 | !%1 |h\n',
             fieldTableHead: '| !%0 | !%1 |h\n',
+            fmtSliders: '<<slider "chk%0" "%1" "%2" "%3">>',
+            fmtTabs: '<<tabs "txt%0" %1>>',
             tableClass: 'getTable',
-            dateFormat: '0DD.0MM.YYYY',
+            dateFormat: '0DD.0MM.YYYY'
         },
 
         //the macro handler
         handler: function (place, macroName, params, wikifier, paramString, tiddler) {
             //no params, nothing to get
             if (!paramString) return;
-
             var def, lp, mode, out = '', tg, tag, tags, tpl, txt, what,
                 //get the outer tiddler
                 t = story.findContainingTiddler(place),
@@ -84,8 +87,8 @@ var me = config.macros.get = {
                 params.shift();
             }
 
-            //if no tiddler is defined, get as outer tiddler
-            title = tiddler  && !fuzzy ? tiddler.title : (t ? t.getAttribute('tiddler') : '');
+            //get title from context tiddler otherwise from outer tiddler
+            title = tiddler ? tiddler.title : (t ? t.getAttribute('tiddler') : '');
 
             //when full tiddler
             if (me.identifiers.tiddler == p0) {
@@ -127,7 +130,7 @@ var me = config.macros.get = {
                 //get tags from config
                 tags = store.getTiddlerText(cfg + '##Tags');
 
-                //no tags config not found?
+                //tags config not found?
                 if (!tags) {
                     //render error
                     createTiddlyError(place, me.dict.errConfig, me.dict.errConfigInfo.format([cfg]));
@@ -195,7 +198,7 @@ var me = config.macros.get = {
                 return;
             }
             //all other variables
-            var $ = 0, $val = '', $vals = [], fmt, tid, v, val, vals,
+            var $ = 0, $val = '', $vals = [], fmt, tid, tx='', v, val, vals, w,
                 //output container
                 $el = $j(place),
                 //refresh status
@@ -208,12 +211,22 @@ var me = config.macros.get = {
                 template = store.getTiddlerText(getParam(p, 'template', '')),
                 //fetch plain or as key => value
                 plain = params.contains('plain'),
+                //output as sliders?
+                sliders = getParam(p,'sliders', params.contains('sliders')),
+                //or tabs?
+                tabs = getParam(p,'tabs',params.contains('tabs')),
                 //get output template either as fuzzy or as table when specified or list when filter is used otherwise leave empty
-                tpl = params.contains('table') ? 'Table' : (filter || params.contains('list') ? 'List' : ''),
+                tpl = 
+                    sliders                             ? 'Sliders' : (
+                    tabs                                ? 'Tabs'    : (
+                    params.contains('table')            ? 'Table'   : (
+                    params.contains('list') || filter   ? 'List'    : '' ))),
                 //helper
                 as = tpl.toLowerCase(),
+                //whether to render as sliders or tabs
+                st = ['sliders','tabs'].contains(as),
                 //what to fetch, either empty when entire tiddler or as first param
-                what = full ? '' : params[0];
+                what = full ? '' : params[0],
                 //only when no output given yet, check for separators and split into array of [key,sep,value]
                 ref = config.filters.get.delimiterRegExp.exec( out ? '' : what),
                 //get separator
@@ -251,36 +264,46 @@ var me = config.macros.get = {
                 //what footer to use
                 footer = getParam(p, 'footer', ''),
                 //what separator to use for rendering result items
-                separator = getParam(p, 'separator', '\n');
+                separator = getParam(p, 'separator', '\n'),
+                //generate random cookie id for sliders or tabs
+                random = st ? (new Date()).formatString('YYYY0MM0DD0hh0mm0ss') + Math.random().toString().substr(6) : '';
 
             //get values if output not defined
             if(!out){
                 //get tiddler either fuzzy or from reference or as first param
                 title = fuzzy || !what ? title : (ref ? (ref[1] ? ref[1] : title) : what);
 
-                //when to be gotten as plain, take value as is
-                fmt = plain ? '%0' : (
-                    //when format defined use that otherwise use
-                    format ? format : (
-                        //when template defined use that otherwise get template
-                        template ? template : me.template[
-                            //for fuzzy 
-                            (fuzzy ? 'fuzzy' :
-                                //for section or
-                                (sep == '##' ? 'section' + tpl :
-                                    //for slice or
-                                    (sep == '::' ? 'slice' + tpl :
-                                        //for field or otherwise for tiddler
-                                        (sep == '??' ? 'field' + tpl :
-                                                    'tiddler' + tpl
+                //when sliders or tabs
+                if(st){
+                    //get corresponding format
+                    fmt = me.template[ 'fmt' +
+                        (as == 'tabs' ? 'Tabs' : 'Sliders')
+                    ];
+                //otherwise
+                } else {
+                    //when to be gotten as plain, take value as is
+                    fmt = plain ? '%0' : (
+                        //when format defined use that otherwise use
+                        format ? format : (
+                            //when template defined use that otherwise get template
+                            template ? template : me.template[
+                                //for fuzzy 
+                                (fuzzy ? 'fuzzy' :
+                                    //for section or
+                                    (sep == '##' ? 'section' + tpl :
+                                        //for slice or
+                                        (sep == '::' ?  'slice' + tpl :
+                                            //for field or otherwise for tiddler
+                                            (sep == '??' ? 'field' + tpl :
+                                                'tiddler' + tpl
                                             )
                                         )
                                     )
                                 )
                             ]
                         )
-                    );
-
+                    )
+                }
                 //if exec function exists
                 if (exec) {
                     //execute to get values
@@ -318,7 +341,7 @@ var me = config.macros.get = {
                     tid = vals[v][0];
                     //get value prepending the optional prefix
                     val = prefixv + vals[v][1];
-                    ////fix code section
+                    //fix code section
                     val = val.indexOf('***/\n') != 0 ? val : val.substr(5);
 
                     //loop all transclusion params
@@ -327,34 +350,79 @@ var me = config.macros.get = {
                         val = val.replace(new RegExp('\\$' + $, 'mg'), $vals[$]);
                     }
 
+                    //what to get as full reference, e.g. "tiddlerName##SectionTitle"
+                    w = (as ? tid : '') + what;
+
                     //replace wannabe newline characters
                     fmt = fmt.replace(/\\n/mg,'\n');
-                    //add to output
-                    out += (
-                      //item prefix
-                      prefix +
-                      //item format
-                      fmt.format([
-                        val,
-                        tid,
-                        type,
-                        element,
-                        (as ? tid : '') + what,
-                        cat
-                      ]) +
-                      //suffix
-                      suffix
-                    //replace count
-                    ).replace(/\$count/mg, String.zeroPad(v + 1, vals.length.toString().length)) +
-                      //add item separator for non-last
-                      (as && v < vals.length - 1 ? separator : '');
+                    //render as tabs?
+                    if(as == 'tabs'){
+                        //add this tid to tabs
+                        tx += ' [[%0]] [[%1]] [[%2]]'.format([
+                            tid,
+                            me.dict.tipTab.format([ w ]),
+                            w
+                        ]);
+                    //anything other than tabs
+                    } else {
+                        //add to output
+                        out += (
+                          //item prefix
+                          prefix +
+                          (
+                            //render sliders?
+                            as == 'sliders' ?
+                            (
+                                //when same tiddler and full tiddlers to be fetched
+                                full && title == tid ?
+                                //do not render
+                                '' :
+                                //otherwise render slider format
+                                fmt.format([
+                                    'chk' + ('string' == typeof sliders ? sliders : random) + tid.replace(/W/mg, '_'),
+                                    w,
+                                    tid,
+                                    me.dict.tipSlider.format([ w ])
+                                ])
+                            ) :
+                            //render item format
+                            fmt.format([
+                                val,
+                                tid,
+                                type,
+                                element,
+                                w,
+                                cat
+                            ])
+                          ) +
+                          //suffix
+                          suffix
+                        //replace count
+                        ).replace(/\$count/mg, String.zeroPad(v + 1, vals.length.toString().length)) +
+                            //add item separator for non-last
+                            (as && v < vals.length - 1 ? separator : '');
+                    }
                 }
 
             }
+            //when output as tabs
+            if(as == 'tabs'){
+                out = (
+                    prefix +
+                    fmt.format([
+                        ('string' == typeof tabs ? tabs : random),
+                        tx
+                    ]) +
+                    suffix
+                //optional count in  prefix or suffix
+                ).replace(/\$count/mg, vals.length);
+            }
+
             //add to output
             out =
               //optional header
               (header ? header : '') +
+              //the output
               out +
               //optional footer
               (footer ? footer : '');
@@ -473,7 +541,7 @@ var me = config.macros.get = {
                         if (fuzzy) {
                             //try to get slice value
                             v = store.getTiddlerText(tid + '::' + what);
-                            //sliece value found?
+                            //slice value found?
                             if (v)
                                 //set type
                                 type = 'slice';
@@ -509,7 +577,9 @@ var me = config.macros.get = {
                     if (d && !isNaN(d.getMonth)) v = d.formatString(me.template.dateFormat);
 
                     //add to values
-                    if (v) vals.push([tid, v]);
+                    if (v) {
+                        vals.push([tid, v]);
+                    }
                 }
             }
 
