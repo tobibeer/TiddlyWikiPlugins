@@ -4,7 +4,7 @@
 |''Description''|Allows you to easily rename or delete tiddlers and have tags updated across multiple tiddlers|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/RenameTiddlersPlugin.js|
 |''Documentation''|http://renametiddlers.tiddlyspace.com|
-|''Version''|0.9.9 BETA (2013-10-07)|
+|''Version''|1.0.0 BETA (2013-10-07)|
 |''~CoreVersion''|2.5.2|
 |''License''|[[Creative Commons Attribution-Share Alike 3.0|http://creativecommons.org/licenses/by-sa/3.0/]]|
 When you rename a tiddler that serves as a tag you will be asked whether you want to update the tagged tiddlers as well.
@@ -104,8 +104,11 @@ var me = config.renameTiddler = {
             var num, pos;
             //title changed?
             if (title != newTitle) {
+                //get renamed field
                 var names = (this.getValue(title,'renamed')||'').readBracketedList();
-                names.pushUnique(title);
+                //do not add "New Tiddler" name
+                if(title != config.macros.newTiddler.title) names.pushUnique(title);
+                //when new title already in it, remove from history
                 if(names.contains(newTitle))names.splice(names.indexOf(newTitle),1);
                 this.setValue(
                     title,
@@ -232,7 +235,8 @@ var me = config.renameTiddler = {
 
 findRenamedTiddler = function(title){
     var found = false;
-    if(!store.tiddlerExists(title)){
+    //when tiddler doesn't exist, however not checking for "New Tiddler"
+    if(!store.tiddlerExists(title) && title != config.macros.newTiddler.title){
         store.forEachTiddler(function(tid){
             var renamed = (store.getValue(tid,'renamed')||'').readBracketedList();
             if(renamed.contains(title)){
