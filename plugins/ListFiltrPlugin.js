@@ -3,7 +3,7 @@
 |Description|Allows to easily filter simple and complex lists|
 |Documentation|http://listfiltr.tiddlyspace.com|
 |Author|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
-|Version|1.7.3 (2013-11-07)|
+|Version|1.7.4 (2013-11-07)|
 |~CoreVersion|2.6.5|
 |License|Creative Commons 3.0|
 |Source|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/ListFiltrPlugin.js|
@@ -232,13 +232,13 @@ timer:0,
                 var col0 = 1, cols, cs, head, max,
                     next, prev, rs, ta, tr, x,
                     //the element
-                    el = $(this),
+                    el = $(this)
                     //found when highlight
                     found = el.is('.highlight');
 
                 //when not highlight itself
                 if(!found)
-                    //get gound from...
+                    //get found from...
                     found = 
                         //when list element
                         el.is('li, dt, dd') ?
@@ -481,9 +481,7 @@ timer:0,
         $('.externalLink, .tiddlyLink', list).each(function () {
             var l = $(this),
                 link = (
-                    l.hasClass('tiddlyLink') ?
-                    l.attr('tiddlyLink') :
-                    l.attr('href')
+                    l.attr('tiddlyLink') || l.attr('href')
                 ).replace(/\/\/\:/mg,'_').toLowerCase();
 
             term.split(me.or).map(function(t){
