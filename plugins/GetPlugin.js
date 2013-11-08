@@ -4,7 +4,7 @@
 |''Description''|fetch and output a (list of) tiddler, section, slice or field using a predefined or custom format|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/GetPlugin.js|
 |''Documentation''|http://get.tiddlyspace.com|
-|''Version''|1.2.2 2013-11-07|
+|''Version''|1.2.3 2013-11-07|
 |''~CoreVersion''|2.6.2|
 |''License''|Creative Commons 3.0|
 !Code
@@ -49,12 +49,30 @@ var me = config.macros.get = {
             sectionTable: '|[[%1]]|<<tiddler [[%4]]>>|',
             sliceTable: '|[[%1]]|<<tiddler [[%4]]>>|',
             fieldTable: '|[[%1]]|%0|\n',
+
+            /*  Important, in the following templates %0, %1, etc
+                do NOT correspond to the default placeholders       */
+
+            //TABLES HEADS
+            //%0 = Category (default: 'tiddler')
+            //%1 = Reference, i.e. the section, slice or field name
             tiddlerTableHead: '| !%0 | !Text |h\n',
             sectionTableHead: '| !%0 | !%1 |h\n',
             sliceTableHead: '| !%0 | !%1 |h\n',
             fieldTableHead: '| !%0 | !%1 |h\n',
+            
+            //SLIDERS
+            //%0 = cookie name
+            //%1 = (calculated) reference, i.e. tiddler, tiddler##section or tiddler::slice
+            //%2 = button title (= tiddler name)
+            //%3 = button tooltip (= dict.tipSlider)
             fmtSliders: '<<slider "%0" "%1" "%2" "%3">>',
+            
+            //TABS
+            //%0 = cookie name
+            //%1 = (calculated) string of tabs as pairs of "[[title]] [[tooltip]] [[content##reference]]"
             fmtTabs: '<<tabs "%0" %1>>',
+            
             tableClass: 'getTable',
             dateFormat: '0DD.0MM.YYYY'
         },
@@ -591,30 +609,37 @@ var me = config.macros.get = {
     //new get filter
     config.filters.get = function (results, match) {
         var
-          //what to get
-          ref = config.filters.get.delimiterRegExp.exec(match[3]),
-          //depending on whether there was a separator get tiddler, separator and value
-          tid = ref ? ref[1] : match[3],
-          sep = ref ? ref[2] : '',
-          val = ref ? ref[3] : '';
+            //whether or not this is the first filter
+            first = match.index == 0,
+            //what to get
+            ref = config.filters.get.delimiterRegExp.exec(match[3]),
+            //depending on whether there was a separator get tiddler, separator and value
+            tid = ref ? ref[1] : match[3],
+            sep = ref ? ref[2] : '',
+            val = ref ? ref[3] : '',
+            //when first filter, get all tids, otherwise take previous results
+            tids = first ? store.getTiddlers('title') : results.slice();
+
+        //reset results
+        results = [];
 
         //loop all tiddlers
-        store.forEachTiddler(
+        tids.map(
           //recursively invoke this anonymous function
-          function (title, tiddler) {
-              if (
+          function (t){
+            if (
                 //when tiddler matches
-                tid && tid == title ||
+                tid && tid == t.title ||
                 //or no tid specified and
                 !tid && (
-                  //when field query and lookup returns something
-                  sep == '??' && store.getValue(title, val) ||
-                  //when the generic lookup returns something
-                  store.getTiddlerText(title + sep + val)
+                    //when field query and lookup returns something
+                    sep == '??' && store.getValue(t.title, val) ||
+                    //when the generic lookup returns something
+                    store.getTiddlerText(t.title + sep + val)
                 )
-              //add to matching tiddlers
-              ) results.pushUnique(tiddler);
-          });
+            //add to matching tiddlers
+            ) results.pushUnique(t);
+        });
 
         //return result list
         return results;
