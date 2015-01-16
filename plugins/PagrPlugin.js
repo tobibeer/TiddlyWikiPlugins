@@ -25,11 +25,15 @@ var me = config.macros.pagr = {
 	sub: '#subMenu',
 	//toc class, to make chapter tocs look like the toc
 	tocClass:'toc',
+	//whether to use pretty titles in crumbs
+	prettyCrumbs: true,
 
 	//localisation
 	crumbsSeparator: '»',
 	tipSeparator: 'Show other chapter items for "%0"',
-	homeText: '%0',
+	alt: '', //alternative content displayed when in Start tiddler
+	homeText: '%0',  //home page text on homepage
+	homeTextSub: '%0', //home page text on subpage
 
 	//link formats
 	fmtNext: '[[%0]]',
@@ -95,6 +99,7 @@ var me = config.macros.pagr = {
 			'crumbsSeparator|cs',
 			'tiddler|tid',
 			'homeText',
+			'homeTextSub',
 			'tocClass|tc',
 
 		//loop them
@@ -245,7 +250,7 @@ var me = config.macros.pagr = {
 				});
 
 				//text to display for home
-				home = p.homeText.format([p.home]);
+				home = p[tid == p.home ? 'homeText' : 'homeTextSub'].format([p.home]);
 				//don't link homw when we're there already
 				if(tid != p.home){
 					//output  tiddlyLink to home
@@ -264,6 +269,11 @@ var me = config.macros.pagr = {
 					me.crumbsPopup,
 					'crumbs_separator tiddlyLink'
 				)).data('tids',next.slice());
+				//when home tiddler and alternative text
+				if(tid == p.home && me.alt){
+					//wikify alternative text
+					wikify(me.alt, cx[0]);
+				}
 			}
 
 			//loop parents
@@ -292,11 +302,16 @@ var me = config.macros.pagr = {
 					//same as current tiddler?
 					if(ti == tid)
 						//just the text
-						createTiddlyElement(cx[0],'span',null,'crumbs_current', ti);
+						createTiddlyElement(cx[0],'span',null,'crumbs_current', me.prettyCrumbs ? link.text() : ti);
 					//otherwise
-					else
+					else {
 						//the link
-						createTiddlyLink(cx[0], ti, true);
+						elem = createTiddlyLink(cx[0], ti, !me.prettyCrumbs );
+						//set pretty title
+						if(me.prettyCrumbs) {
+							createTiddlyText(elem, link.text());
+						}
+					}
 
 					//append separator as button
 					$(createTiddlyButton(
