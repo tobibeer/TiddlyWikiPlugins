@@ -1,7 +1,7 @@
 /***
 |''Name:''|FieldClassesPlugin|
 |''Description:''|adds classes to each tiddler for each field|
-|''Documentation''|http://fieldclasses.tiddlyspace.com|
+|''Documentation''|http://fieldclassesplugin.tiddlyspace.com|
 |''Version:''|0.1.0|
 |''Date:''|2015.01.16|
 |''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/DiscussPlugin.js|
