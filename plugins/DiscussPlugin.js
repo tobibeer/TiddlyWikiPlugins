@@ -1,4 +1,6 @@
-﻿/***
+﻿// TODO: use StyleSheet! FIX CSS!
+
+/***
 |''Name''|DiscussPlugin|
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Description''|outputs the (modified) html representation with disqus in an iframe for a tiddler on TiddlySpace|
