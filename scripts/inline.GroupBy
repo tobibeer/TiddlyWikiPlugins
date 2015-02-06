@@ -1,0 +1,54 @@
+/%
+|details|k
+|''Name''|GroupBy|
+|''Description''|GroupBy allows to group tiddlers by a category of tags. For use via transclusion.|
+|''Documentation''|http://scripts.tiddlyspace.com/#%5B%5BS%3A%20GroupBy%5D%5D|
+|''Author''|Tobias Beer|
+|''Date''|2013-09-04 |
+|''Version''|0.1 (2015-02-06)|
+|''Requires''|TW > 2.5.3|
+|''License''|Creative Commons 3.0|
+|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/scripts/inline.GroupBy.js|
+|''Discussion''|https://groups.google.com/d/msg/tiddlywiki/uP7CVGHxFG8/ufvtvfA57QgJ|
+%/<script>
+(function($){
+var out="",x={},
+    filter = "$1",
+    group = "$2",
+    sf = "$3",
+    sg = "$4",
+    fmtGroup = "$5" == "$"+"5" ? "; [[%0]]\n" : "$5",
+    fmtItem  = "$6" == "$"+"6" ? ": [[%0]]\n" : "$6";
+if(filter=="$"+"1" || group=="$"+"2") return;
+group = "[tag[" + group + "]]";
+sf = sf == "$"+"3" ? "title" : sf;
+sg = sg == "$"+"4" ? "title" : sg;
+group = store.sortTiddlers(store.filterTiddlers(group),sf);
+$.each(
+    store.sortTiddlers(store.filterTiddlers(filter),sg),
+    function(n,t) {
+        if(t.tags) {
+            $.each(group,function(n,tid) {
+                tid = tid.title;
+                if(t.tags.contains(tid)) {
+                    if(!x[tid]) {
+                        x[tid]=[];
+                    }
+                    x[tid].push(t.title);
+                }
+            });
+        }
+    }
+);
+$.each(group,function(n,tid) {
+    tid = tid.title;
+    items = x[tid];
+    if(!items) return;
+    out += fmtGroup.format(tid);
+    $.each(items,function(n,tid) {
+        out += fmtItem.format(tid);
+    });
+});
+wikify(out,place);
+})(jQuery);
+</script>
