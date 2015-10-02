@@ -3,7 +3,7 @@
 |''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
 |''Description''|turn a list of links to external media into a playlist and player for HTML5 audio or video|
 |''Documentation''|http://html5player.tiddlyspace.com|
-|''Version''|0.1.0 (2015-10-02)|
+|''Version''|0.1.1 (2015-10-02)|
 |''Requires''|2.5.2|
 |''License''|CC BY-SA|
 |''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/plugins/HTML5PlayerPlugin.js|
@@ -126,7 +126,7 @@ var initPlayers = function() {
           });
         //key press handling
         $player.bind("keydown", function(ev) {
-            var
+            var act,
               //event
               e = ev || window.event,
               //pressed key
@@ -135,34 +135,47 @@ var initPlayers = function() {
             if (key == 32) {
               //pausePlay
               play();
+              act=1;
             // DOWN
             } else if (key == 40) {
               //next track
               next();
+              act=1;
             // UP
             } else if (key == 38) {
               //previous track
               prev();
+              act=1;
             // ENTER
             } else if (key == 13 && ! e.ctrlKey) {
               //shuffle
               shuffle();
+              act=1;
             // M(mute)
             } else if (key == 77) {
               //mute player
               mute();
+              act=1;
             // S(huffle)
             } else if (key == 83) {
               //toggle player shuffle
               $wrap.toggleClass("shuffle");
+              act=1;
             // + (vol up)
             } else if (key == 171) {
               //increase volume
               vol(1);
+              act=1;
             // - (vol down)
             } else if (key == 173) {
               //decrease volume
               vol();
+              act=1;
+            }
+            //any actions performed?
+            if(act) {
+              //no bubbling
+              e.stopPropagation();
             }
           });
         //focus this player
