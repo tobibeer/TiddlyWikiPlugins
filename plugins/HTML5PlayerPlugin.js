@@ -176,6 +176,8 @@ var initPlayers = function() {
             if(act) {
               //no bubbling
               e.stopPropagation();
+              //no browser default
+              event.preventDefault();
             }
           });
         //focus this player
