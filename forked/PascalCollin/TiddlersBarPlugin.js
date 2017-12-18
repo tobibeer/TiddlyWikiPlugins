@@ -1,10 +1,10 @@
 /***
 |''Name:''|TiddlersBarPlugin|
 |''Description:''|Provides browser-like tabs to switch between tiddlers.|
-|''Author:''|Pascal Collin / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
+|''Author:''|Pascal Collin / fork: [[Tobias Beer|http://tobibeer.github.io]]|
 |''Version:''|1.3.7 (2013-10-06)|
 |''~CoreVersion:''|2.5.2|
-|''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
+|''Source:''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/PascalCollin/TiddlersBarPlugin.js|
 |''License:''|[[BSD Open Source License|http://visualtw.ouvaton.org/VisualTW.html#License]]|
 !Installation
 #import this tiddler
@@ -17,7 +17,7 @@
 *doubleclick on the tiddlers bar (where there is no tab) to create a new tiddler.
 *tabs include a button to close {{{x}}} or save {{{!}}} the tiddler.
 *by default, clicking on the current tab close all others tiddlers.
-!Options 
+!Options
 <<option chkDisableTabsBar>> ''chkDisableTabsBar'' &nbsp; <<option chkHideTabsBarWhenSingleTab>> ''chkHideTabsBarWhenSingleTab''
 ;txtSelectedTiddlerTabButton
 :<<option txtSelectedTiddlerTabButton>> (selected tab command)

@@ -2,10 +2,10 @@
 |''Name:''|SlideShowPlugin|
 |''Description:''|Creates a slide show from any number of tiddlers|
 |''Documentation:''|[[SlideShowPlugin Documentation|SlideShowPluginDoc]]|
-|''Author:''|Paulo Soares / fork: [[Tobias Beer|http://tobibeer.tiddlyspace.com]]|
+|''Author:''|Paulo Soares / fork: [[Tobias Beer|http://tobibeer.github.io]]|
 |''Contributors:''|John P. Rouillard|
 |''Version:''|2.4.4 (2013-10-08)|
-|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/TiddlersBarPlugin.js|
+|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/PauloSoares/SlideShowPlugin.js|
 |''Master:''|http://www.math.ist.utl.pt/~psoares/addons.html|
 |''License:''|[[Creative Commons Attribution-Share Alike 3.0 License|http://creativecommons.org/licenses/by-sa/3.0/]]|
 |''~CoreVersion:''|2.5.0|
