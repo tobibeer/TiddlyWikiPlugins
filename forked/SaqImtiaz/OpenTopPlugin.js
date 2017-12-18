@@ -1,11 +1,11 @@
 /***
 |''Name''|OpenTopPlugin|
-|''Author''|[[Tobias Beer|http://tobibeer.tiddlyspace.com]] / original by Saq Imtiaz|
+|''Author''|[[Tobias Beer|http://tobibeer.github.io]] / original by Saq Imtiaz|
 |''Description''|open tiddlers at the top of the screen|
 |''Version''|0.3.4 (2013-10-14)|
 |''Requires''|2.5.2|
 |''License''|CC BY-SA|
-|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/OpenTopPlugin.js|
+|''Source''|https://raw.github.com/tobibeer/TiddlyWikiPlugins/master/forked/SaqImtiaz/OpenTopPlugin.js|
 ***/
 /*{{{*/
 (function($){
